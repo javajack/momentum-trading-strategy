@@ -24,6 +24,34 @@ What makes it adaptive:
 
 The 18-month period includes the Oct 2024 - Mar 2025 market correction, where the strategy went defensive (50%+ cash) and underperformed. The 2023-2024 bull run demonstrates the strategy's alpha generation in favorable conditions.
 
+### 10-Year Market Phases (2015-2026)
+
+A continuous backtest across 12 distinct market phases, from the 2015 bull run through the late-2024 correction.
+
+**Overall: +1,216.8% return | 24.2% CAGR | 1.16 Sharpe | -25.8% Max DD | +568% alpha vs NIFTY 50**
+
+| # | Phase | Type | Return | NIFTY | Alpha | Max DD |
+|---|-------|------|--------|-------|-------|--------|
+| 1 | 2015 Bull Run | Bullish | -11.2% | -12.8% | +1.6% | -13.6% |
+| 2 | China Scare & Recovery | Bear/Recovery | +2.4% | -8.4% | +10.8% | -6.1% |
+| 3 | Pre-Demonetization Bull | Bullish | +17.6% | +15.9% | +1.7% | -6.1% |
+| 4 | Demonetization Shock | Bear/Recovery | +2.3% | +8.8% | -6.5% | -8.7% |
+| 5 | 2017 Bull Run | Bullish | +19.3% | +20.5% | -1.2% | -7.8% |
+| 6 | NBFC / IL&FS Crisis | Bearish | -15.9% | -1.7% | -14.2% | -21.2% |
+| 7 | 2019 Recovery | Sideways/Bull | +6.0% | +11.2% | -5.2% | -10.6% |
+| 8 | COVID Crash | Crash | -11.3% | -32.2% | +20.9% | -14.4% |
+| 9 | Post-COVID Rally | Bullish | +294.8% | +128.5% | +166.3% | -5.6% |
+| 10 | 2022 Correction | Bearish | +0.8% | -17.0% | +17.8% | -12.1% |
+| 11 | 2023-24 Bull Run | Bullish | +108.6% | +70.5% | +38.1% | -17.5% |
+| 12 | Late 2024-25 Correction | Bear/Sideways | +1.7% | -1.9% | +3.6% | -15.7% |
+
+Key takeaways:
+- **Bull phases** average +72.5% return (6 phases) -- captures upside aggressively
+- **Bear/crash phases** average -3.3% return (6 phases) -- strong downside protection
+- **COVID crash**: -11.3% vs NIFTY -32.2% (+20.9% alpha) -- defensive scaling worked
+- **Post-COVID rally**: +294.8% with only -5.6% max DD -- recovery mode captured the rebound
+- Capital grew from ~31L to ~2.63 Cr over the full period (20L initial + 12-month warmup)
+
 ## Architecture
 
 ```
