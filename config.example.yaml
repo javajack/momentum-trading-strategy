@@ -1,0 +1,281 @@
+# FORTRESS MOMENTUM Configuration Example
+# Copy this file to config.yaml and fill in your credentials
+# Alternatively, set environment variables: ZERODHA_API_KEY, ZERODHA_API_SECRET
+
+# Zerodha API credentials (required)
+# SECURITY: Use environment variables instead of storing credentials in this file
+zerodha:
+  api_key: "YOUR_API_KEY_HERE"
+  api_secret: "YOUR_API_SECRET_HERE"
+
+# Portfolio settings
+portfolio:
+  initial_capital: 2000000
+  max_positions: 20
+
+# Pure Momentum Strategy Settings (Nifty 500 Momentum 50 style)
+# OPTIMIZED: Balanced for all market conditions
+pure_momentum:
+  # NMS calculation parameters
+  lookback_6m: 126           # 6-month lookback (trading days)
+  lookback_12m: 252          # 12-month lookback (trading days)
+  lookback_volatility: 126   # Volatility calculation window
+  skip_recent_days: 5        # Skip recent days to avoid reversal
+  weight_6m: 0.50            # 50% weight to 6M adjusted return
+  weight_12m: 0.50           # 50% weight to 12M adjusted return
+
+  # Entry filters (all must pass)
+  min_score_percentile: 95   # Top 5% by NMS for entry consideration
+  min_52w_high_prox: 0.85    # Price >= 85% of 52-week high
+  min_volume_ratio: 1.1      # 20-day volume > 50-day x 1.1
+  min_daily_turnover: 20000000  # Rs 2 Cr minimum daily turnover
+
+  # Exit triggers
+  min_hold_percentile: 50    # Exit if NMS falls below 50th percentile
+  max_days_without_gain: 60  # Exit after 60 days without +10% gain
+  min_gain_threshold: 0.10   # Target gain for time-based exit check
+
+# Position sizing - OPTIMIZED for quality over quantity
+position_sizing:
+  method: "momentum_weighted"  # "equal", "momentum_weighted", or "inverse_volatility"
+  max_single_position: 0.10    # 10% max per position (allow conviction bets)
+  min_single_position: 0.04    # 4% min per position (meaningful positions)
+  max_sector_exposure: 0.30    # 30% max per sector
+  target_positions: 12         # Target 12 positions (quality focus)
+  min_positions: 10            # Maintain at least 10 positions
+  max_positions: 15            # Never exceed 15 positions
+
+# Rebalancing schedule (monthly proven optimal)
+rebalancing:
+  frequency: "monthly"
+  rebalance_days: 21    # Trading days between rebalances (21 = monthly)
+  day: "friday"
+  min_trade_value: 10000
+
+# Risk limits with stop losses
+risk:
+  # Position limits
+  max_single_position: 0.10
+  hard_max_position: 0.12
+  max_sector_exposure: 0.25
+  hard_max_sector: 0.30
+
+  # Drawdown limits
+  max_drawdown_warning: 0.10
+  max_drawdown_halt: 0.20
+  daily_loss_limit: 0.03
+
+  # Stop losses - BALANCED (wider stops reduce whipsaws)
+  initial_stop_loss: 0.18      # 18% initial stop loss
+  trailing_stop: 0.15          # 15% trailing stop
+  trailing_activation: 0.08    # Activate trailing after +8% gain
+
+# Transaction costs
+costs:
+  transaction_cost: 0.003
+
+# Market Regime Detection - AGILE (faster recovery without compromising safety)
+regime:
+  enabled: true
+
+  # Multi-timeframe lookbacks
+  lookback_short: 21
+  lookback_medium: 63
+  lookback_long: 126
+
+  # REBALANCED weights (30/35/35 - increased short-term responsiveness)
+  weight_short: 0.30
+  weight_medium: 0.35
+  weight_long: 0.35
+
+  # Entry thresholds
+  bullish_threshold: 0.65
+  caution_threshold: 0.45
+  defensive_threshold: 0.25
+
+  # Recovery thresholds
+  bullish_recovery_threshold: 0.70
+  normal_recovery_threshold: 0.52
+  caution_recovery_threshold: 0.32
+
+  # Hysteresis
+  upgrade_confirmation_days: 3
+  downgrade_confirmation_days: 4
+
+  # Position momentum settings
+  use_position_momentum: true
+  position_momentum_period: 5
+  position_momentum_recovery_bonus: 0.05
+
+  # VIX recovery accelerator
+  use_vix_recovery_accelerator: true
+  vix_recovery_spike_threshold: 25.0
+  vix_recovery_decline_rate: 0.10
+  vix_recovery_bonus: 0.03
+
+  # Adaptive hysteresis
+  adaptive_hysteresis: true
+  strong_signal_bonus: 0.10
+
+  # Short-term return settings
+  use_return_10d: true
+  return_10d_weight: 0.15
+
+  # VIX thresholds
+  vix_elevated: 18.0
+  vix_caution: 22.0
+  vix_defensive: 28.0
+  vix_normal: 16.0
+  vix_calm: 14.0
+
+  # Return thresholds
+  return_warning: -0.03
+  return_caution: -0.05
+  return_defensive: -0.10
+  return_recovery_normal: 0.03
+  return_recovery_bullish: 0.08
+
+  # Graduated allocation settings
+  use_graduated_allocation: true
+  min_equity_allocation: 0.50
+  max_gold_allocation: 0.25
+  max_cash_allocation: 0.25
+  allocation_curve_steepness: 2.0
+
+  # Fixed allocation - CAUTION regime
+  caution_equity: 0.80
+  caution_gold: 0.10
+  caution_cash: 0.10
+
+  # Fixed allocation - DEFENSIVE regime
+  defensive_equity: 0.60
+  defensive_gold: 0.20
+  defensive_cash: 0.20
+
+  # Defensive instruments
+  gold_symbol: "GOLDBEES"
+  cash_symbol: "LIQUIDCASE"
+
+# Paths
+paths:
+  universe_file: "stock-universe.json"
+  log_dir: "logs"
+  data_cache: ".cache"
+
+# Strategy selection
+active_strategy: "classic"
+
+# Classic Strategy Enhanced Configuration
+strategy_classic:
+  use_adaptive_parameters: true
+  use_bull_recovery_mode: true
+  bull_recovery_filter_relaxation: 0.25
+  bull_recovery_vix_threshold: 20.0
+  bull_recovery_momentum_threshold: 0.003
+  bull_recovery_duration_days: 60
+  use_recovery_mode: true
+  recovery_drawdown_trigger: -0.07
+  recovery_duration_days: 60
+  recovery_filter_relaxation: 0.25
+  use_tiered_stops: true
+  tier1_threshold: 0.08
+  tier2_threshold: 0.20
+  tier3_threshold: 0.50
+  tier1_trailing: 0.15
+  tier2_trailing: 0.15
+  tier3_trailing: 0.18
+  tier4_trailing: 0.25
+  trend_break_buffer: 0.03
+  trend_break_buffer_bullish_mult: 1.67
+  trend_break_buffer_defensive_mult: 0.0
+  trend_break_confirm_days: 2
+  trend_break_confirm_bullish_mult: 1.5
+  trend_break_confirm_defensive_mult: 0.5
+  use_adaptive_filters: true
+  high_52w_bullish_mult: 0.90
+  high_52w_defensive_mult: 1.05
+  volume_bullish_mult: 0.90
+  volume_defensive_mult: 1.10
+  adaptation_curve: 2.0
+  stop_bullish_mult: 1.15
+  stop_defensive_mult: 0.90
+
+# AllWeather Strategy Configuration
+strategy_allweather:
+  use_relative_strength: true
+  rs_weight: 0.25
+  min_rs_threshold: 1.00
+  rs_exit_threshold: 0.95
+  use_momentum_acceleration: true
+  min_acceleration: 0.90
+  use_exhaustion_detection: true
+  exhaustion_exit_threshold: 60
+  use_adaptive_stops: true
+  tier2_trailing: 0.15
+  tier3_trailing: 0.18
+  tier4_trailing: 0.25
+
+  adaptive:
+    use_adaptive_parameters: true
+    use_recovery_mode: true
+    adaptation_curve: 2.0
+    rs_entry_bullish_mult: 0.85
+    rs_entry_defensive_mult: 1.05
+    rs_exit_bullish_mult: 0.90
+    rs_exit_defensive_mult: 1.05
+    exhaustion_bullish_mult: 1.40
+    exhaustion_defensive_mult: 0.85
+    acceleration_bullish_mult: 0.75
+    acceleration_defensive_mult: 1.05
+    stop_bullish_mult: 1.25
+    stop_defensive_mult: 0.85
+    trend_break_buffer: 0.03
+    trend_break_confirm_days: 2
+    trend_break_buffer_bullish_mult: 1.67
+    trend_break_buffer_defensive_mult: 0.0
+    trend_break_confirm_bullish_mult: 1.5
+    trend_break_confirm_defensive_mult: 0.5
+    breakout_bullish_mult: 0.55
+    breakout_defensive_mult: 1.20
+    use_bullish_momentum_boost: true
+    bullish_momentum_boost: 0.15
+    use_sideways_optimization: true
+    sideways_stress_min: 0.25
+    sideways_stress_max: 0.55
+    sideways_rs_trend_required: false
+    sideways_rs_trend_lookback: 10
+    sideways_rs_trend_min: 0.005
+    sideways_breakout_mult: 1.10
+    sideways_stop_mult: 1.15
+    sideways_volume_mult: 1.05
+    sideways_require_positive_momentum: false
+    sideways_min_momentum: 0.002
+    sideways_consistency_boost: 0.15
+    recovery_drawdown_trigger: -0.07
+    recovery_duration_days: 60
+    recovery_filter_relaxation: 0.25
+    use_bull_recovery_mode: true
+    bull_recovery_filter_relaxation: 0.30
+    bull_recovery_vix_threshold: 20.0
+    bull_recovery_momentum_threshold: 0.003
+    bull_recovery_duration_days: 60
+    use_partial_filter_passing: true
+    partial_filter_min_passed: 2
+    partial_filter_score_penalty: 0.04
+    bullish_boost_rs_threshold: 1.05
+    bullish_boost_acceleration_threshold: 1.00
+    bullish_boost_quality_threshold: 55
+    use_recovery_score_boost: true
+    recovery_score_boost: 0.10
+
+# Excluded symbols (ETFs, liquid funds)
+excluded_symbols:
+  - LIQUIDCASE
+  - LIQUIDBEES
+  - LIQUIDETF
+  - NIFTYBEES
+  - JUNIORBEES
+  - MID150BEES
+  - HDFCSML250
+  - GOLDBEES
+  - HANGSENGBEES

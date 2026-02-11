@@ -1,0 +1,11 @@
+metric,value
+start_date,2025-05-03
+end_date,2026-01-28
+initial_capital,1600000.0
+final_value,1900341.73
+total_return,0.18771358124999993
+cagr,0.2642198337954418
+sharpe_ratio,8.852933446636207
+max_drawdown,-0.04606029084264789
+win_rate,0.4074074074074074
+total_trades,136

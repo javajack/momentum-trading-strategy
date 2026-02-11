@@ -1,0 +1,4182 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "schema_version": "2025-01",
+    "source": "NSE Index Constituents - NIFTY 100 + NIFTY MIDCAP 100 + NIFTY SMALLCAP 100",
+    "created_at": "2026-01-29",
+    "last_updated": "2026-02-09",
+    "description": "FORTRESS MOMENTUM Universe - Enhanced with Zerodha Kite API compatible symbols",
+    "total_stocks": 300,
+    "notes": {
+      "zerodha_api_usage": "Use exchange:tradingsymbol format for API calls (e.g., 'NSE:NIFTY 50' for indices, 'NSE:RELIANCE' for stocks)",
+      "index_segment": "Indices use segment='INDICES' in Zerodha instruments dump",
+      "etf_segment": "ETFs use segment='EQ' and can be traded like regular stocks",
+      "sector_update": "Added AUTOMOBILES sector for auto OEMs and components"
+    }
+  },
+  "benchmark": {
+    "symbol": "NIFTY 50",
+    "zerodha_symbol": "NIFTY 50",
+    "exchange": "NSE",
+    "instrument_type": "INDEX",
+    "segment": "INDICES",
+    "instrument_token": 256265,
+    "api_format": "NSE:NIFTY 50",
+    "description": "NSE NIFTY 50 Index - Top 50 large cap stocks"
+  },
+  "broad_market_indices": {
+    "NIFTY_50": {
+      "symbol": "NIFTY 50",
+      "zerodha_symbol": "NIFTY 50",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 256265,
+      "api_format": "NSE:NIFTY 50",
+      "description": "Top 50 large cap companies"
+    },
+    "NIFTY_100": {
+      "symbol": "NIFTY 100",
+      "zerodha_symbol": "NIFTY 100",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 260617,
+      "api_format": "NSE:NIFTY 100",
+      "description": "Top 100 companies by market cap"
+    },
+    "NIFTY_NEXT_50": {
+      "symbol": "NIFTY JUNIOR",
+      "zerodha_symbol": "NIFTY JUNIOR",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 260361,
+      "api_format": "NSE:NIFTY JUNIOR",
+      "description": "Stocks ranked 51-100 by market cap"
+    },
+    "NIFTY_MIDCAP_100": {
+      "symbol": "NIFTY MIDCAP 100",
+      "zerodha_symbol": "NIFTY MIDCAP 100",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 256777,
+      "api_format": "NSE:NIFTY MIDCAP 100",
+      "description": "Top 100 midcap companies"
+    },
+    "NIFTY_MIDCAP_50": {
+      "symbol": "NIFTY MIDCAP 50",
+      "zerodha_symbol": "NIFTY MIDCAP 50",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 260873,
+      "api_format": "NSE:NIFTY MIDCAP 50",
+      "description": "Top 50 midcap companies"
+    },
+    "INDIA_VIX": {
+      "symbol": "INDIA VIX",
+      "zerodha_symbol": "INDIA VIX",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 264969,
+      "api_format": "NSE:INDIA VIX",
+      "description": "Volatility index - market fear gauge"
+    },
+    "NIFTY_SMALLCAP_100": {
+      "symbol": "NIFTY SMLCAP 100",
+      "zerodha_symbol": "NIFTY SMLCAP 100",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "api_format": "NSE:NIFTY SMLCAP 100",
+      "description": "Top 100 smallcap companies"
+    }
+  },
+  "sectoral_indices": {
+    "NIFTY_BANK": {
+      "symbol": "NIFTY BANK",
+      "zerodha_symbol": "NIFTY BANK",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 260105,
+      "api_format": "NSE:NIFTY BANK",
+      "maps_to_sector": "FINANCIALS",
+      "description": "Banking sector index - top 12 banks"
+    },
+    "NIFTY_FIN_SERVICE": {
+      "symbol": "NIFTY FIN SERVICE",
+      "zerodha_symbol": "NIFTY FIN SERVICE",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "api_format": "NSE:NIFTY FIN SERVICE",
+      "maps_to_sector": "FINANCIALS",
+      "description": "Financial services including banks, NBFCs, insurance"
+    },
+    "NIFTY_PSU_BANK": {
+      "symbol": "NIFTY PSU BANK",
+      "zerodha_symbol": "NIFTY PSU BANK",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 262921,
+      "api_format": "NSE:NIFTY PSU BANK",
+      "maps_to_sector": "FINANCIALS",
+      "description": "Public sector banks"
+    },
+    "NIFTY_IT": {
+      "symbol": "NIFTY IT",
+      "zerodha_symbol": "NIFTY IT",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 259849,
+      "api_format": "NSE:NIFTY IT",
+      "maps_to_sector": "INFORMATION_TECHNOLOGY",
+      "description": "Information Technology sector"
+    },
+    "NIFTY_PHARMA": {
+      "symbol": "NIFTY PHARMA",
+      "zerodha_symbol": "NIFTY PHARMA",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 262409,
+      "api_format": "NSE:NIFTY PHARMA",
+      "maps_to_sector": "HEALTHCARE",
+      "description": "Pharmaceutical sector"
+    },
+    "NIFTY_AUTO": {
+      "symbol": "NIFTY AUTO",
+      "zerodha_symbol": "NIFTY AUTO",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 263433,
+      "api_format": "NSE:NIFTY AUTO",
+      "maps_to_sector": "AUTOMOBILES",
+      "description": "Automobile and auto components"
+    },
+    "NIFTY_METAL": {
+      "symbol": "NIFTY METAL",
+      "zerodha_symbol": "NIFTY METAL",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 263689,
+      "api_format": "NSE:NIFTY METAL",
+      "maps_to_sector": "METALS_MINING",
+      "description": "Metals and mining sector"
+    },
+    "NIFTY_ENERGY": {
+      "symbol": "NIFTY ENERGY",
+      "zerodha_symbol": "NIFTY ENERGY",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 261641,
+      "api_format": "NSE:NIFTY ENERGY",
+      "maps_to_sector": "ENERGY",
+      "description": "Energy sector - oil, gas, power"
+    },
+    "NIFTY_FMCG": {
+      "symbol": "NIFTY FMCG",
+      "zerodha_symbol": "NIFTY FMCG",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 261897,
+      "api_format": "NSE:NIFTY FMCG",
+      "maps_to_sector": "CONSUMER_STAPLES",
+      "description": "Fast Moving Consumer Goods"
+    },
+    "NIFTY_REALTY": {
+      "symbol": "NIFTY REALTY",
+      "zerodha_symbol": "NIFTY REALTY",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 261129,
+      "api_format": "NSE:NIFTY REALTY",
+      "maps_to_sector": "REAL_ESTATE",
+      "description": "Real estate sector"
+    },
+    "NIFTY_INFRA": {
+      "symbol": "NIFTY INFRA",
+      "zerodha_symbol": "NIFTY INFRA",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "api_format": "NSE:NIFTY INFRA",
+      "maps_to_sector": "INDUSTRIALS",
+      "description": "Infrastructure sector"
+    },
+    "NIFTY_MEDIA": {
+      "symbol": "NIFTY MEDIA",
+      "zerodha_symbol": "NIFTY MEDIA",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 263945,
+      "api_format": "NSE:NIFTY MEDIA",
+      "maps_to_sector": "TELECOM",
+      "description": "Media and entertainment"
+    },
+    "NIFTY_CONSUMPTION": {
+      "symbol": "NIFTY CONSUMPTION",
+      "zerodha_symbol": "NIFTY CONSUMPTION",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 257545,
+      "api_format": "NSE:NIFTY CONSUMPTION",
+      "maps_to_sector": "CONSUMER_DISCRETIONARY",
+      "description": "Consumer consumption theme"
+    },
+    "NIFTY_COMMODITIES": {
+      "symbol": "NIFTY COMMODITIES",
+      "zerodha_symbol": "NIFTY COMMODITIES",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 257289,
+      "api_format": "NSE:NIFTY COMMODITIES",
+      "maps_to_sector": "MATERIALS",
+      "description": "Commodities theme"
+    },
+    "NIFTY_PSE": {
+      "symbol": "NIFTY PSE",
+      "zerodha_symbol": "NIFTY PSE",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 262665,
+      "api_format": "NSE:NIFTY PSE",
+      "description": "Public sector enterprises"
+    },
+    "NIFTY_SERV_SECTOR": {
+      "symbol": "NIFTY SERV SECTOR",
+      "zerodha_symbol": "NIFTY SERV SECTOR",
+      "exchange": "NSE",
+      "segment": "INDICES",
+      "instrument_token": 263177,
+      "api_format": "NSE:NIFTY SERV SECTOR",
+      "maps_to_sector": "INFRASTRUCTURE",
+      "description": "Services sector"
+    }
+  },
+  "hedges": {
+    "gold": {
+      "symbol": "GOLDBEES",
+      "zerodha_symbol": "GOLDBEES",
+      "exchange": "NSE",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "api_format": "NSE:GOLDBEES",
+      "fund_house": "Nippon India",
+      "description": "Gold ETF - tracks domestic gold prices"
+    },
+    "international": {
+      "symbol": "MON100",
+      "zerodha_symbol": "MON100",
+      "exchange": "NSE",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "api_format": "NSE:MON100",
+      "fund_house": "Motilal Oswal",
+      "description": "NASDAQ 100 ETF - US tech exposure",
+      "alternate_symbols": [
+        "N100"
+      ]
+    },
+    "cash": {
+      "symbol": "LIQUIDBEES",
+      "zerodha_symbol": "LIQUIDBEES",
+      "exchange": "NSE",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "api_format": "NSE:LIQUIDBEES",
+      "fund_house": "Nippon India",
+      "description": "Liquid ETF - overnight rate returns, cash equivalent for margin"
+    },
+    "cash_liquid": {
+      "symbol": "LIQUIDCASE",
+      "zerodha_symbol": "LIQUIDCASE",
+      "exchange": "NSE",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "api_format": "NSE:LIQUIDCASE",
+      "fund_house": "ICICI Prudential",
+      "description": "Liquid fund ETF - cash equivalent for defensive allocation"
+    },
+    "silver": {
+      "symbol": "SILVERBEES",
+      "zerodha_symbol": "SILVERBEES",
+      "exchange": "NSE",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "api_format": "NSE:SILVERBEES",
+      "fund_house": "Nippon India",
+      "description": "Silver ETF"
+    }
+  },
+  "sectoral_etfs": {
+    "FINANCIALS": {
+      "primary_etf": {
+        "symbol": "BANKBEES",
+        "zerodha_symbol": "BANKBEES",
+        "exchange": "NSE",
+        "api_format": "NSE:BANKBEES",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY BANK",
+        "description": "Nifty Bank ETF"
+      },
+      "alternate_etfs": [
+        {
+          "symbol": "PSUBNKBEES",
+          "api_format": "NSE:PSUBNKBEES",
+          "fund_house": "Nippon India",
+          "tracks_index": "NIFTY PSU BANK"
+        },
+        {
+          "symbol": "KOTAKBKETF",
+          "api_format": "NSE:KOTAKBKETF",
+          "fund_house": "Kotak",
+          "tracks_index": "NIFTY BANK"
+        },
+        {
+          "symbol": "SETFNIFBK",
+          "api_format": "NSE:SETFNIFBK",
+          "fund_house": "SBI",
+          "tracks_index": "NIFTY BANK"
+        },
+        {
+          "symbol": "SBIETFPB",
+          "api_format": "NSE:SBIETFPB",
+          "fund_house": "SBI",
+          "tracks_index": "NIFTY PVT BANK"
+        }
+      ]
+    },
+    "INFORMATION_TECHNOLOGY": {
+      "primary_etf": {
+        "symbol": "NETFIT",
+        "zerodha_symbol": "NETFIT",
+        "exchange": "NSE",
+        "api_format": "NSE:NETFIT",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY IT",
+        "description": "Nifty IT ETF"
+      },
+      "alternate_etfs": [
+        {
+          "symbol": "SBIETFIT",
+          "api_format": "NSE:SBIETFIT",
+          "fund_house": "SBI",
+          "tracks_index": "NIFTY IT"
+        },
+        {
+          "symbol": "ICICITECH",
+          "api_format": "NSE:ICICITECH",
+          "fund_house": "ICICI Prudential",
+          "tracks_index": "NIFTY IT"
+        }
+      ]
+    },
+    "HEALTHCARE": {
+      "primary_etf": {
+        "symbol": "PHARMABEES",
+        "zerodha_symbol": "PHARMABEES",
+        "exchange": "NSE",
+        "api_format": "NSE:PHARMABEES",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY PHARMA",
+        "description": "Nifty Pharma ETF"
+      }
+    },
+    "INDUSTRIALS": {
+      "primary_etf": {
+        "symbol": "INFRABEES",
+        "zerodha_symbol": "INFRABEES",
+        "exchange": "NSE",
+        "api_format": "NSE:INFRABEES",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY INFRA",
+        "description": "Nifty Infrastructure ETF - includes capital goods"
+      }
+    },
+    "CONSUMER_STAPLES": {
+      "primary_etf": {
+        "symbol": "NETFCONSUM",
+        "zerodha_symbol": "NETFCONSUM",
+        "exchange": "NSE",
+        "api_format": "NSE:NETFCONSUM",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY CONSUMPTION",
+        "description": "Nifty Consumption ETF"
+      }
+    },
+    "ENERGY": {
+      "primary_etf": null,
+      "note": "No direct ETF - use INFRABEES or constituent stocks"
+    },
+    "METALS_MINING": {
+      "primary_etf": null,
+      "note": "No direct Metal ETF - use commodity ETFs or stocks"
+    },
+    "CONSUMER_DISCRETIONARY": {
+      "primary_etf": null,
+      "note": "No direct Auto ETF - use constituent stocks"
+    },
+    "MATERIALS": {
+      "primary_etf": {
+        "symbol": "INFRABEES",
+        "api_format": "NSE:INFRABEES",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY INFRA",
+        "description": "Infrastructure ETF - includes cement/construction"
+      }
+    },
+    "REAL_ESTATE": {
+      "primary_etf": null,
+      "note": "No direct Realty ETF - use constituent stocks"
+    },
+    "UTILITIES": {
+      "primary_etf": {
+        "symbol": "INFRABEES",
+        "api_format": "NSE:INFRABEES",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY INFRA",
+        "description": "Infrastructure ETF - includes power sector"
+      }
+    },
+    "TELECOM": {
+      "primary_etf": null,
+      "note": "No direct Telecom/Media ETF"
+    },
+    "AUTOMOBILES": {
+      "primary_etf": null,
+      "note": "No direct Auto ETF - use constituent stocks"
+    }
+  },
+  "broad_market_etfs": {
+    "NIFTY_50": {
+      "primary_etf": {
+        "symbol": "NIFTYBEES",
+        "api_format": "NSE:NIFTYBEES",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY 50"
+      },
+      "alternate_etfs": [
+        {
+          "symbol": "KOTAKNIFTY",
+          "api_format": "NSE:KOTAKNIFTY"
+        },
+        {
+          "symbol": "SETFNIF50",
+          "api_format": "NSE:SETFNIF50"
+        },
+        {
+          "symbol": "UTINIFTETF",
+          "api_format": "NSE:UTINIFTETF"
+        },
+        {
+          "symbol": "HDFCNIFETF",
+          "api_format": "NSE:HDFCNIFETF"
+        }
+      ]
+    },
+    "NIFTY_NEXT_50": {
+      "primary_etf": {
+        "symbol": "JUNIORBEES",
+        "api_format": "NSE:JUNIORBEES",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY NEXT 50"
+      }
+    },
+    "NIFTY_100": {
+      "primary_etf": {
+        "symbol": "NETFNIF100",
+        "api_format": "NSE:NETFNIF100",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY 100"
+      }
+    },
+    "NIFTY_MIDCAP_150": {
+      "primary_etf": {
+        "symbol": "NETFMID150",
+        "api_format": "NSE:NETFMID150",
+        "fund_house": "Nippon India",
+        "tracks_index": "NIFTY MIDCAP 150"
+      }
+    }
+  },
+  "thematic_etfs": {
+    "cpse": {
+      "symbol": "CPSEETF",
+      "api_format": "NSE:CPSEETF",
+      "description": "CPSE ETF - Public sector enterprises"
+    },
+    "bharat_22": {
+      "symbol": "ICICIB22",
+      "api_format": "NSE:ICICIB22",
+      "description": "Bharat 22 ETF - diversified PSU exposure"
+    },
+    "dividend": {
+      "symbol": "NETFDIVOPP",
+      "api_format": "NSE:NETFDIVOPP",
+      "description": "Nifty Dividend Opportunities 50 ETF"
+    }
+  },
+  "sector_mapping": {
+    "Financial Services": "FINANCIALS",
+    "Information Technology": "INFORMATION_TECHNOLOGY",
+    "Fast Moving Consumer Goods": "CONSUMER_STAPLES",
+    "Consumer Durables": "CONSUMER_DISCRETIONARY",
+    "Automobile and Auto Components": "AUTOMOBILES",
+    "Healthcare": "HEALTHCARE",
+    "Oil Gas & Consumable Fuels": "ENERGY",
+    "Power": "UTILITIES",
+    "Metals & Mining": "METALS_MINING",
+    "Capital Goods": "INDUSTRIALS",
+    "Chemicals": "MATERIALS",
+    "Construction Materials": "MATERIALS",
+    "Construction": "INDUSTRIALS",
+    "Telecommunication": "TELECOM",
+    "Realty": "REAL_ESTATE",
+    "Textiles": "CONSUMER_DISCRETIONARY",
+    "Services": "INFRASTRUCTURE",
+    "Consumer Services": "CONSUMER_DISCRETIONARY"
+  },
+  "sectors": {
+    "FINANCIALS": {
+      "description": "Banks, NBFCs, Insurance, AMCs, Fintech",
+      "index": "NIFTY FIN SERVICE",
+      "index_api_format": "NSE:NIFTY FIN SERVICE",
+      "sub_sectors": [
+        "BANKING_PRIVATE",
+        "BANKING_PSU",
+        "SMALL_FINANCE_BANK",
+        "NBFC_RETAIL",
+        "NBFC_INFRASTRUCTURE",
+        "GOLD_LOAN_NBFC",
+        "NBFC_HOUSING",
+        "NBFC_GREEN_ENERGY",
+        "HOUSING_FINANCE",
+        "INSURANCE_LIFE",
+        "INSURANCE_GENERAL",
+        "FINANCIAL_HOLDING",
+        "ASSET_MANAGEMENT",
+        "STOCK_EXCHANGE",
+        "BROKING",
+        "FINTECH_PAYMENTS",
+        "CARDS_PAYMENTS",
+        "INSURTECH"
+      ]
+    },
+    "CONSUMER_STAPLES": {
+      "description": "FMCG, Food, Beverages, Tobacco",
+      "index": "NIFTY FMCG",
+      "index_api_format": "NSE:NIFTY FMCG",
+      "sub_sectors": [
+        "FMCG_PERSONAL_HOME",
+        "FMCG_AYURVEDA",
+        "FMCG_PERSONAL_CARE",
+        "FMCG_TOBACCO_DIVERSIFIED",
+        "FMCG_TOBACCO",
+        "FMCG_PACKAGED_FOOD",
+        "FMCG_FOOD_BEVERAGES",
+        "FMCG_FOOD_AYURVEDA",
+        "BEVERAGES_SOFT_DRINKS",
+        "BEVERAGES_ALCOHOLIC"
+      ]
+    },
+    "CONSUMER_DISCRETIONARY": {
+      "description": "Auto, Retail, Hotels, Durables, E-commerce",
+      "index": "NIFTY AUTO",
+      "index_api_format": "NSE:NIFTY AUTO",
+      "sub_sectors": [
+        "AUTOMOBILES_DIVERSIFIED",
+        "JEWELLERY_WATCHES",
+        "JEWELLERY",
+        "RETAIL_APPAREL",
+        "RETAIL_HYPERMARKET",
+        "RETAIL_VALUE",
+        "APPAREL_INNERWEAR",
+        "CONSUMER_DURABLES_ELECTRICAL",
+        "CONSUMER_DURABLES_AC",
+        "ELECTRONICS_MANUFACTURING",
+        "PAINTS_COATINGS",
+        "QSR",
+        "FOOD_DELIVERY",
+        "HOTELS_LUXURY",
+        "TRAVEL_SERVICES",
+        "ONLINE_BEAUTY",
+        "ONLINE_JOBS"
+      ]
+    },
+    "INFORMATION_TECHNOLOGY": {
+      "description": "IT Services, Software, Tech Consulting",
+      "index": "NIFTY IT",
+      "index_api_format": "NSE:NIFTY IT",
+      "sub_sectors": [
+        "IT_SERVICES_LARGE_CAP",
+        "IT_SERVICES_TELECOM",
+        "MID_TIER_IT",
+        "DIGITAL_CLOUD_IT",
+        "AUTOMOTIVE_IT",
+        "EMBEDDED_DESIGN",
+        "ERD_SERVICES",
+        "FINTECH_SOFTWARE"
+      ]
+    },
+    "HEALTHCARE": {
+      "description": "Pharma, Hospitals, Diagnostics, Biotech",
+      "index": "NIFTY PHARMA",
+      "index_api_format": "NSE:NIFTY PHARMA",
+      "sub_sectors": [
+        "PHARMA_FORMULATIONS",
+        "PHARMA_GENERIC",
+        "PHARMA_RESEARCH",
+        "PHARMA_DOMESTIC",
+        "PHARMA_APIS",
+        "BIOTECHNOLOGY_BIOSIMILARS",
+        "HOSPITALS"
+      ]
+    },
+    "INDUSTRIALS": {
+      "description": "Capital Goods, Defense, Engineering, Electrical",
+      "index": "NIFTY INFRA",
+      "index_api_format": "NSE:NIFTY INFRA",
+      "sub_sectors": [
+        "DEFENCE_AEROSPACE",
+        "DEFENCE_ELECTRONICS",
+        "DEFENCE_MISSILES",
+        "DEFENCE_SHIPBUILDING",
+        "EPC_CAPITAL_GOODS",
+        "INDUSTRIAL_AUTOMATION",
+        "ELECTRICAL_EQUIPMENT",
+        "HEAVY_ENGINEERING",
+        "INDUSTRIAL_ENGINES",
+        "ENERGY_EQUIPMENT",
+        "ELECTRICAL_CABLES",
+        "STEEL_PIPES",
+        "PLASTIC_PIPES",
+        "WIND_TURBINES",
+        "SOLAR_MODULES",
+        "SOLAR_CELLS",
+        "RAIL_INFRASTRUCTURE",
+        "ROAD_INFRASTRUCTURE"
+      ]
+    },
+    "MATERIALS": {
+      "description": "Cement, Chemicals, Paints, Fertilizers",
+      "index": "NIFTY COMMODITIES",
+      "index_api_format": "NSE:NIFTY COMMODITIES",
+      "sub_sectors": [
+        "CEMENT",
+        "DIVERSIFIED_MATERIALS",
+        "SPECIALTY_CHEMICALS_ADHESIVES",
+        "FLUORO_SPECIALTY_CHEMICALS",
+        "SPECIALTY_CHEMICALS_EXPLOSIVES",
+        "AGROCHEMICALS",
+        "AGROCHEMICALS_FERTILIZERS",
+        "AGROCHEMICALS_CROP_PROTECTION"
+      ]
+    },
+    "METALS_MINING": {
+      "description": "Steel, Aluminium, Mining, Coal",
+      "index": "NIFTY METAL",
+      "index_api_format": "NSE:NIFTY METAL",
+      "sub_sectors": [
+        "STEEL",
+        "STEEL_PSU",
+        "ALUMINIUM",
+        "ALUMINIUM_PSU",
+        "DIVERSIFIED_MINING",
+        "ZINC",
+        "IRON_ORE_MINING",
+        "COAL_MINING",
+        "DIVERSIFIED_RESOURCES"
+      ]
+    },
+    "ENERGY": {
+      "description": "Oil & Gas, Integrated Energy, Gas Distribution",
+      "index": "NIFTY ENERGY",
+      "index_api_format": "NSE:NIFTY ENERGY",
+      "sub_sectors": [
+        "INTEGRATED_ENERGY",
+        "OIL_EXPLORATION_PRODUCTION",
+        "OIL_REFINING_MARKETING",
+        "GAS_TRANSMISSION",
+        "CITY_GAS_DISTRIBUTION"
+      ]
+    },
+    "UTILITIES": {
+      "description": "Power Generation, Transmission, Renewables",
+      "index": "NIFTY ENERGY",
+      "index_api_format": "NSE:NIFTY ENERGY",
+      "sub_sectors": [
+        "POWER_UTILITIES",
+        "POWER_UTILITIES_INTEGRATED",
+        "POWER_THERMAL_RENEWABLE",
+        "POWER_HYDRO",
+        "POWER_TRANSMISSION",
+        "RENEWABLE_POWER",
+        "POWER_THERMAL"
+      ]
+    },
+    "INFRASTRUCTURE": {
+      "description": "Ports, Airports, Logistics, Aviation",
+      "index": "NIFTY SERV SECTOR",
+      "index_api_format": "NSE:NIFTY SERV SECTOR",
+      "sub_sectors": [
+        "PORTS",
+        "AIRPORTS",
+        "RAIL_LOGISTICS",
+        "AIRLINES"
+      ]
+    },
+    "TELECOM": {
+      "description": "Telecom Services, Towers, Enterprise",
+      "index": "NIFTY MEDIA",
+      "index_api_format": "NSE:NIFTY MEDIA",
+      "sub_sectors": [
+        "TELECOM_SERVICES",
+        "TELECOM_TOWERS",
+        "TELECOM_ENTERPRISE"
+      ]
+    },
+    "REAL_ESTATE": {
+      "description": "Residential, Commercial, Retail Properties",
+      "index": "NIFTY REALTY",
+      "index_api_format": "NSE:NIFTY REALTY",
+      "sub_sectors": [
+        "RESIDENTIAL_COMMERCIAL",
+        "RESIDENTIAL",
+        "RESIDENTIAL_PREMIUM",
+        "COMMERCIAL_RESIDENTIAL",
+        "RETAIL_MALLS"
+      ]
+    },
+    "AUTOMOBILES": {
+      "description": "Automobile OEMs and Auto Components",
+      "index": "NIFTY AUTO",
+      "index_api_format": "NSE:NIFTY AUTO",
+      "sub_sectors": [
+        "PASSENGER_VEHICLES",
+        "TWO_WHEELERS",
+        "TWO_WHEELERS_PREMIUM",
+        "COMMERCIAL_VEHICLES",
+        "UV_TRACTORS",
+        "AUTO_COMPONENTS",
+        "AUTO_COMPONENTS_FORGING",
+        "AUTO_COMPONENTS_EV",
+        "AUTO_COMPONENTS_BATTERIES",
+        "TYRES"
+      ]
+    }
+  },
+  "universes": {
+    "NIFTY100": {
+      "count": 101,
+      "index_symbol": "NIFTY 100",
+      "index_api_format": "NSE:NIFTY 100",
+      "stocks": [
+        {
+          "ticker": "ABB",
+          "name": "ABB India Ltd.",
+          "isin": "INE117A01022",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ABB",
+          "api_format": "NSE:ABB",
+          "sub_sector": "ELECTRICAL_EQUIPMENT"
+        },
+        {
+          "ticker": "ADANIENSOL",
+          "name": "Adani Energy Solutions Ltd.",
+          "isin": "INE931S01010",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "ADANIENSOL",
+          "api_format": "NSE:ADANIENSOL",
+          "sub_sector": "POWER_TRANSMISSION"
+        },
+        {
+          "ticker": "ADANIENT",
+          "name": "Adani Enterprises Ltd.",
+          "isin": "INE423A01024",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "ADANIENT",
+          "api_format": "NSE:ADANIENT",
+          "sub_sector": "DIVERSIFIED_RESOURCES"
+        },
+        {
+          "ticker": "ADANIGREEN",
+          "name": "Adani Green Energy Ltd.",
+          "isin": "INE364U01010",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "ADANIGREEN",
+          "api_format": "NSE:ADANIGREEN",
+          "sub_sector": "RENEWABLE_POWER"
+        },
+        {
+          "ticker": "ADANIPORTS",
+          "name": "Adani Ports and Special Economic Zone Ltd.",
+          "isin": "INE742F01042",
+          "industry": "Services",
+          "sector": "INFRASTRUCTURE",
+          "series": "EQ",
+          "zerodha_symbol": "ADANIPORTS",
+          "api_format": "NSE:ADANIPORTS",
+          "sub_sector": "PORTS"
+        },
+        {
+          "ticker": "ADANIPOWER",
+          "name": "Adani Power Ltd.",
+          "isin": "INE814H01029",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "ADANIPOWER",
+          "api_format": "NSE:ADANIPOWER",
+          "sub_sector": "POWER_THERMAL"
+        },
+        {
+          "ticker": "AMBUJACEM",
+          "name": "Ambuja Cements Ltd.",
+          "isin": "INE079A01024",
+          "industry": "Construction Materials",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "AMBUJACEM",
+          "api_format": "NSE:AMBUJACEM",
+          "sub_sector": "CEMENT"
+        },
+        {
+          "ticker": "APOLLOHOSP",
+          "name": "Apollo Hospitals Enterprise Ltd.",
+          "isin": "INE437A01024",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "APOLLOHOSP",
+          "api_format": "NSE:APOLLOHOSP",
+          "sub_sector": "HOSPITALS"
+        },
+        {
+          "ticker": "ASIANPAINT",
+          "name": "Asian Paints Ltd.",
+          "isin": "INE021A01026",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "ASIANPAINT",
+          "api_format": "NSE:ASIANPAINT",
+          "sub_sector": "PAINTS_COATINGS"
+        },
+        {
+          "ticker": "DMART",
+          "name": "Avenue Supermarts Ltd.",
+          "isin": "INE192R01011",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "DMART",
+          "api_format": "NSE:DMART",
+          "sub_sector": "RETAIL_HYPERMARKET"
+        },
+        {
+          "ticker": "AXISBANK",
+          "name": "Axis Bank Ltd.",
+          "isin": "INE238A01034",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "AXISBANK",
+          "api_format": "NSE:AXISBANK",
+          "sub_sector": "BANKING_PRIVATE"
+        },
+        {
+          "ticker": "BAJAJ-AUTO",
+          "name": "Bajaj Auto Ltd.",
+          "isin": "INE917I01010",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "BAJAJ-AUTO",
+          "api_format": "NSE:BAJAJ-AUTO",
+          "sub_sector": "TWO_WHEELERS"
+        },
+        {
+          "ticker": "BAJFINANCE",
+          "name": "Bajaj Finance Ltd.",
+          "isin": "INE296A01032",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BAJFINANCE",
+          "api_format": "NSE:BAJFINANCE",
+          "sub_sector": "NBFC_RETAIL"
+        },
+        {
+          "ticker": "BAJAJFINSV",
+          "name": "Bajaj Finserv Ltd.",
+          "isin": "INE918I01026",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BAJAJFINSV",
+          "api_format": "NSE:BAJAJFINSV",
+          "sub_sector": "FINANCIAL_HOLDING"
+        },
+        {
+          "ticker": "BAJAJHLDNG",
+          "name": "Bajaj Holdings & Investment Ltd.",
+          "isin": "INE118A01012",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BAJAJHLDNG",
+          "api_format": "NSE:BAJAJHLDNG",
+          "sub_sector": "FINANCIAL_HOLDING"
+        },
+        {
+          "ticker": "BAJAJHFL",
+          "name": "Bajaj Housing Finance Ltd.",
+          "isin": "INE377Y01014",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BAJAJHFL",
+          "api_format": "NSE:BAJAJHFL",
+          "sub_sector": "HOUSING_FINANCE"
+        },
+        {
+          "ticker": "BANKBARODA",
+          "name": "Bank of Baroda",
+          "isin": "INE028A01039",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BANKBARODA",
+          "api_format": "NSE:BANKBARODA",
+          "sub_sector": "BANKING_PSU"
+        },
+        {
+          "ticker": "BEL",
+          "name": "Bharat Electronics Ltd.",
+          "isin": "INE263A01024",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BEL",
+          "api_format": "NSE:BEL",
+          "sub_sector": "DEFENCE_ELECTRONICS"
+        },
+        {
+          "ticker": "BPCL",
+          "name": "Bharat Petroleum Corporation Ltd.",
+          "isin": "INE029A01011",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "BPCL",
+          "api_format": "NSE:BPCL",
+          "sub_sector": "OIL_REFINING_MARKETING"
+        },
+        {
+          "ticker": "BHARTIARTL",
+          "name": "Bharti Airtel Ltd.",
+          "isin": "INE397D01024",
+          "industry": "Telecommunication",
+          "sector": "TELECOM",
+          "series": "EQ",
+          "zerodha_symbol": "BHARTIARTL",
+          "api_format": "NSE:BHARTIARTL",
+          "sub_sector": "TELECOM_SERVICES"
+        },
+        {
+          "ticker": "BOSCHLTD",
+          "name": "Bosch Ltd.",
+          "isin": "INE323A01026",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "BOSCHLTD",
+          "api_format": "NSE:BOSCHLTD",
+          "sub_sector": "AUTO_COMPONENTS"
+        },
+        {
+          "ticker": "BRITANNIA",
+          "name": "Britannia Industries Ltd.",
+          "isin": "INE216A01030",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "BRITANNIA",
+          "api_format": "NSE:BRITANNIA",
+          "sub_sector": "FMCG_PACKAGED_FOOD"
+        },
+        {
+          "ticker": "CGPOWER",
+          "name": "CG Power and Industrial Solutions Ltd.",
+          "isin": "INE067A01029",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CGPOWER",
+          "api_format": "NSE:CGPOWER",
+          "sub_sector": "ELECTRICAL_EQUIPMENT"
+        },
+        {
+          "ticker": "CANBK",
+          "name": "Canara Bank",
+          "isin": "INE476A01022",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CANBK",
+          "api_format": "NSE:CANBK",
+          "sub_sector": "BANKING_PSU"
+        },
+        {
+          "ticker": "CHOLAFIN",
+          "name": "Cholamandalam Investment and Finance Company Ltd.",
+          "isin": "INE121A01024",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CHOLAFIN",
+          "api_format": "NSE:CHOLAFIN",
+          "sub_sector": "NBFC_RETAIL"
+        },
+        {
+          "ticker": "CIPLA",
+          "name": "Cipla Ltd.",
+          "isin": "INE059A01026",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "CIPLA",
+          "api_format": "NSE:CIPLA",
+          "sub_sector": "PHARMA_FORMULATIONS"
+        },
+        {
+          "ticker": "COALINDIA",
+          "name": "Coal India Ltd.",
+          "isin": "INE522F01014",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "COALINDIA",
+          "api_format": "NSE:COALINDIA",
+          "sub_sector": "COAL_MINING"
+        },
+        {
+          "ticker": "DLF",
+          "name": "DLF Ltd.",
+          "isin": "INE271C01023",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "DLF",
+          "api_format": "NSE:DLF",
+          "sub_sector": "RESIDENTIAL_COMMERCIAL"
+        },
+        {
+          "ticker": "DIVISLAB",
+          "name": "Divi's Laboratories Ltd.",
+          "isin": "INE361B01024",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "DIVISLAB",
+          "api_format": "NSE:DIVISLAB",
+          "sub_sector": "PHARMA_APIS"
+        },
+        {
+          "ticker": "DRREDDY",
+          "name": "Dr. Reddy's Laboratories Ltd.",
+          "isin": "INE089A01031",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "DRREDDY",
+          "api_format": "NSE:DRREDDY",
+          "sub_sector": "PHARMA_FORMULATIONS"
+        },
+        {
+          "ticker": "EICHERMOT",
+          "name": "Eicher Motors Ltd.",
+          "isin": "INE066A01021",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "EICHERMOT",
+          "api_format": "NSE:EICHERMOT",
+          "sub_sector": "TWO_WHEELERS_PREMIUM"
+        },
+        {
+          "ticker": "ETERNAL",
+          "name": "Eternal Ltd.",
+          "isin": "INE758T01015",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "ETERNAL",
+          "api_format": "NSE:ETERNAL",
+          "sub_sector": "FOOD_DELIVERY"
+        },
+        {
+          "ticker": "GAIL",
+          "name": "GAIL (India) Ltd.",
+          "isin": "INE129A01019",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "GAIL",
+          "api_format": "NSE:GAIL",
+          "sub_sector": "GAS_TRANSMISSION"
+        },
+        {
+          "ticker": "GODREJCP",
+          "name": "Godrej Consumer Products Ltd.",
+          "isin": "INE102D01028",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "GODREJCP",
+          "api_format": "NSE:GODREJCP",
+          "sub_sector": "FMCG_PERSONAL_HOME"
+        },
+        {
+          "ticker": "GRASIM",
+          "name": "Grasim Industries Ltd.",
+          "isin": "INE047A01021",
+          "industry": "Construction Materials",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "GRASIM",
+          "api_format": "NSE:GRASIM",
+          "sub_sector": "DIVERSIFIED_MATERIALS"
+        },
+        {
+          "ticker": "HCLTECH",
+          "name": "HCL Technologies Ltd.",
+          "isin": "INE860A01027",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "HCLTECH",
+          "api_format": "NSE:HCLTECH",
+          "sub_sector": "IT_SERVICES_LARGE_CAP"
+        },
+        {
+          "ticker": "HDFCBANK",
+          "name": "HDFC Bank Ltd.",
+          "isin": "INE040A01034",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "HDFCBANK",
+          "api_format": "NSE:HDFCBANK",
+          "sub_sector": "BANKING_PRIVATE"
+        },
+        {
+          "ticker": "HDFCLIFE",
+          "name": "HDFC Life Insurance Company Ltd.",
+          "isin": "INE795G01014",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "HDFCLIFE",
+          "api_format": "NSE:HDFCLIFE",
+          "sub_sector": "INSURANCE_LIFE"
+        },
+        {
+          "ticker": "HAVELLS",
+          "name": "Havells India Ltd.",
+          "isin": "INE176B01034",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "HAVELLS",
+          "api_format": "NSE:HAVELLS",
+          "sub_sector": "CONSUMER_DURABLES_ELECTRICAL"
+        },
+        {
+          "ticker": "HINDALCO",
+          "name": "Hindalco Industries Ltd.",
+          "isin": "INE038A01020",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "HINDALCO",
+          "api_format": "NSE:HINDALCO",
+          "sub_sector": "ALUMINIUM"
+        },
+        {
+          "ticker": "HAL",
+          "name": "Hindustan Aeronautics Ltd.",
+          "isin": "INE066F01020",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "HAL",
+          "api_format": "NSE:HAL",
+          "sub_sector": "DEFENCE_AEROSPACE"
+        },
+        {
+          "ticker": "HINDUNILVR",
+          "name": "Hindustan Unilever Ltd.",
+          "isin": "INE030A01027",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "HINDUNILVR",
+          "api_format": "NSE:HINDUNILVR",
+          "sub_sector": "FMCG_PERSONAL_HOME"
+        },
+        {
+          "ticker": "HINDZINC",
+          "name": "Hindustan Zinc Ltd.",
+          "isin": "INE267A01025",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "HINDZINC",
+          "api_format": "NSE:HINDZINC",
+          "sub_sector": "ZINC"
+        },
+        {
+          "ticker": "HYUNDAI",
+          "name": "Hyundai Motor India Ltd.",
+          "isin": "INE0V6F01027",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "HYUNDAI",
+          "api_format": "NSE:HYUNDAI",
+          "sub_sector": "PASSENGER_VEHICLES"
+        },
+        {
+          "ticker": "ICICIBANK",
+          "name": "ICICI Bank Ltd.",
+          "isin": "INE090A01021",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ICICIBANK",
+          "api_format": "NSE:ICICIBANK",
+          "sub_sector": "BANKING_PRIVATE"
+        },
+        {
+          "ticker": "ICICIGI",
+          "name": "ICICI Lombard General Insurance Company Ltd.",
+          "isin": "INE765G01017",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ICICIGI",
+          "api_format": "NSE:ICICIGI",
+          "sub_sector": "INSURANCE_GENERAL"
+        },
+        {
+          "ticker": "ITC",
+          "name": "ITC Ltd.",
+          "isin": "INE154A01025",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "ITC",
+          "api_format": "NSE:ITC",
+          "sub_sector": "FMCG_TOBACCO_DIVERSIFIED"
+        },
+        {
+          "ticker": "INDHOTEL",
+          "name": "Indian Hotels Co. Ltd.",
+          "isin": "INE053A01029",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "INDHOTEL",
+          "api_format": "NSE:INDHOTEL",
+          "sub_sector": "HOTELS_LUXURY"
+        },
+        {
+          "ticker": "IOC",
+          "name": "Indian Oil Corporation Ltd.",
+          "isin": "INE242A01010",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "IOC",
+          "api_format": "NSE:IOC",
+          "sub_sector": "OIL_REFINING_MARKETING"
+        },
+        {
+          "ticker": "IRFC",
+          "name": "Indian Railway Finance Corporation Ltd.",
+          "isin": "INE053F01010",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "IRFC",
+          "api_format": "NSE:IRFC",
+          "sub_sector": "NBFC_INFRASTRUCTURE"
+        },
+        {
+          "ticker": "NAUKRI",
+          "name": "Info Edge (India) Ltd.",
+          "isin": "INE663F01032",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "NAUKRI",
+          "api_format": "NSE:NAUKRI",
+          "sub_sector": "ONLINE_JOBS"
+        },
+        {
+          "ticker": "INFY",
+          "name": "Infosys Ltd.",
+          "isin": "INE009A01021",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "INFY",
+          "api_format": "NSE:INFY",
+          "sub_sector": "IT_SERVICES_LARGE_CAP"
+        },
+        {
+          "ticker": "INDIGO",
+          "name": "InterGlobe Aviation Ltd.",
+          "isin": "INE646L01027",
+          "industry": "Services",
+          "sector": "INFRASTRUCTURE",
+          "series": "EQ",
+          "zerodha_symbol": "INDIGO",
+          "api_format": "NSE:INDIGO",
+          "sub_sector": "AIRLINES"
+        },
+        {
+          "ticker": "JSWENERGY",
+          "name": "JSW Energy Ltd.",
+          "isin": "INE121E01018",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "JSWENERGY",
+          "api_format": "NSE:JSWENERGY",
+          "sub_sector": "POWER_THERMAL_RENEWABLE"
+        },
+        {
+          "ticker": "JSWSTEEL",
+          "name": "JSW Steel Ltd.",
+          "isin": "INE019A01038",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "JSWSTEEL",
+          "api_format": "NSE:JSWSTEEL",
+          "sub_sector": "STEEL"
+        },
+        {
+          "ticker": "JINDALSTEL",
+          "name": "Jindal Steel Ltd.",
+          "isin": "INE749A01030",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "JINDALSTEL",
+          "api_format": "NSE:JINDALSTEL",
+          "sub_sector": "STEEL"
+        },
+        {
+          "ticker": "JIOFIN",
+          "name": "Jio Financial Services Ltd.",
+          "isin": "INE758E01017",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "JIOFIN",
+          "api_format": "NSE:JIOFIN",
+          "sub_sector": "FINANCIAL_HOLDING"
+        },
+        {
+          "ticker": "KOTAKBANK",
+          "name": "Kotak Mahindra Bank Ltd.",
+          "isin": "INE237A01036",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "KOTAKBANK",
+          "api_format": "NSE:KOTAKBANK",
+          "sub_sector": "BANKING_PRIVATE"
+        },
+        {
+          "ticker": "LTIM",
+          "name": "LTIMindtree Ltd.",
+          "isin": "INE214T01019",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "LTIM",
+          "api_format": "NSE:LTIM",
+          "sub_sector": "IT_SERVICES_LARGE_CAP"
+        },
+        {
+          "ticker": "LT",
+          "name": "Larsen & Toubro Ltd.",
+          "isin": "INE018A01030",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "LT",
+          "api_format": "NSE:LT",
+          "sub_sector": "EPC_CAPITAL_GOODS"
+        },
+        {
+          "ticker": "LICI",
+          "name": "Life Insurance Corporation of India",
+          "isin": "INE0J1Y01017",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "LICI",
+          "api_format": "NSE:LICI",
+          "sub_sector": "INSURANCE_LIFE"
+        },
+        {
+          "ticker": "LODHA",
+          "name": "Lodha Developers Ltd.",
+          "isin": "INE670K01029",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "LODHA",
+          "api_format": "NSE:LODHA",
+          "sub_sector": "RESIDENTIAL"
+        },
+        {
+          "ticker": "M&M",
+          "name": "Mahindra & Mahindra Ltd.",
+          "isin": "INE101A01026",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "M&M",
+          "api_format": "NSE:M&M",
+          "sub_sector": "UV_TRACTORS"
+        },
+        {
+          "ticker": "MARUTI",
+          "name": "Maruti Suzuki India Ltd.",
+          "isin": "INE585B01010",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "MARUTI",
+          "api_format": "NSE:MARUTI",
+          "sub_sector": "PASSENGER_VEHICLES"
+        },
+        {
+          "ticker": "MAXHEALTH",
+          "name": "Max Healthcare Institute Ltd.",
+          "isin": "INE027H01010",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "MAXHEALTH",
+          "api_format": "NSE:MAXHEALTH",
+          "sub_sector": "HOSPITALS"
+        },
+        {
+          "ticker": "MAZDOCK",
+          "name": "Mazagoan Dock Shipbuilders Ltd.",
+          "isin": "INE249Z01020",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "MAZDOCK",
+          "api_format": "NSE:MAZDOCK",
+          "sub_sector": "DEFENCE_SHIPBUILDING"
+        },
+        {
+          "ticker": "NTPC",
+          "name": "NTPC Ltd.",
+          "isin": "INE733E01010",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "NTPC",
+          "api_format": "NSE:NTPC",
+          "sub_sector": "POWER_UTILITIES"
+        },
+        {
+          "ticker": "NESTLEIND",
+          "name": "Nestle India Ltd.",
+          "isin": "INE239A01024",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "NESTLEIND",
+          "api_format": "NSE:NESTLEIND",
+          "sub_sector": "FMCG_PACKAGED_FOOD"
+        },
+        {
+          "ticker": "ONGC",
+          "name": "Oil & Natural Gas Corporation Ltd.",
+          "isin": "INE213A01029",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "ONGC",
+          "api_format": "NSE:ONGC",
+          "sub_sector": "OIL_EXPLORATION_PRODUCTION"
+        },
+        {
+          "ticker": "PIDILITIND",
+          "name": "Pidilite Industries Ltd.",
+          "isin": "INE318A01026",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "PIDILITIND",
+          "api_format": "NSE:PIDILITIND",
+          "sub_sector": "SPECIALTY_CHEMICALS_ADHESIVES"
+        },
+        {
+          "ticker": "PFC",
+          "name": "Power Finance Corporation Ltd.",
+          "isin": "INE134E01011",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "PFC",
+          "api_format": "NSE:PFC",
+          "sub_sector": "NBFC_INFRASTRUCTURE"
+        },
+        {
+          "ticker": "POWERGRID",
+          "name": "Power Grid Corporation of India Ltd.",
+          "isin": "INE752E01010",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "POWERGRID",
+          "api_format": "NSE:POWERGRID",
+          "sub_sector": "POWER_TRANSMISSION"
+        },
+        {
+          "ticker": "PNB",
+          "name": "Punjab National Bank",
+          "isin": "INE160A01022",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "PNB",
+          "api_format": "NSE:PNB",
+          "sub_sector": "BANKING_PSU"
+        },
+        {
+          "ticker": "RECLTD",
+          "name": "REC Ltd.",
+          "isin": "INE020B01018",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "RECLTD",
+          "api_format": "NSE:RECLTD",
+          "sub_sector": "NBFC_INFRASTRUCTURE"
+        },
+        {
+          "ticker": "RELIANCE",
+          "name": "Reliance Industries Ltd.",
+          "isin": "INE002A01018",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "RELIANCE",
+          "api_format": "NSE:RELIANCE",
+          "sub_sector": "INTEGRATED_ENERGY"
+        },
+        {
+          "ticker": "SBILIFE",
+          "name": "SBI Life Insurance Company Ltd.",
+          "isin": "INE123W01016",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SBILIFE",
+          "api_format": "NSE:SBILIFE",
+          "sub_sector": "INSURANCE_LIFE"
+        },
+        {
+          "ticker": "MOTHERSON",
+          "name": "Samvardhana Motherson International Ltd.",
+          "isin": "INE775A01035",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "MOTHERSON",
+          "api_format": "NSE:MOTHERSON",
+          "sub_sector": "AUTO_COMPONENTS"
+        },
+        {
+          "ticker": "SHREECEM",
+          "name": "Shree Cement Ltd.",
+          "isin": "INE070A01015",
+          "industry": "Construction Materials",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SHREECEM",
+          "api_format": "NSE:SHREECEM",
+          "sub_sector": "CEMENT"
+        },
+        {
+          "ticker": "SHRIRAMFIN",
+          "name": "Shriram Finance Ltd.",
+          "isin": "INE721A01047",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SHRIRAMFIN",
+          "api_format": "NSE:SHRIRAMFIN",
+          "sub_sector": "NBFC_RETAIL"
+        },
+        {
+          "ticker": "ENRIN",
+          "name": "Siemens Energy India Ltd.",
+          "isin": "INE1NPP01017",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ENRIN",
+          "api_format": "NSE:ENRIN",
+          "sub_sector": "ENERGY_EQUIPMENT"
+        },
+        {
+          "ticker": "SIEMENS",
+          "name": "Siemens Ltd.",
+          "isin": "INE003A01024",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SIEMENS",
+          "api_format": "NSE:SIEMENS",
+          "sub_sector": "INDUSTRIAL_AUTOMATION"
+        },
+        {
+          "ticker": "SOLARINDS",
+          "name": "Solar Industries India Ltd.",
+          "isin": "INE343H01029",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SOLARINDS",
+          "api_format": "NSE:SOLARINDS",
+          "sub_sector": "SPECIALTY_CHEMICALS_EXPLOSIVES"
+        },
+        {
+          "ticker": "SBIN",
+          "name": "State Bank of India",
+          "isin": "INE062A01020",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SBIN",
+          "api_format": "NSE:SBIN",
+          "sub_sector": "BANKING_PSU"
+        },
+        {
+          "ticker": "SUNPHARMA",
+          "name": "Sun Pharmaceutical Industries Ltd.",
+          "isin": "INE044A01036",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "SUNPHARMA",
+          "api_format": "NSE:SUNPHARMA",
+          "sub_sector": "PHARMA_FORMULATIONS"
+        },
+        {
+          "ticker": "TVSMOTOR",
+          "name": "TVS Motor Company Ltd.",
+          "isin": "INE494B01023",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "TVSMOTOR",
+          "api_format": "NSE:TVSMOTOR",
+          "sub_sector": "TWO_WHEELERS"
+        },
+        {
+          "ticker": "TCS",
+          "name": "Tata Consultancy Services Ltd.",
+          "isin": "INE467B01029",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "TCS",
+          "api_format": "NSE:TCS",
+          "sub_sector": "IT_SERVICES_LARGE_CAP"
+        },
+        {
+          "ticker": "TATACONSUM",
+          "name": "Tata Consumer Products Ltd.",
+          "isin": "INE192A01025",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "TATACONSUM",
+          "api_format": "NSE:TATACONSUM",
+          "sub_sector": "FMCG_FOOD_BEVERAGES"
+        },
+        {
+          "ticker": "TMPV",
+          "name": "Tata Motors Passenger Vehicles Ltd.",
+          "isin": "INE155A01022",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "TMPV",
+          "api_format": "NSE:TMPV",
+          "sub_sector": "PASSENGER_VEHICLES"
+        },
+        {
+          "ticker": "TATAPOWER",
+          "name": "Tata Power Co. Ltd.",
+          "isin": "INE245A01021",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "TATAPOWER",
+          "api_format": "NSE:TATAPOWER",
+          "sub_sector": "POWER_UTILITIES_INTEGRATED"
+        },
+        {
+          "ticker": "TATASTEEL",
+          "name": "Tata Steel Ltd.",
+          "isin": "INE081A01020",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "TATASTEEL",
+          "api_format": "NSE:TATASTEEL",
+          "sub_sector": "STEEL"
+        },
+        {
+          "ticker": "TECHM",
+          "name": "Tech Mahindra Ltd.",
+          "isin": "INE669C01036",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "TECHM",
+          "api_format": "NSE:TECHM",
+          "sub_sector": "IT_SERVICES_TELECOM"
+        },
+        {
+          "ticker": "TITAN",
+          "name": "Titan Company Ltd.",
+          "isin": "INE280A01028",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "TITAN",
+          "api_format": "NSE:TITAN",
+          "sub_sector": "JEWELLERY_WATCHES"
+        },
+        {
+          "ticker": "TORNTPHARM",
+          "name": "Torrent Pharmaceuticals Ltd.",
+          "isin": "INE685A01028",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "TORNTPHARM",
+          "api_format": "NSE:TORNTPHARM",
+          "sub_sector": "PHARMA_FORMULATIONS"
+        },
+        {
+          "ticker": "TRENT",
+          "name": "Trent Ltd.",
+          "isin": "INE849A01020",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "TRENT",
+          "api_format": "NSE:TRENT",
+          "sub_sector": "RETAIL_APPAREL"
+        },
+        {
+          "ticker": "ULTRACEMCO",
+          "name": "UltraTech Cement Ltd.",
+          "isin": "INE481G01011",
+          "industry": "Construction Materials",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ULTRACEMCO",
+          "api_format": "NSE:ULTRACEMCO",
+          "sub_sector": "CEMENT"
+        },
+        {
+          "ticker": "UNITDSPR",
+          "name": "United Spirits Ltd.",
+          "isin": "INE854D01024",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "UNITDSPR",
+          "api_format": "NSE:UNITDSPR",
+          "sub_sector": "BEVERAGES_ALCOHOLIC"
+        },
+        {
+          "ticker": "VBL",
+          "name": "Varun Beverages Ltd.",
+          "isin": "INE200M01039",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "VBL",
+          "api_format": "NSE:VBL",
+          "sub_sector": "BEVERAGES_SOFT_DRINKS"
+        },
+        {
+          "ticker": "VEDL",
+          "name": "Vedanta Ltd.",
+          "isin": "INE205A01025",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "VEDL",
+          "api_format": "NSE:VEDL",
+          "sub_sector": "DIVERSIFIED_MINING"
+        },
+        {
+          "ticker": "WIPRO",
+          "name": "Wipro Ltd.",
+          "isin": "INE075A01022",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "WIPRO",
+          "api_format": "NSE:WIPRO",
+          "sub_sector": "IT_SERVICES_LARGE_CAP"
+        },
+        {
+          "ticker": "ZYDUSLIFE",
+          "name": "Zydus Lifesciences Ltd.",
+          "isin": "INE010B01027",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "ZYDUSLIFE",
+          "api_format": "NSE:ZYDUSLIFE",
+          "sub_sector": "PHARMA_FORMULATIONS"
+        }
+      ]
+    },
+    "MIDCAP100": {
+      "count": 100,
+      "index_symbol": "NIFTY MIDCAP 100",
+      "index_api_format": "NSE:NIFTY MIDCAP 100",
+      "stocks": [
+        {
+          "ticker": "360ONE",
+          "name": "360 ONE WAM Ltd.",
+          "isin": "INE466L01038",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "360ONE",
+          "api_format": "NSE:360ONE",
+          "sub_sector": "ASSET_MANAGEMENT"
+        },
+        {
+          "ticker": "ACC",
+          "name": "ACC Ltd.",
+          "isin": "INE012A01025",
+          "industry": "Construction Materials",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ACC",
+          "api_format": "NSE:ACC",
+          "sub_sector": "CEMENT"
+        },
+        {
+          "ticker": "APLAPOLLO",
+          "name": "APL Apollo Tubes Ltd.",
+          "isin": "INE702C01027",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "APLAPOLLO",
+          "api_format": "NSE:APLAPOLLO",
+          "sub_sector": "STEEL_PIPES"
+        },
+        {
+          "ticker": "AUBANK",
+          "name": "AU Small Finance Bank Ltd.",
+          "isin": "INE949M01017",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "AUBANK",
+          "api_format": "NSE:AUBANK",
+          "sub_sector": "SMALL_FINANCE_BANK"
+        },
+        {
+          "ticker": "ATGL",
+          "name": "Adani Total Gas Ltd.",
+          "isin": "INE399L01023",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "ATGL",
+          "api_format": "NSE:ATGL",
+          "sub_sector": "CITY_GAS_DISTRIBUTION"
+        },
+        {
+          "ticker": "ABCAPITAL",
+          "name": "Aditya Birla Capital Ltd.",
+          "isin": "INE674K01013",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ABCAPITAL",
+          "api_format": "NSE:ABCAPITAL",
+          "sub_sector": "FINANCIAL_HOLDING"
+        },
+        {
+          "ticker": "ALKEM",
+          "name": "Alkem Laboratories Ltd.",
+          "isin": "INE540L01014",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "ALKEM",
+          "api_format": "NSE:ALKEM",
+          "sub_sector": "PHARMA_FORMULATIONS"
+        },
+        {
+          "ticker": "ASHOKLEY",
+          "name": "Ashok Leyland Ltd.",
+          "isin": "INE208A01029",
+          "industry": "Capital Goods",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "ASHOKLEY",
+          "api_format": "NSE:ASHOKLEY",
+          "sub_sector": "COMMERCIAL_VEHICLES"
+        },
+        {
+          "ticker": "ASTRAL",
+          "name": "Astral Ltd.",
+          "isin": "INE006I01046",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ASTRAL",
+          "api_format": "NSE:ASTRAL",
+          "sub_sector": "PLASTIC_PIPES"
+        },
+        {
+          "ticker": "AUROPHARMA",
+          "name": "Aurobindo Pharma Ltd.",
+          "isin": "INE406A01037",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "AUROPHARMA",
+          "api_format": "NSE:AUROPHARMA",
+          "sub_sector": "PHARMA_GENERIC"
+        },
+        {
+          "ticker": "BSE",
+          "name": "BSE Ltd.",
+          "isin": "INE118H01025",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BSE",
+          "api_format": "NSE:BSE",
+          "sub_sector": "STOCK_EXCHANGE"
+        },
+        {
+          "ticker": "BANKINDIA",
+          "name": "Bank of India",
+          "isin": "INE084A01016",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BANKINDIA",
+          "api_format": "NSE:BANKINDIA",
+          "sub_sector": "BANKING_PSU"
+        },
+        {
+          "ticker": "BDL",
+          "name": "Bharat Dynamics Ltd.",
+          "isin": "INE171Z01026",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BDL",
+          "api_format": "NSE:BDL",
+          "sub_sector": "DEFENCE_MISSILES"
+        },
+        {
+          "ticker": "BHARATFORG",
+          "name": "Bharat Forge Ltd.",
+          "isin": "INE465A01025",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "BHARATFORG",
+          "api_format": "NSE:BHARATFORG",
+          "sub_sector": "AUTO_COMPONENTS_FORGING"
+        },
+        {
+          "ticker": "BHEL",
+          "name": "Bharat Heavy Electricals Ltd.",
+          "isin": "INE257A01026",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BHEL",
+          "api_format": "NSE:BHEL",
+          "sub_sector": "HEAVY_ENGINEERING"
+        },
+        {
+          "ticker": "BHARTIHEXA",
+          "name": "Bharti Hexacom Ltd.",
+          "isin": "INE343G01021",
+          "industry": "Telecommunication",
+          "sector": "TELECOM",
+          "series": "EQ",
+          "zerodha_symbol": "BHARTIHEXA",
+          "api_format": "NSE:BHARTIHEXA",
+          "sub_sector": "TELECOM_SERVICES"
+        },
+        {
+          "ticker": "BIOCON",
+          "name": "Biocon Ltd.",
+          "isin": "INE376G01013",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "BIOCON",
+          "api_format": "NSE:BIOCON",
+          "sub_sector": "BIOTECHNOLOGY_BIOSIMILARS"
+        },
+        {
+          "ticker": "BLUESTARCO",
+          "name": "Blue Star Ltd.",
+          "isin": "INE472A01039",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "BLUESTARCO",
+          "api_format": "NSE:BLUESTARCO",
+          "sub_sector": "CONSUMER_DURABLES_AC"
+        },
+        {
+          "ticker": "COCHINSHIP",
+          "name": "Cochin Shipyard Ltd.",
+          "isin": "INE704P01025",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "COCHINSHIP",
+          "api_format": "NSE:COCHINSHIP",
+          "sub_sector": "DEFENCE_SHIPBUILDING"
+        },
+        {
+          "ticker": "COFORGE",
+          "name": "Coforge Ltd.",
+          "isin": "INE591G01025",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "COFORGE",
+          "api_format": "NSE:COFORGE",
+          "sub_sector": "MID_TIER_IT"
+        },
+        {
+          "ticker": "COLPAL",
+          "name": "Colgate Palmolive (India) Ltd.",
+          "isin": "INE259A01022",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "COLPAL",
+          "api_format": "NSE:COLPAL",
+          "sub_sector": "FMCG_PERSONAL_HOME"
+        },
+        {
+          "ticker": "CONCOR",
+          "name": "Container Corporation of India Ltd.",
+          "isin": "INE111A01025",
+          "industry": "Services",
+          "sector": "INFRASTRUCTURE",
+          "series": "EQ",
+          "zerodha_symbol": "CONCOR",
+          "api_format": "NSE:CONCOR",
+          "sub_sector": "RAIL_LOGISTICS"
+        },
+        {
+          "ticker": "COROMANDEL",
+          "name": "Coromandel International Ltd.",
+          "isin": "INE169A01031",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "COROMANDEL",
+          "api_format": "NSE:COROMANDEL",
+          "sub_sector": "AGROCHEMICALS_FERTILIZERS"
+        },
+        {
+          "ticker": "CUMMINSIND",
+          "name": "Cummins India Ltd.",
+          "isin": "INE298A01020",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CUMMINSIND",
+          "api_format": "NSE:CUMMINSIND",
+          "sub_sector": "INDUSTRIAL_ENGINES"
+        },
+        {
+          "ticker": "DABUR",
+          "name": "Dabur India Ltd.",
+          "isin": "INE016A01026",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "DABUR",
+          "api_format": "NSE:DABUR",
+          "sub_sector": "FMCG_AYURVEDA"
+        },
+        {
+          "ticker": "DIXON",
+          "name": "Dixon Technologies (India) Ltd.",
+          "isin": "INE935N01020",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "DIXON",
+          "api_format": "NSE:DIXON",
+          "sub_sector": "ELECTRONICS_MANUFACTURING"
+        },
+        {
+          "ticker": "EXIDEIND",
+          "name": "Exide Industries Ltd.",
+          "isin": "INE302A01020",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "EXIDEIND",
+          "api_format": "NSE:EXIDEIND",
+          "sub_sector": "AUTO_COMPONENTS_BATTERIES"
+        },
+        {
+          "ticker": "NYKAA",
+          "name": "FSN E-Commerce Ventures Ltd.",
+          "isin": "INE388Y01029",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "NYKAA",
+          "api_format": "NSE:NYKAA",
+          "sub_sector": "ONLINE_BEAUTY"
+        },
+        {
+          "ticker": "FEDERALBNK",
+          "name": "Federal Bank Ltd.",
+          "isin": "INE171A01029",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "FEDERALBNK",
+          "api_format": "NSE:FEDERALBNK",
+          "sub_sector": "BANKING_PRIVATE"
+        },
+        {
+          "ticker": "FORTIS",
+          "name": "Fortis Healthcare Ltd.",
+          "isin": "INE061F01013",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "FORTIS",
+          "api_format": "NSE:FORTIS",
+          "sub_sector": "HOSPITALS"
+        },
+        {
+          "ticker": "GMRAIRPORT",
+          "name": "GMR Airports Ltd.",
+          "isin": "INE776C01039",
+          "industry": "Services",
+          "sector": "INFRASTRUCTURE",
+          "series": "EQ",
+          "zerodha_symbol": "GMRAIRPORT",
+          "api_format": "NSE:GMRAIRPORT",
+          "sub_sector": "AIRPORTS"
+        },
+        {
+          "ticker": "GLENMARK",
+          "name": "Glenmark Pharmaceuticals Ltd.",
+          "isin": "INE935A01035",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "GLENMARK",
+          "api_format": "NSE:GLENMARK",
+          "sub_sector": "PHARMA_RESEARCH"
+        },
+        {
+          "ticker": "GODFRYPHLP",
+          "name": "Godfrey Phillips India Ltd.",
+          "isin": "INE260B01028",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "GODFRYPHLP",
+          "api_format": "NSE:GODFRYPHLP",
+          "sub_sector": "FMCG_TOBACCO"
+        },
+        {
+          "ticker": "GODREJPROP",
+          "name": "Godrej Properties Ltd.",
+          "isin": "INE484J01027",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "GODREJPROP",
+          "api_format": "NSE:GODREJPROP",
+          "sub_sector": "RESIDENTIAL"
+        },
+        {
+          "ticker": "HDFCAMC",
+          "name": "HDFC Asset Management Company Ltd.",
+          "isin": "INE127D01025",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "HDFCAMC",
+          "api_format": "NSE:HDFCAMC",
+          "sub_sector": "ASSET_MANAGEMENT"
+        },
+        {
+          "ticker": "HEROMOTOCO",
+          "name": "Hero MotoCorp Ltd.",
+          "isin": "INE158A01026",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "HEROMOTOCO",
+          "api_format": "NSE:HEROMOTOCO",
+          "sub_sector": "TWO_WHEELERS"
+        },
+        {
+          "ticker": "HINDPETRO",
+          "name": "Hindustan Petroleum Corporation Ltd.",
+          "isin": "INE094A01015",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "HINDPETRO",
+          "api_format": "NSE:HINDPETRO",
+          "sub_sector": "OIL_REFINING_MARKETING"
+        },
+        {
+          "ticker": "POWERINDIA",
+          "name": "Hitachi Energy India Ltd.",
+          "isin": "INE07Y701011",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "POWERINDIA",
+          "api_format": "NSE:POWERINDIA",
+          "sub_sector": "ELECTRICAL_EQUIPMENT"
+        },
+        {
+          "ticker": "HUDCO",
+          "name": "Housing & Urban Development Corporation Ltd.",
+          "isin": "INE031A01017",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "HUDCO",
+          "api_format": "NSE:HUDCO",
+          "sub_sector": "NBFC_HOUSING"
+        },
+        {
+          "ticker": "IDFCFIRSTB",
+          "name": "IDFC First Bank Ltd.",
+          "isin": "INE092T01019",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "IDFCFIRSTB",
+          "api_format": "NSE:IDFCFIRSTB",
+          "sub_sector": "BANKING_PRIVATE"
+        },
+        {
+          "ticker": "IRB",
+          "name": "IRB Infrastructure Developers Ltd.",
+          "isin": "INE821I01022",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "IRB",
+          "api_format": "NSE:IRB",
+          "sub_sector": "ROAD_INFRASTRUCTURE"
+        },
+        {
+          "ticker": "ITCHOTELS",
+          "name": "ITC Hotels Ltd.",
+          "isin": "INE379A01028",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "ITCHOTELS",
+          "api_format": "NSE:ITCHOTELS",
+          "sub_sector": "HOTELS_LUXURY"
+        },
+        {
+          "ticker": "INDIANB",
+          "name": "Indian Bank",
+          "isin": "INE562A01011",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "INDIANB",
+          "api_format": "NSE:INDIANB",
+          "sub_sector": "BANKING_PSU"
+        },
+        {
+          "ticker": "IRCTC",
+          "name": "Indian Railway Catering And Tourism Corporation Ltd.",
+          "isin": "INE335Y01020",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "IRCTC",
+          "api_format": "NSE:IRCTC",
+          "sub_sector": "TRAVEL_SERVICES"
+        },
+        {
+          "ticker": "IREDA",
+          "name": "Indian Renewable Energy Development Agency Ltd.",
+          "isin": "INE202E01016",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "IREDA",
+          "api_format": "NSE:IREDA",
+          "sub_sector": "NBFC_GREEN_ENERGY"
+        },
+        {
+          "ticker": "IGL",
+          "name": "Indraprastha Gas Ltd.",
+          "isin": "INE203G01027",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "IGL",
+          "api_format": "NSE:IGL",
+          "sub_sector": "CITY_GAS_DISTRIBUTION"
+        },
+        {
+          "ticker": "INDUSTOWER",
+          "name": "Indus Towers Ltd.",
+          "isin": "INE121J01017",
+          "industry": "Telecommunication",
+          "sector": "TELECOM",
+          "series": "EQ",
+          "zerodha_symbol": "INDUSTOWER",
+          "api_format": "NSE:INDUSTOWER",
+          "sub_sector": "TELECOM_TOWERS"
+        },
+        {
+          "ticker": "INDUSINDBK",
+          "name": "IndusInd Bank Ltd.",
+          "isin": "INE095A01012",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "INDUSINDBK",
+          "api_format": "NSE:INDUSINDBK",
+          "sub_sector": "BANKING_PRIVATE"
+        },
+        {
+          "ticker": "JUBLFOOD",
+          "name": "Jubilant Foodworks Ltd.",
+          "isin": "INE797F01020",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "JUBLFOOD",
+          "api_format": "NSE:JUBLFOOD",
+          "sub_sector": "QSR"
+        },
+        {
+          "ticker": "KEI",
+          "name": "KEI Industries Ltd.",
+          "isin": "INE878B01027",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "KEI",
+          "api_format": "NSE:KEI",
+          "sub_sector": "ELECTRICAL_CABLES"
+        },
+        {
+          "ticker": "KPITTECH",
+          "name": "KPIT Technologies Ltd.",
+          "isin": "INE04I401011",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "KPITTECH",
+          "api_format": "NSE:KPITTECH",
+          "sub_sector": "AUTOMOTIVE_IT"
+        },
+        {
+          "ticker": "KALYANKJIL",
+          "name": "Kalyan Jewellers India Ltd.",
+          "isin": "INE303R01014",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "KALYANKJIL",
+          "api_format": "NSE:KALYANKJIL",
+          "sub_sector": "JEWELLERY"
+        },
+        {
+          "ticker": "LTF",
+          "name": "L&T Finance Ltd.",
+          "isin": "INE498L01015",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "LTF",
+          "api_format": "NSE:LTF",
+          "sub_sector": "NBFC_RETAIL"
+        },
+        {
+          "ticker": "LICHSGFIN",
+          "name": "LIC Housing Finance Ltd.",
+          "isin": "INE115A01026",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "LICHSGFIN",
+          "api_format": "NSE:LICHSGFIN",
+          "sub_sector": "HOUSING_FINANCE"
+        },
+        {
+          "ticker": "LUPIN",
+          "name": "Lupin Ltd.",
+          "isin": "INE326A01037",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "LUPIN",
+          "api_format": "NSE:LUPIN",
+          "sub_sector": "PHARMA_FORMULATIONS"
+        },
+        {
+          "ticker": "MRF",
+          "name": "MRF Ltd.",
+          "isin": "INE883A01011",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "MRF",
+          "api_format": "NSE:MRF",
+          "sub_sector": "TYRES"
+        },
+        {
+          "ticker": "M&MFIN",
+          "name": "Mahindra & Mahindra Financial Services Ltd.",
+          "isin": "INE774D01024",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "M&MFIN",
+          "api_format": "NSE:M&MFIN",
+          "sub_sector": "NBFC_RETAIL"
+        },
+        {
+          "ticker": "MANKIND",
+          "name": "Mankind Pharma Ltd.",
+          "isin": "INE634S01028",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "MANKIND",
+          "api_format": "NSE:MANKIND",
+          "sub_sector": "PHARMA_DOMESTIC"
+        },
+        {
+          "ticker": "MARICO",
+          "name": "Marico Ltd.",
+          "isin": "INE196A01026",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "MARICO",
+          "api_format": "NSE:MARICO",
+          "sub_sector": "FMCG_PERSONAL_CARE"
+        },
+        {
+          "ticker": "MFSL",
+          "name": "Max Financial Services Ltd.",
+          "isin": "INE180A01020",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "MFSL",
+          "api_format": "NSE:MFSL",
+          "sub_sector": "INSURANCE_LIFE"
+        },
+        {
+          "ticker": "MOTILALOFS",
+          "name": "Motilal Oswal Financial Services Ltd.",
+          "isin": "INE338I01027",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "MOTILALOFS",
+          "api_format": "NSE:MOTILALOFS",
+          "sub_sector": "BROKING"
+        },
+        {
+          "ticker": "MPHASIS",
+          "name": "MphasiS Ltd.",
+          "isin": "INE356A01018",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "MPHASIS",
+          "api_format": "NSE:MPHASIS",
+          "sub_sector": "MID_TIER_IT"
+        },
+        {
+          "ticker": "MUTHOOTFIN",
+          "name": "Muthoot Finance Ltd.",
+          "isin": "INE414G01012",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "MUTHOOTFIN",
+          "api_format": "NSE:MUTHOOTFIN",
+          "sub_sector": "GOLD_LOAN_NBFC"
+        },
+        {
+          "ticker": "NHPC",
+          "name": "NHPC Ltd.",
+          "isin": "INE848E01016",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "NHPC",
+          "api_format": "NSE:NHPC",
+          "sub_sector": "POWER_HYDRO"
+        },
+        {
+          "ticker": "NMDC",
+          "name": "NMDC Ltd.",
+          "isin": "INE584A01023",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "NMDC",
+          "api_format": "NSE:NMDC",
+          "sub_sector": "IRON_ORE_MINING"
+        },
+        {
+          "ticker": "NTPCGREEN",
+          "name": "NTPC Green Energy Ltd.",
+          "isin": "INE0ONG01011",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "NTPCGREEN",
+          "api_format": "NSE:NTPCGREEN",
+          "sub_sector": "RENEWABLE_POWER"
+        },
+        {
+          "ticker": "NATIONALUM",
+          "name": "National Aluminium Co. Ltd.",
+          "isin": "INE139A01034",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "NATIONALUM",
+          "api_format": "NSE:NATIONALUM",
+          "sub_sector": "ALUMINIUM_PSU"
+        },
+        {
+          "ticker": "OBEROIRLTY",
+          "name": "Oberoi Realty Ltd.",
+          "isin": "INE093I01010",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "OBEROIRLTY",
+          "api_format": "NSE:OBEROIRLTY",
+          "sub_sector": "RESIDENTIAL_PREMIUM"
+        },
+        {
+          "ticker": "OIL",
+          "name": "Oil India Ltd.",
+          "isin": "INE274J01014",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "OIL",
+          "api_format": "NSE:OIL",
+          "sub_sector": "OIL_EXPLORATION_PRODUCTION"
+        },
+        {
+          "ticker": "PAYTM",
+          "name": "One 97 Communications Ltd.",
+          "isin": "INE982J01020",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "PAYTM",
+          "api_format": "NSE:PAYTM",
+          "sub_sector": "FINTECH_PAYMENTS"
+        },
+        {
+          "ticker": "OFSS",
+          "name": "Oracle Financial Services Software Ltd.",
+          "isin": "INE881D01027",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "OFSS",
+          "api_format": "NSE:OFSS",
+          "sub_sector": "FINTECH_SOFTWARE"
+        },
+        {
+          "ticker": "POLICYBZR",
+          "name": "PB Fintech Ltd.",
+          "isin": "INE417T01026",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "POLICYBZR",
+          "api_format": "NSE:POLICYBZR",
+          "sub_sector": "INSURTECH"
+        },
+        {
+          "ticker": "PIIND",
+          "name": "PI Industries Ltd.",
+          "isin": "INE603J01030",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "PIIND",
+          "api_format": "NSE:PIIND",
+          "sub_sector": "AGROCHEMICALS"
+        },
+        {
+          "ticker": "PAGEIND",
+          "name": "Page Industries Ltd.",
+          "isin": "INE761H01022",
+          "industry": "Textiles",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "PAGEIND",
+          "api_format": "NSE:PAGEIND",
+          "sub_sector": "APPAREL_INNERWEAR"
+        },
+        {
+          "ticker": "PATANJALI",
+          "name": "Patanjali Foods Ltd.",
+          "isin": "INE619A01035",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "PATANJALI",
+          "api_format": "NSE:PATANJALI",
+          "sub_sector": "FMCG_FOOD_AYURVEDA"
+        },
+        {
+          "ticker": "PERSISTENT",
+          "name": "Persistent Systems Ltd.",
+          "isin": "INE262H01021",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "PERSISTENT",
+          "api_format": "NSE:PERSISTENT",
+          "sub_sector": "DIGITAL_CLOUD_IT"
+        },
+        {
+          "ticker": "PHOENIXLTD",
+          "name": "Phoenix Mills Ltd.",
+          "isin": "INE211B01039",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "PHOENIXLTD",
+          "api_format": "NSE:PHOENIXLTD",
+          "sub_sector": "RETAIL_MALLS"
+        },
+        {
+          "ticker": "POLYCAB",
+          "name": "Polycab India Ltd.",
+          "isin": "INE455K01017",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "POLYCAB",
+          "api_format": "NSE:POLYCAB",
+          "sub_sector": "ELECTRICAL_CABLES"
+        },
+        {
+          "ticker": "PREMIERENE",
+          "name": "Premier Energies Ltd.",
+          "isin": "INE0BS701011",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "PREMIERENE",
+          "api_format": "NSE:PREMIERENE",
+          "sub_sector": "SOLAR_CELLS"
+        },
+        {
+          "ticker": "PRESTIGE",
+          "name": "Prestige Estates Projects Ltd.",
+          "isin": "INE811K01011",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "PRESTIGE",
+          "api_format": "NSE:PRESTIGE",
+          "sub_sector": "COMMERCIAL_RESIDENTIAL"
+        },
+        {
+          "ticker": "RVNL",
+          "name": "Rail Vikas Nigam Ltd.",
+          "isin": "INE415G01027",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "RVNL",
+          "api_format": "NSE:RVNL",
+          "sub_sector": "RAIL_INFRASTRUCTURE"
+        },
+        {
+          "ticker": "SBICARD",
+          "name": "SBI Cards and Payment Services Ltd.",
+          "isin": "INE018E01016",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SBICARD",
+          "api_format": "NSE:SBICARD",
+          "sub_sector": "CARDS_PAYMENTS"
+        },
+        {
+          "ticker": "SRF",
+          "name": "SRF Ltd.",
+          "isin": "INE647A01010",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SRF",
+          "api_format": "NSE:SRF",
+          "sub_sector": "FLUORO_SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "SONACOMS",
+          "name": "Sona BLW Precision Forgings Ltd.",
+          "isin": "INE073K01018",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "SONACOMS",
+          "api_format": "NSE:SONACOMS",
+          "sub_sector": "AUTO_COMPONENTS_EV"
+        },
+        {
+          "ticker": "SAIL",
+          "name": "Steel Authority of India Ltd.",
+          "isin": "INE114A01011",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "SAIL",
+          "api_format": "NSE:SAIL",
+          "sub_sector": "STEEL_PSU"
+        },
+        {
+          "ticker": "SUPREMEIND",
+          "name": "Supreme Industries Ltd.",
+          "isin": "INE195A01028",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SUPREMEIND",
+          "api_format": "NSE:SUPREMEIND",
+          "sub_sector": "PLASTIC_PIPES"
+        },
+        {
+          "ticker": "SUZLON",
+          "name": "Suzlon Energy Ltd.",
+          "isin": "INE040H01021",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SUZLON",
+          "api_format": "NSE:SUZLON",
+          "sub_sector": "WIND_TURBINES"
+        },
+        {
+          "ticker": "SWIGGY",
+          "name": "Swiggy Ltd.",
+          "isin": "INE00H001014",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "SWIGGY",
+          "api_format": "NSE:SWIGGY",
+          "sub_sector": "FOOD_DELIVERY"
+        },
+        {
+          "ticker": "TATACOMM",
+          "name": "Tata Communications Ltd.",
+          "isin": "INE151A01013",
+          "industry": "Telecommunication",
+          "sector": "TELECOM",
+          "series": "EQ",
+          "zerodha_symbol": "TATACOMM",
+          "api_format": "NSE:TATACOMM",
+          "sub_sector": "TELECOM_ENTERPRISE"
+        },
+        {
+          "ticker": "TATAELXSI",
+          "name": "Tata Elxsi Ltd.",
+          "isin": "INE670A01012",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "TATAELXSI",
+          "api_format": "NSE:TATAELXSI",
+          "sub_sector": "EMBEDDED_DESIGN"
+        },
+        {
+          "ticker": "TATATECH",
+          "name": "Tata Technologies Ltd.",
+          "isin": "INE142M01025",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "TATATECH",
+          "api_format": "NSE:TATATECH",
+          "sub_sector": "ERD_SERVICES"
+        },
+        {
+          "ticker": "TORNTPOWER",
+          "name": "Torrent Power Ltd.",
+          "isin": "INE813H01021",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "TORNTPOWER",
+          "api_format": "NSE:TORNTPOWER",
+          "sub_sector": "POWER_UTILITIES"
+        },
+        {
+          "ticker": "TIINDIA",
+          "name": "Tube Investments of India Ltd.",
+          "isin": "INE974X01010",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "TIINDIA",
+          "api_format": "NSE:TIINDIA",
+          "sub_sector": "AUTO_COMPONENTS"
+        },
+        {
+          "ticker": "UPL",
+          "name": "UPL Ltd.",
+          "isin": "INE628A01036",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "UPL",
+          "api_format": "NSE:UPL",
+          "sub_sector": "AGROCHEMICALS_CROP_PROTECTION"
+        },
+        {
+          "ticker": "UNIONBANK",
+          "name": "Union Bank of India",
+          "isin": "INE692A01016",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "UNIONBANK",
+          "api_format": "NSE:UNIONBANK",
+          "sub_sector": "BANKING_PSU"
+        },
+        {
+          "ticker": "VMM",
+          "name": "Vishal Mega Mart Ltd.",
+          "isin": "INE01EA01019",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "VMM",
+          "api_format": "NSE:VMM",
+          "sub_sector": "RETAIL_VALUE"
+        },
+        {
+          "ticker": "IDEA",
+          "name": "Vodafone Idea Ltd.",
+          "isin": "INE669E01016",
+          "industry": "Telecommunication",
+          "sector": "TELECOM",
+          "series": "EQ",
+          "zerodha_symbol": "IDEA",
+          "api_format": "NSE:IDEA",
+          "sub_sector": "TELECOM_SERVICES"
+        },
+        {
+          "ticker": "VOLTAS",
+          "name": "Voltas Ltd.",
+          "isin": "INE226A01021",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "VOLTAS",
+          "api_format": "NSE:VOLTAS",
+          "sub_sector": "CONSUMER_DURABLES_AC"
+        },
+        {
+          "ticker": "WAAREEENER",
+          "name": "Waaree Energies Ltd.",
+          "isin": "INE377N01017",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "WAAREEENER",
+          "api_format": "NSE:WAAREEENER",
+          "sub_sector": "SOLAR_MODULES"
+        },
+        {
+          "ticker": "YESBANK",
+          "name": "Yes Bank Ltd.",
+          "isin": "INE528G01035",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "YESBANK",
+          "api_format": "NSE:YESBANK",
+          "sub_sector": "BANKING_PRIVATE"
+        }
+      ]
+    },
+    "NIFTYSC100": {
+      "count": 100,
+      "index_symbol": "NIFTY SMLCAP 100",
+      "index_api_format": "NSE:NIFTY SMLCAP 100",
+      "stocks": [
+        {
+          "ticker": "AADHARHFC",
+          "name": "Aadhar Housing Finance Ltd.",
+          "isin": "INE883F01010",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "AADHARHFC",
+          "api_format": "NSE:AADHARHFC",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "AARTIIND",
+          "name": "Aarti Industries Ltd.",
+          "isin": "INE769A01020",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "AARTIIND",
+          "api_format": "NSE:AARTIIND",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "ABREL",
+          "name": "Aditya Birla Real Estate Ltd.",
+          "isin": "INE055A01016",
+          "industry": "Forest Materials",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "ABREL",
+          "api_format": "NSE:ABREL",
+          "sub_sector": "REAL_ESTATE"
+        },
+        {
+          "ticker": "AEGISLOG",
+          "name": "Aegis Logistics Ltd.",
+          "isin": "INE208C01025",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "AEGISLOG",
+          "api_format": "NSE:AEGISLOG",
+          "sub_sector": "OIL_GAS"
+        },
+        {
+          "ticker": "AEGISVOPAK",
+          "name": "Aegis Vopak Terminals Ltd.",
+          "isin": "INE0INX01018",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "AEGISVOPAK",
+          "api_format": "NSE:AEGISVOPAK",
+          "sub_sector": "OIL_GAS"
+        },
+        {
+          "ticker": "AFCONS",
+          "name": "Afcons Infrastructure Ltd.",
+          "isin": "INE101I01011",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "AFCONS",
+          "api_format": "NSE:AFCONS",
+          "sub_sector": "CONSTRUCTION"
+        },
+        {
+          "ticker": "AFFLE",
+          "name": "Affle 3i Ltd.",
+          "isin": "INE00WC01027",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "AFFLE",
+          "api_format": "NSE:AFFLE",
+          "sub_sector": "IT_SERVICES"
+        },
+        {
+          "ticker": "AMBER",
+          "name": "Amber Enterprises India Ltd.",
+          "isin": "INE371P01015",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "AMBER",
+          "api_format": "NSE:AMBER",
+          "sub_sector": "CONSUMER_DURABLES"
+        },
+        {
+          "ticker": "ANANDRATHI",
+          "name": "Anand Rathi Wealth Ltd.",
+          "isin": "INE463V01026",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ANANDRATHI",
+          "api_format": "NSE:ANANDRATHI",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "ANANTRAJ",
+          "name": "Anant Raj Ltd.",
+          "isin": "INE242C01024",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "ANANTRAJ",
+          "api_format": "NSE:ANANTRAJ",
+          "sub_sector": "REAL_ESTATE"
+        },
+        {
+          "ticker": "ANGELONE",
+          "name": "Angel One Ltd.",
+          "isin": "INE732I01013",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ANGELONE",
+          "api_format": "NSE:ANGELONE",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "APTUS",
+          "name": "Aptus Value Housing Finance India Ltd.",
+          "isin": "INE852O01025",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "APTUS",
+          "api_format": "NSE:APTUS",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "ARE&M",
+          "name": "Amara Raja Energy & Mobility Ltd.",
+          "isin": "INE885A01032",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "ARE&M",
+          "api_format": "NSE:ARE&M",
+          "sub_sector": "AUTO_COMPONENTS"
+        },
+        {
+          "ticker": "ASTERDM",
+          "name": "Aster DM Healthcare Ltd.",
+          "isin": "INE914M01019",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "ASTERDM",
+          "api_format": "NSE:ASTERDM",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "ATUL",
+          "name": "Atul Ltd.",
+          "isin": "INE100A01010",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ATUL",
+          "api_format": "NSE:ATUL",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "BANDHANBNK",
+          "name": "Bandhan Bank Ltd.",
+          "isin": "INE545U01014",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BANDHANBNK",
+          "api_format": "NSE:BANDHANBNK",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "BEML",
+          "name": "BEML Ltd.",
+          "isin": "INE258A01024",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "BEML",
+          "api_format": "NSE:BEML",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "BLS",
+          "name": "BLS International Services Ltd.",
+          "isin": "INE153T01027",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "BLS",
+          "api_format": "NSE:BLS",
+          "sub_sector": "CONSUMER_SERVICES"
+        },
+        {
+          "ticker": "BRIGADE",
+          "name": "Brigade Enterprises Ltd.",
+          "isin": "INE791I01019",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "BRIGADE",
+          "api_format": "NSE:BRIGADE",
+          "sub_sector": "REAL_ESTATE"
+        },
+        {
+          "ticker": "CAMS",
+          "name": "Computer Age Management Services Ltd.",
+          "isin": "INE596I01020",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CAMS",
+          "api_format": "NSE:CAMS",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "CASTROLIND",
+          "name": "Castrol India Ltd.",
+          "isin": "INE172A01027",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "CASTROLIND",
+          "api_format": "NSE:CASTROLIND",
+          "sub_sector": "OIL_GAS"
+        },
+        {
+          "ticker": "CDSL",
+          "name": "Central Depository Services (India) Ltd.",
+          "isin": "INE736A01011",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CDSL",
+          "api_format": "NSE:CDSL",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "CESC",
+          "name": "CESC Ltd.",
+          "isin": "INE486A01021",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "CESC",
+          "api_format": "NSE:CESC",
+          "sub_sector": "POWER_GENERATION"
+        },
+        {
+          "ticker": "CGCL",
+          "name": "Capri Global Capital Ltd.",
+          "isin": "INE180C01042",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CGCL",
+          "api_format": "NSE:CGCL",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "CHAMBLFERT",
+          "name": "Chambal Fertilizers & Chemicals Ltd.",
+          "isin": "INE085A01013",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CHAMBLFERT",
+          "api_format": "NSE:CHAMBLFERT",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "CHOLAHLDNG",
+          "name": "Cholamandalam Financial Holdings Ltd.",
+          "isin": "INE149A01033",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CHOLAHLDNG",
+          "api_format": "NSE:CHOLAHLDNG",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "CREDITACC",
+          "name": "CreditAccess Grameen Ltd.",
+          "isin": "INE741K01010",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "CREDITACC",
+          "api_format": "NSE:CREDITACC",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "CROMPTON",
+          "name": "Crompton Greaves Consumer Electricals Ltd.",
+          "isin": "INE299U01018",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "CROMPTON",
+          "api_format": "NSE:CROMPTON",
+          "sub_sector": "CONSUMER_DURABLES"
+        },
+        {
+          "ticker": "CYIENT",
+          "name": "Cyient Ltd.",
+          "isin": "INE136B01020",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "CYIENT",
+          "api_format": "NSE:CYIENT",
+          "sub_sector": "IT_SERVICES"
+        },
+        {
+          "ticker": "DATAPATTNS",
+          "name": "Data Patterns (India) Ltd.",
+          "isin": "INE0IX101010",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "DATAPATTNS",
+          "api_format": "NSE:DATAPATTNS",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "DEEPAKFERT",
+          "name": "Deepak Fertilisers & Petrochemicals Corp. Ltd.",
+          "isin": "INE501A01019",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "DEEPAKFERT",
+          "api_format": "NSE:DEEPAKFERT",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "DELHIVERY",
+          "name": "Delhivery Ltd.",
+          "isin": "INE148O01028",
+          "industry": "Services",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "DELHIVERY",
+          "api_format": "NSE:DELHIVERY",
+          "sub_sector": "LOGISTICS"
+        },
+        {
+          "ticker": "DEVYANI",
+          "name": "Devyani International Ltd.",
+          "isin": "INE872J01023",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "DEVYANI",
+          "api_format": "NSE:DEVYANI",
+          "sub_sector": "CONSUMER_SERVICES"
+        },
+        {
+          "ticker": "FIRSTCRY",
+          "name": "Brainbees Solutions Ltd.",
+          "isin": "INE02RE01045",
+          "industry": "Consumer Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "FIRSTCRY",
+          "api_format": "NSE:FIRSTCRY",
+          "sub_sector": "CONSUMER_SERVICES"
+        },
+        {
+          "ticker": "FIVESTAR",
+          "name": "Five-Star Business Finance Ltd.",
+          "isin": "INE128S01021",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "FIVESTAR",
+          "api_format": "NSE:FIVESTAR",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "FSL",
+          "name": "Firstsource Solutions Ltd.",
+          "isin": "INE684F01012",
+          "industry": "Services",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "FSL",
+          "api_format": "NSE:FSL",
+          "sub_sector": "IT_SERVICES"
+        },
+        {
+          "ticker": "GESHIP",
+          "name": "Great Eastern Shipping Co. Ltd.",
+          "isin": "INE017A01032",
+          "industry": "Services",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "GESHIP",
+          "api_format": "NSE:GESHIP",
+          "sub_sector": "SHIPPING"
+        },
+        {
+          "ticker": "GILLETTE",
+          "name": "Gillette India Ltd.",
+          "isin": "INE322A01010",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "GILLETTE",
+          "api_format": "NSE:GILLETTE",
+          "sub_sector": "FMCG"
+        },
+        {
+          "ticker": "GLAND",
+          "name": "Gland Pharma Ltd.",
+          "isin": "INE068V01023",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "GLAND",
+          "api_format": "NSE:GLAND",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "GODIGIT",
+          "name": "Go Digit General Insurance Ltd.",
+          "isin": "INE03JT01014",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "GODIGIT",
+          "api_format": "NSE:GODIGIT",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "GRSE",
+          "name": "Garden Reach Shipbuilders & Engineers Ltd.",
+          "isin": "INE382Z01011",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "GRSE",
+          "api_format": "NSE:GRSE",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "HBLENGINE",
+          "name": "HBL Engineering Ltd.",
+          "isin": "INE292B01021",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "HBLENGINE",
+          "api_format": "NSE:HBLENGINE",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "HINDCOPPER",
+          "name": "Hindustan Copper Ltd.",
+          "isin": "INE531E01026",
+          "industry": "Metals & Mining",
+          "sector": "METALS_MINING",
+          "series": "EQ",
+          "zerodha_symbol": "HINDCOPPER",
+          "api_format": "NSE:HINDCOPPER",
+          "sub_sector": "METALS_MINING"
+        },
+        {
+          "ticker": "HSCL",
+          "name": "Himadri Speciality Chemical Ltd.",
+          "isin": "INE019C01026",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "HSCL",
+          "api_format": "NSE:HSCL",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "IEX",
+          "name": "Indian Energy Exchange Ltd.",
+          "isin": "INE022Q01020",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "IEX",
+          "api_format": "NSE:IEX",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "IFCI",
+          "name": "IFCI Ltd.",
+          "isin": "INE039A01010",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "IFCI",
+          "api_format": "NSE:IFCI",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "IGIL",
+          "name": "International Gemmological Institute (India) Ltd.",
+          "isin": "INE0Q9301021",
+          "industry": "Services",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "IGIL",
+          "api_format": "NSE:IGIL",
+          "sub_sector": "LUXURY_GEMS"
+        },
+        {
+          "ticker": "IIFL",
+          "name": "IIFL Finance Ltd.",
+          "isin": "INE530B01024",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "IIFL",
+          "api_format": "NSE:IIFL",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "IKS",
+          "name": "Inventurus Knowledge Solutions Ltd.",
+          "isin": "INE115Q01022",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "IKS",
+          "api_format": "NSE:IKS",
+          "sub_sector": "IT_SERVICES"
+        },
+        {
+          "ticker": "INOXWIND",
+          "name": "Inox Wind Ltd.",
+          "isin": "INE066P01011",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "INOXWIND",
+          "api_format": "NSE:INOXWIND",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "IRCON",
+          "name": "IRCON International Ltd.",
+          "isin": "INE962Y01021",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "IRCON",
+          "api_format": "NSE:IRCON",
+          "sub_sector": "CONSTRUCTION"
+        },
+        {
+          "ticker": "JBCHEPHARM",
+          "name": "J.B. Chemicals & Pharmaceuticals Ltd.",
+          "isin": "INE572A01036",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "JBCHEPHARM",
+          "api_format": "NSE:JBCHEPHARM",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "JBMA",
+          "name": "JBM Auto Ltd.",
+          "isin": "INE927D01051",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "JBMA",
+          "api_format": "NSE:JBMA",
+          "sub_sector": "AUTO_COMPONENTS"
+        },
+        {
+          "ticker": "JINDALSAW",
+          "name": "Jindal Saw Ltd.",
+          "isin": "INE324A01032",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "JINDALSAW",
+          "api_format": "NSE:JINDALSAW",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "JWL",
+          "name": "Jupiter Wagons Ltd.",
+          "isin": "INE209L01016",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "JWL",
+          "api_format": "NSE:JWL",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "JYOTICNC",
+          "name": "Jyoti CNC Automation Ltd.",
+          "isin": "INE980O01024",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "JYOTICNC",
+          "api_format": "NSE:JYOTICNC",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "KAJARIACER",
+          "name": "Kajaria Ceramics Ltd.",
+          "isin": "INE217B01036",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "KAJARIACER",
+          "api_format": "NSE:KAJARIACER",
+          "sub_sector": "CONSUMER_DURABLES"
+        },
+        {
+          "ticker": "KARURVYSYA",
+          "name": "Karur Vysya Bank Ltd.",
+          "isin": "INE036D01028",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "KARURVYSYA",
+          "api_format": "NSE:KARURVYSYA",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "KAYNES",
+          "name": "Kaynes Technology India Ltd.",
+          "isin": "INE918Z01012",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "KAYNES",
+          "api_format": "NSE:KAYNES",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "KEC",
+          "name": "Kec International Ltd.",
+          "isin": "INE389H01022",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "KEC",
+          "api_format": "NSE:KEC",
+          "sub_sector": "CONSTRUCTION"
+        },
+        {
+          "ticker": "KFINTECH",
+          "name": "Kfin Technologies Ltd.",
+          "isin": "INE138Y01010",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "KFINTECH",
+          "api_format": "NSE:KFINTECH",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "KPIL",
+          "name": "Kalpataru Projects International Ltd.",
+          "isin": "INE220B01022",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "KPIL",
+          "api_format": "NSE:KPIL",
+          "sub_sector": "CONSTRUCTION"
+        },
+        {
+          "ticker": "LALPATHLAB",
+          "name": "Dr. Lal Path Labs Ltd.",
+          "isin": "INE600L01024",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "LALPATHLAB",
+          "api_format": "NSE:LALPATHLAB",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "LAURUSLABS",
+          "name": "Laurus Labs Ltd.",
+          "isin": "INE947Q01028",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "LAURUSLABS",
+          "api_format": "NSE:LAURUSLABS",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "MANAPPURAM",
+          "name": "Manappuram Finance Ltd.",
+          "isin": "INE522D01027",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "MANAPPURAM",
+          "api_format": "NSE:MANAPPURAM",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "MCX",
+          "name": "Multi Commodity Exchange of India Ltd.",
+          "isin": "INE745G01043",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "MCX",
+          "api_format": "NSE:MCX",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "MGL",
+          "name": "Mahanagar Gas Ltd.",
+          "isin": "INE002S01010",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "MGL",
+          "api_format": "NSE:MGL",
+          "sub_sector": "OIL_GAS"
+        },
+        {
+          "ticker": "MRPL",
+          "name": "Mangalore Refinery & Petrochemicals Ltd.",
+          "isin": "INE103A01014",
+          "industry": "Oil Gas & Consumable Fuels",
+          "sector": "ENERGY",
+          "series": "EQ",
+          "zerodha_symbol": "MRPL",
+          "api_format": "NSE:MRPL",
+          "sub_sector": "OIL_GAS"
+        },
+        {
+          "ticker": "NATCOPHARM",
+          "name": "NATCO Pharma Ltd.",
+          "isin": "INE987B01026",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "NATCOPHARM",
+          "api_format": "NSE:NATCOPHARM",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "NAVINFLUOR",
+          "name": "Navin Fluorine International Ltd.",
+          "isin": "INE048G01026",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "NAVINFLUOR",
+          "api_format": "NSE:NAVINFLUOR",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "NBCC",
+          "name": "NBCC (India) Ltd.",
+          "isin": "INE095N01031",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "NBCC",
+          "api_format": "NSE:NBCC",
+          "sub_sector": "CONSTRUCTION"
+        },
+        {
+          "ticker": "NCC",
+          "name": "NCC Ltd.",
+          "isin": "INE868B01028",
+          "industry": "Construction",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "NCC",
+          "api_format": "NSE:NCC",
+          "sub_sector": "CONSTRUCTION"
+        },
+        {
+          "ticker": "NEULANDLAB",
+          "name": "Neuland Laboratories Ltd.",
+          "isin": "INE794A01010",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "NEULANDLAB",
+          "api_format": "NSE:NEULANDLAB",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "NEWGEN",
+          "name": "Newgen Software Technologies Ltd.",
+          "isin": "INE619B01017",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "NEWGEN",
+          "api_format": "NSE:NEWGEN",
+          "sub_sector": "IT_SERVICES"
+        },
+        {
+          "ticker": "NH",
+          "name": "Narayana Hrudayalaya Ltd.",
+          "isin": "INE410P01011",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "NH",
+          "api_format": "NSE:NH",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "NUVAMA",
+          "name": "Nuvama Wealth Management Ltd.",
+          "isin": "INE531F01023",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "NUVAMA",
+          "api_format": "NSE:NUVAMA",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "OLAELEC",
+          "name": "Ola Electric Mobility Ltd.",
+          "isin": "INE0LXG01040",
+          "industry": "Automobile and Auto Components",
+          "sector": "AUTOMOBILES",
+          "series": "EQ",
+          "zerodha_symbol": "OLAELEC",
+          "api_format": "NSE:OLAELEC",
+          "sub_sector": "AUTO_COMPONENTS"
+        },
+        {
+          "ticker": "PCBL",
+          "name": "PCBL Chemical Ltd.",
+          "isin": "INE602A01031",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "PCBL",
+          "api_format": "NSE:PCBL",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "PGEL",
+          "name": "PG Electroplast Ltd.",
+          "isin": "INE457L01029",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "PGEL",
+          "api_format": "NSE:PGEL",
+          "sub_sector": "CONSUMER_DURABLES"
+        },
+        {
+          "ticker": "PNBHOUSING",
+          "name": "PNB Housing Finance Ltd.",
+          "isin": "INE572E01012",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "PNBHOUSING",
+          "api_format": "NSE:PNBHOUSING",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "POONAWALLA",
+          "name": "Poonawalla Fincorp Ltd.",
+          "isin": "INE511C01022",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "POONAWALLA",
+          "api_format": "NSE:POONAWALLA",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "PPLPHARMA",
+          "name": "Piramal Pharma Ltd.",
+          "isin": "INE0DK501011",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "PPLPHARMA",
+          "api_format": "NSE:PPLPHARMA",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "RADICO",
+          "name": "Radico Khaitan Ltd",
+          "isin": "INE944F01028",
+          "industry": "Fast Moving Consumer Goods",
+          "sector": "CONSUMER_STAPLES",
+          "series": "EQ",
+          "zerodha_symbol": "RADICO",
+          "api_format": "NSE:RADICO",
+          "sub_sector": "FMCG"
+        },
+        {
+          "ticker": "RAMCOCEM",
+          "name": "The Ramco Cements Ltd.",
+          "isin": "INE331A01037",
+          "industry": "Construction Materials",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "RAMCOCEM",
+          "api_format": "NSE:RAMCOCEM",
+          "sub_sector": "BUILDING_MATERIALS"
+        },
+        {
+          "ticker": "REDINGTON",
+          "name": "Redington Ltd.",
+          "isin": "INE891D01026",
+          "industry": "Services",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "REDINGTON",
+          "api_format": "NSE:REDINGTON",
+          "sub_sector": "IT_DISTRIBUTION"
+        },
+        {
+          "ticker": "RPOWER",
+          "name": "Reliance Power Ltd.",
+          "isin": "INE614G01033",
+          "industry": "Power",
+          "sector": "UTILITIES",
+          "series": "EQ",
+          "zerodha_symbol": "RPOWER",
+          "api_format": "NSE:RPOWER",
+          "sub_sector": "POWER_GENERATION"
+        },
+        {
+          "ticker": "SAGILITY",
+          "name": "Sagility Ltd.",
+          "isin": "INE0W2G01015",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "SAGILITY",
+          "api_format": "NSE:SAGILITY",
+          "sub_sector": "IT_SERVICES"
+        },
+        {
+          "ticker": "SHYAMMETL",
+          "name": "Shyam Metalics and Energy Ltd.",
+          "isin": "INE810G01011",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SHYAMMETL",
+          "api_format": "NSE:SHYAMMETL",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "SIGNATURE",
+          "name": "Signatureglobal (India) Ltd.",
+          "isin": "INE903U01023",
+          "industry": "Realty",
+          "sector": "REAL_ESTATE",
+          "series": "EQ",
+          "zerodha_symbol": "SIGNATURE",
+          "api_format": "NSE:SIGNATURE",
+          "sub_sector": "REAL_ESTATE"
+        },
+        {
+          "ticker": "STARHEALTH",
+          "name": "Star Health and Allied Insurance Company Ltd.",
+          "isin": "INE575P01011",
+          "industry": "Financial Services",
+          "sector": "FINANCIALS",
+          "series": "EQ",
+          "zerodha_symbol": "STARHEALTH",
+          "api_format": "NSE:STARHEALTH",
+          "sub_sector": "FINANCIAL_SERVICES"
+        },
+        {
+          "ticker": "SWANCORP",
+          "name": "Swan Corp Ltd.",
+          "isin": "INE665A01038",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "SWANCORP",
+          "api_format": "NSE:SWANCORP",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "TATACHEM",
+          "name": "Tata Chemicals Ltd.",
+          "isin": "INE092A01019",
+          "industry": "Chemicals",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "TATACHEM",
+          "api_format": "NSE:TATACHEM",
+          "sub_sector": "SPECIALTY_CHEMICALS"
+        },
+        {
+          "ticker": "TEJASNET",
+          "name": "Tejas Networks Ltd.",
+          "isin": "INE010J01012",
+          "industry": "Telecommunication",
+          "sector": "TELECOM",
+          "series": "EQ",
+          "zerodha_symbol": "TEJASNET",
+          "api_format": "NSE:TEJASNET",
+          "sub_sector": "TELECOM_SERVICES"
+        },
+        {
+          "ticker": "TRIDENT",
+          "name": "Trident Ltd.",
+          "isin": "INE064C01022",
+          "industry": "Textiles",
+          "sector": "MATERIALS",
+          "series": "EQ",
+          "zerodha_symbol": "TRIDENT",
+          "api_format": "NSE:TRIDENT",
+          "sub_sector": "TEXTILES"
+        },
+        {
+          "ticker": "TRITURBINE",
+          "name": "Triveni Turbine Ltd.",
+          "isin": "INE152M01016",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "TRITURBINE",
+          "api_format": "NSE:TRITURBINE",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "WELCORP",
+          "name": "Welspun Corp Ltd.",
+          "isin": "INE191B01025",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "WELCORP",
+          "api_format": "NSE:WELCORP",
+          "sub_sector": "CAPITAL_GOODS"
+        },
+        {
+          "ticker": "WHIRLPOOL",
+          "name": "Whirlpool of India Ltd.",
+          "isin": "INE716A01013",
+          "industry": "Consumer Durables",
+          "sector": "CONSUMER_DISCRETIONARY",
+          "series": "EQ",
+          "zerodha_symbol": "WHIRLPOOL",
+          "api_format": "NSE:WHIRLPOOL",
+          "sub_sector": "CONSUMER_DURABLES"
+        },
+        {
+          "ticker": "WOCKPHARMA",
+          "name": "Wockhardt Ltd.",
+          "isin": "INE049B01025",
+          "industry": "Healthcare",
+          "sector": "HEALTHCARE",
+          "series": "EQ",
+          "zerodha_symbol": "WOCKPHARMA",
+          "api_format": "NSE:WOCKPHARMA",
+          "sub_sector": "PHARMACEUTICALS"
+        },
+        {
+          "ticker": "ZENSARTECH",
+          "name": "Zensar Technolgies Ltd.",
+          "isin": "INE520A01027",
+          "industry": "Information Technology",
+          "sector": "INFORMATION_TECHNOLOGY",
+          "series": "EQ",
+          "zerodha_symbol": "ZENSARTECH",
+          "api_format": "NSE:ZENSARTECH",
+          "sub_sector": "IT_SERVICES"
+        },
+        {
+          "ticker": "ZENTEC",
+          "name": "Zen Technologies Ltd.",
+          "isin": "INE251B01027",
+          "industry": "Capital Goods",
+          "sector": "INDUSTRIALS",
+          "series": "EQ",
+          "zerodha_symbol": "ZENTEC",
+          "api_format": "NSE:ZENTEC",
+          "sub_sector": "CAPITAL_GOODS"
+        }
+      ]
+    }
+  },
+  "sector_summary": {
+    "FINANCIAL_SERVICES": {
+      "nifty100": 24,
+      "midcap100": 24,
+      "total": 48
+    },
+    "IT_SERVICES": {
+      "nifty100": 7,
+      "midcap100": 9,
+      "total": 16
+    },
+    "CONSUMER_GOODS": {
+      "nifty100": 9,
+      "midcap100": 6,
+      "total": 15
+    },
+    "CONSUMER_DURABLES": {
+      "nifty100": 3,
+      "midcap100": 5,
+      "total": 8
+    },
+    "AUTOMOBILE": {
+      "nifty100": 10,
+      "midcap100": 7,
+      "total": 17
+    },
+    "PHARMA_HEALTHCARE": {
+      "nifty100": 8,
+      "midcap100": 8,
+      "total": 16
+    },
+    "OIL_GAS_ENERGY": {
+      "nifty100": 6,
+      "midcap100": 4,
+      "total": 10
+    },
+    "POWER": {
+      "nifty100": 7,
+      "midcap100": 4,
+      "total": 11
+    },
+    "METALS_MINING": {
+      "nifty100": 7,
+      "midcap100": 4,
+      "total": 11
+    },
+    "CAPITAL_GOODS": {
+      "nifty100": 8,
+      "midcap100": 17,
+      "total": 25
+    },
+    "CHEMICALS": {
+      "nifty100": 2,
+      "midcap100": 5,
+      "total": 7
+    },
+    "CEMENT_CONSTRUCTION": {
+      "nifty100": 5,
+      "midcap100": 3,
+      "total": 8
+    },
+    "TELECOM_MEDIA": {
+      "nifty100": 1,
+      "midcap100": 4,
+      "total": 5
+    },
+    "REALTY": {
+      "nifty100": 2,
+      "midcap100": 4,
+      "total": 6
+    },
+    "TEXTILES": {
+      "nifty100": 0,
+      "midcap100": 1,
+      "total": 1
+    },
+    "SERVICES": {
+      "nifty100": 2,
+      "midcap100": 2,
+      "total": 4
+    },
+    "CONSUMER_SERVICES": {
+      "nifty100": 5,
+      "midcap100": 7,
+      "total": 12
+    }
+  },
+  "notes": {
+    "excluded": [
+      "DUMMYHDLVR - Dummy Hindustan Unilever Ltd. (test entry in largecap CSV)"
+    ],
+    "sector_mapping_rationale": {
+      "Power_vs_OIL_GAS_ENERGY": "Kept Power separate from Oil & Gas for granular energy sector tracking",
+      "Construction_vs_Construction_Materials": "Both mapped to CEMENT_CONSTRUCTION as per spec",
+      "Services": "Generic services (ports, aviation) kept separate from Consumer Services (retail, hotels)"
+    }
+  }
+}

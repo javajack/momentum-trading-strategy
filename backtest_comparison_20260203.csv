@@ -1,0 +1,5 @@
+period,strategy,total_return,cagr,sharpe,max_dd,win_rate,trades,monthly_ret
+2024-07 to 2024-12 (Correction),Momentum (NMS),-0.4%,-0.9%,0.09,-12.9%,53%,61,-0.1%
+2024-07 to 2024-12 (Correction),Sector (RRV),8.6%,17.9%,2.43,-7.4%,41%,205,1.5%
+2024-08 to 2025-01 (Recent),Momentum (NMS),-20.3%,-36.5%,-3.82,-22.7%,38%,120,-3.0%
+2024-08 to 2025-01 (Recent),Sector (RRV),-0.3%,-0.7%,0.17,-12.8%,29%,214,-0.1%

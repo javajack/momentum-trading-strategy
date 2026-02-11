@@ -1,0 +1,59 @@
+# Configuration with credentials - use config.example.yaml as template
+config.yaml
+
+# Virtual environments
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Data and logs (may contain sensitive info)
+.cache/
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Kite/Zerodha token cache
+.kite_token_cache.json
+
+# Claude Code local settings
+.claude/

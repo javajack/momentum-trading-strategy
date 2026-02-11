@@ -1,0 +1,479 @@
+"""
+Rebalance execution bridge - connects rebalance calculation with order placement.
+
+Enforces invariants:
+- O1: Dry-run is default mode
+- O2: Live orders require explicit confirmation
+- R9: Sells execute before buys
+"""
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Callable, Dict, List, Optional
+
+from .config import RiskConfig
+from .order_manager import Order, OrderManager, OrderResult, OrderType
+from .portfolio import Portfolio, Position
+from .instruments import InstrumentMapper
+from .utils import calculate_order_quantity, format_currency
+
+
+class TradeAction(Enum):
+    """Type of trade action in rebalance plan."""
+
+    SELL_EXIT = "sell_exit"       # Full position exit
+    SELL_REDUCE = "sell_reduce"   # Partial reduction
+    BUY_NEW = "buy_new"           # New position
+    BUY_INCREASE = "buy_increase" # Increase existing
+
+
+@dataclass
+class PlannedTrade:
+    """A single trade in the rebalance plan."""
+
+    symbol: str
+    action: TradeAction
+    quantity: int
+    price: float
+    value: float
+    sector: str
+    current_qty: int = 0
+    target_weight: float = 0.0
+    current_weight: float = 0.0
+    reason: str = ""
+    entry_price: float = 0.0  # For P&L calculation on sells
+
+    @property
+    def is_sell(self) -> bool:
+        """Check if this is a sell trade."""
+        return self.action in (TradeAction.SELL_EXIT, TradeAction.SELL_REDUCE)
+
+    @property
+    def is_buy(self) -> bool:
+        """Check if this is a buy trade."""
+        return self.action in (TradeAction.BUY_NEW, TradeAction.BUY_INCREASE)
+
+    @property
+    def pnl_absolute(self) -> float:
+        """Absolute P&L for sell trades."""
+        if self.is_sell and self.entry_price > 0:
+            return (self.price - self.entry_price) * self.quantity
+        return 0.0
+
+    @property
+    def pnl_percent(self) -> float:
+        """Percentage P&L for sell trades."""
+        if self.is_sell and self.entry_price > 0:
+            return (self.price - self.entry_price) / self.entry_price
+        return 0.0
+
+
+@dataclass
+class RebalancePlan:
+    """Complete rebalance execution plan."""
+
+    trades: List[PlannedTrade] = field(default_factory=list)
+    total_sell_value: float = 0.0
+    total_buy_value: float = 0.0
+    net_cash_needed: float = 0.0
+    available_cash: float = 0.0
+    margin_sufficient: bool = True
+    warnings: List[str] = field(default_factory=list)
+
+    @property
+    def sell_trades(self) -> List[PlannedTrade]:
+        """Get sell trades sorted by value (largest first)."""
+        return sorted(
+            [t for t in self.trades if t.is_sell],
+            key=lambda x: x.value,
+            reverse=True,
+        )
+
+    @property
+    def buy_new_trades(self) -> List[PlannedTrade]:
+        """Get new position buys sorted by value (largest first)."""
+        return sorted(
+            [t for t in self.trades if t.action == TradeAction.BUY_NEW],
+            key=lambda x: x.value,
+            reverse=True,
+        )
+
+    @property
+    def buy_increase_trades(self) -> List[PlannedTrade]:
+        """Get position increase buys sorted by value (largest first)."""
+        return sorted(
+            [t for t in self.trades if t.action == TradeAction.BUY_INCREASE],
+            key=lambda x: x.value,
+            reverse=True,
+        )
+
+
+@dataclass
+class ExecutionResult:
+    """Results of plan execution."""
+
+    successes: List[OrderResult] = field(default_factory=list)
+    failures: List[OrderResult] = field(default_factory=list)
+
+    @property
+    def all_succeeded(self) -> bool:
+        """Check if all orders succeeded."""
+        return len(self.failures) == 0
+
+
+class RebalanceExecutor:
+    """Bridges rebalance calculation with order execution."""
+
+    def __init__(
+        self,
+        kite,
+        portfolio: Portfolio,
+        instrument_mapper: InstrumentMapper,
+        order_manager: OrderManager,
+        universe,
+        risk_config: RiskConfig = None,
+    ):
+        """
+        Initialize rebalance executor.
+
+        Args:
+            kite: Authenticated KiteConnect instance
+            portfolio: Portfolio instance
+            instrument_mapper: InstrumentMapper instance
+            order_manager: OrderManager instance
+            universe: Universe instance
+            risk_config: Risk configuration for position limits
+        """
+        self.kite = kite
+        self.portfolio = portfolio
+        self.mapper = instrument_mapper
+        self.order_manager = order_manager
+        self.universe = universe
+        self.risk_config = risk_config or RiskConfig()
+
+    def build_plan(
+        self,
+        target_weights: Dict[str, float],
+        current_holdings: Dict[str, Position],
+        managed_capital: float,
+        current_prices: Dict[str, float],
+        defensive_symbols: set,
+        uninvested_capital: float = 0.0,
+        additional_funding: float = 0.0,
+    ) -> RebalancePlan:
+        """
+        Build execution plan from target weights.
+
+        Args:
+            target_weights: Dict of symbol -> target weight
+            current_holdings: Dict of symbol -> Position
+            managed_capital: Total capital being managed
+            current_prices: Dict of symbol -> current price
+            defensive_symbols: Set of defensive asset symbols (gold, etc.)
+            uninvested_capital: Capital from previous failed buy orders to recover
+
+        Returns:
+            RebalancePlan with all trades
+        """
+        plan = RebalancePlan()
+        plan.available_cash = self.portfolio.get_snapshot().cash
+
+        target_symbols = set(target_weights.keys())
+        current_symbols = set(current_holdings.keys())
+
+        # Phase 1: SELL orders (exits and reductions)
+        for symbol in current_symbols:
+            if symbol in defensive_symbols:
+                continue  # Don't auto-sell defensive assets
+
+            pos = current_holdings[symbol]
+            price = current_prices.get(symbol, pos.current_price)
+            current_weight = pos.value / managed_capital if managed_capital > 0 else 0
+
+            if symbol not in target_symbols:
+                # Full exit
+                trade = PlannedTrade(
+                    symbol=symbol,
+                    action=TradeAction.SELL_EXIT,
+                    quantity=pos.quantity,
+                    price=price,
+                    value=pos.quantity * price,
+                    sector=pos.sector,
+                    current_qty=pos.quantity,
+                    current_weight=current_weight,
+                    reason="Exit: Not in target",
+                    entry_price=pos.average_price,
+                )
+                plan.trades.append(trade)
+                plan.total_sell_value += trade.value
+            else:
+                # Check for reduction (10% tolerance)
+                target_weight = target_weights[symbol]
+                if current_weight > target_weight * 1.10:
+                    target_value = managed_capital * target_weight
+                    reduce_value = pos.value - target_value
+                    lot_size = self.mapper.get_lot_size(symbol)
+                    reduce_qty, _ = calculate_order_quantity(reduce_value, price, lot_size)
+                    if reduce_qty > 0:
+                        trade = PlannedTrade(
+                            symbol=symbol,
+                            action=TradeAction.SELL_REDUCE,
+                            quantity=reduce_qty,
+                            price=price,
+                            value=reduce_qty * price,
+                            sector=pos.sector,
+                            current_qty=pos.quantity,
+                            current_weight=current_weight,
+                            target_weight=target_weight,
+                            reason=f"Reduce: {current_weight:.1%}->{target_weight:.1%}",
+                            entry_price=pos.average_price,
+                        )
+                        plan.trades.append(trade)
+                        plan.total_sell_value += trade.value
+
+        # Phase 2: BUY orders (new positions and increases)
+        for symbol in target_symbols:
+            target_weight = target_weights[symbol]
+            target_value = managed_capital * target_weight
+            price = current_prices.get(symbol)
+
+            if price is None or price <= 0:
+                plan.warnings.append(f"No price for {symbol}, skipping")
+                continue
+
+            lot_size = self.mapper.get_lot_size(symbol)
+            rounded_price = self.mapper.round_to_tick(price, symbol)
+
+            if symbol not in current_symbols:
+                # New position
+                qty, _ = calculate_order_quantity(target_value, price, lot_size)
+                if qty > 0:
+                    stock = self.universe.get_stock(symbol)
+                    sector = stock.sector if stock else "UNKNOWN"
+                    trade = PlannedTrade(
+                        symbol=symbol,
+                        action=TradeAction.BUY_NEW,
+                        quantity=qty,
+                        price=rounded_price,
+                        value=qty * price,
+                        sector=sector,
+                        target_weight=target_weight,
+                        reason="New position",
+                    )
+                    plan.trades.append(trade)
+                    plan.total_buy_value += trade.value
+            else:
+                # Check for increase (10% tolerance)
+                if symbol in defensive_symbols:
+                    continue  # Don't auto-increase defensive assets
+
+                pos = current_holdings[symbol]
+                current_weight = pos.value / managed_capital if managed_capital > 0 else 0
+
+                # Enforce hard limit on target weight
+                hard_limit = self.risk_config.hard_max_position
+                effective_target_weight = target_weight
+                if target_weight > hard_limit:
+                    effective_target_weight = hard_limit
+                    plan.warnings.append(
+                        f"{symbol}: Target {target_weight:.1%} exceeds hard limit "
+                        f"{hard_limit:.0%}, capping to {effective_target_weight:.1%}"
+                    )
+
+                if effective_target_weight > current_weight * 1.10:
+                    effective_target_value = effective_target_weight * managed_capital
+                    increase_value = effective_target_value - pos.value
+                    qty, _ = calculate_order_quantity(increase_value, price, lot_size)
+                    if qty > 0:
+                        trade = PlannedTrade(
+                            symbol=symbol,
+                            action=TradeAction.BUY_INCREASE,
+                            quantity=qty,
+                            price=rounded_price,
+                            value=qty * price,
+                            sector=pos.sector,
+                            current_qty=pos.quantity,
+                            current_weight=current_weight,
+                            target_weight=effective_target_weight,
+                            reason=f"Increase: {current_weight:.1%}->{effective_target_weight:.1%}",
+                        )
+                        plan.trades.append(trade)
+                        plan.total_buy_value += trade.value
+
+        # Auto-detect funding mode based on managed_capital
+        # - Seed mode (managed_capital == 0): Use available cash for initial positions
+        # - Self-funding mode (managed_capital > 0): Only use sell proceeds + recovered capital
+        if managed_capital == 0:
+            # Initial seeding - use available cash to establish positions
+            available_for_buys = plan.available_cash
+            plan.warnings.append("Seed mode: Using available cash for initial positions")
+        else:
+            # Self-funding mode - use sell proceeds + recovered uninvested capital + additional funding
+            recoverable = min(uninvested_capital, plan.available_cash) if uninvested_capital > 0 else 0.0
+            available_for_buys = plan.total_sell_value + recoverable + additional_funding
+            if recoverable > 0:
+                plan.warnings.append(
+                    f"Recovering {format_currency(recoverable)} from previous failed orders"
+                )
+            if additional_funding > 0:
+                plan.warnings.append(
+                    f"Initial build: deploying {format_currency(additional_funding)} from cash"
+                )
+
+        scaled = False
+        if plan.total_buy_value > available_for_buys and plan.total_buy_value > 0:
+            scaled = True
+            scale_factor = available_for_buys / plan.total_buy_value
+            plan.warnings.append(
+                f"Scaling buys to {scale_factor:.0%} to fit available funds "
+                f"({format_currency(available_for_buys)})"
+            )
+
+            # Scale down each buy trade
+            new_total_buy = 0.0
+            for trade in plan.trades:
+                if trade.is_buy:
+                    # Scale quantity down
+                    original_qty = trade.quantity
+                    scaled_qty = int(trade.quantity * scale_factor)
+                    # Ensure at least 1 share if scale is meaningful (>= 10%)
+                    if scaled_qty == 0 and original_qty > 0 and scale_factor >= 0.10:
+                        scaled_qty = 1
+                    # Round to lot size
+                    lot_size = self.mapper.get_lot_size(trade.symbol)
+                    scaled_qty = (scaled_qty // lot_size) * lot_size
+
+                    if scaled_qty > 0:
+                        trade.quantity = scaled_qty
+                        trade.value = scaled_qty * trade.price
+                        new_total_buy += trade.value
+                    else:
+                        # Remove trades with 0 quantity
+                        trade.quantity = 0
+                        trade.value = 0
+
+            # Remove zero-quantity trades
+            plan.trades = [t for t in plan.trades if t.quantity > 0]
+            plan.total_buy_value = new_total_buy
+
+        # Calculate net cash impact
+        plan.net_cash_needed = plan.total_buy_value - plan.total_sell_value
+
+        if managed_capital == 0:
+            # Seed mode - check against available cash
+            if plan.net_cash_needed > plan.available_cash:
+                plan.margin_sufficient = False
+                shortfall = plan.net_cash_needed - plan.available_cash
+                plan.warnings.append(f"Need {format_currency(shortfall)} additional cash for seeding")
+            else:
+                plan.margin_sufficient = True
+        elif additional_funding > 0:
+            # Initial build mode - verify cash covers net buys
+            if plan.total_buy_value - plan.total_sell_value > plan.available_cash:
+                plan.margin_sufficient = False
+                shortfall = (plan.total_buy_value - plan.total_sell_value) - plan.available_cash
+                plan.warnings.append(f"Need {format_currency(shortfall)} additional cash")
+            else:
+                plan.margin_sufficient = True
+        else:
+            # Self-funding mode - always sufficient since buys are scaled to fit sells
+            plan.margin_sufficient = True
+            if scaled and plan.total_buy_value > plan.total_sell_value:
+                plan.warnings.append(
+                    f"Buys scaled to match sell proceeds ({format_currency(plan.total_sell_value)})"
+                )
+
+        return plan
+
+    def execute_plan(
+        self,
+        plan: RebalancePlan,
+        progress_callback: Optional[Callable] = None,
+    ) -> ExecutionResult:
+        """
+        Execute the rebalance plan with proper sequencing.
+
+        R9: Sells execute before buys.
+
+        Args:
+            plan: RebalancePlan to execute
+            progress_callback: Optional callback(order, result) for progress updates
+
+        Returns:
+            ExecutionResult with successes and failures
+        """
+        result = ExecutionResult()
+
+        # Get current state for validation
+        snapshot = self.portfolio.get_snapshot()
+        sector_exposures = {}
+        position_values = {}
+
+        # External ETFs not managed by strategy - exclude from position count
+        external_etfs = {
+            "NIFTYBEES", "JUNIORBEES", "MID150BEES", "HDFCSML250",
+            "HANGSENGBEES", "HNGSNGBEES", "LIQUIDCASE", "LIQUIDETF",
+        }
+
+        # Track managed position count (excluding external ETFs)
+        managed_positions = set()
+        for symbol, pos in snapshot.positions.items():
+            sector_exposures[pos.sector] = sector_exposures.get(pos.sector, 0) + pos.value
+            position_values[symbol] = pos.value
+            if symbol not in external_etfs:
+                managed_positions.add(symbol)
+
+        current_position_count = len(managed_positions)
+
+        # Execute in order: Sells -> New buys -> Increases (R9)
+        all_trades = plan.sell_trades + plan.buy_new_trades + plan.buy_increase_trades
+
+        for trade in all_trades:
+            order_type = OrderType.SELL if trade.is_sell else OrderType.BUY
+            order = self.order_manager.create_order(
+                symbol=trade.symbol,
+                order_type=order_type,
+                quantity=trade.quantity,
+                price=trade.price,
+                sector=trade.sector,
+            )
+
+            order_result = self.order_manager.place_order(
+                order=order,
+                portfolio_value=snapshot.total_value,
+                current_position_value=position_values.get(trade.symbol, 0),
+                current_sector_value=sector_exposures.get(trade.sector, 0),
+                current_positions=current_position_count,
+            )
+
+            if progress_callback:
+                progress_callback(order, order_result)
+
+            if order_result.success:
+                result.successes.append(order_result)
+                # Update tracking for subsequent orders
+                if trade.is_sell:
+                    sector_exposures[trade.sector] = max(
+                        0, sector_exposures.get(trade.sector, 0) - trade.value
+                    )
+                    old_value = position_values.get(trade.symbol, 0)
+                    new_value = max(0, old_value - trade.value)
+                    position_values[trade.symbol] = new_value
+                    # If position fully sold, decrement count
+                    if old_value > 0 and new_value == 0 and trade.symbol in managed_positions:
+                        managed_positions.discard(trade.symbol)
+                        current_position_count = len(managed_positions)
+                else:
+                    sector_exposures[trade.sector] = (
+                        sector_exposures.get(trade.sector, 0) + trade.value
+                    )
+                    old_value = position_values.get(trade.symbol, 0)
+                    position_values[trade.symbol] = old_value + trade.value
+                    # If new position, increment count
+                    if old_value == 0 and trade.symbol not in external_etfs:
+                        managed_positions.add(trade.symbol)
+                        current_position_count = len(managed_positions)
+            else:
+                result.failures.append(order_result)
+
+        return result
