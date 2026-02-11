@@ -1006,7 +1006,6 @@ class FortressApp:
                 current_holdings=managed_holdings,
                 managed_capital=managed_capital,
                 current_prices=current_prices,
-                defensive_symbols=defensive_symbols,
                 uninvested_capital=uninvested_capital,
                 additional_funding=additional_funding,
             )

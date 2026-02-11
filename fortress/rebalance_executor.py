@@ -157,7 +157,6 @@ class RebalanceExecutor:
         current_holdings: Dict[str, Position],
         managed_capital: float,
         current_prices: Dict[str, float],
-        defensive_symbols: set,
         uninvested_capital: float = 0.0,
         additional_funding: float = 0.0,
     ) -> RebalancePlan:
@@ -169,7 +168,6 @@ class RebalanceExecutor:
             current_holdings: Dict of symbol -> Position
             managed_capital: Total capital being managed
             current_prices: Dict of symbol -> current price
-            defensive_symbols: Set of defensive asset symbols (gold, etc.)
             uninvested_capital: Capital from previous failed buy orders to recover
 
         Returns:
@@ -183,9 +181,6 @@ class RebalanceExecutor:
 
         # Phase 1: SELL orders (exits and reductions)
         for symbol in current_symbols:
-            if symbol in defensive_symbols:
-                continue  # Don't auto-sell defensive assets
-
             pos = current_holdings[symbol]
             price = current_prices.get(symbol, pos.current_price)
             current_weight = pos.value / managed_capital if managed_capital > 0 else 0
@@ -264,9 +259,6 @@ class RebalanceExecutor:
                     plan.total_buy_value += trade.value
             else:
                 # Check for increase (10% tolerance)
-                if symbol in defensive_symbols:
-                    continue  # Don't auto-increase defensive assets
-
                 pos = current_holdings[symbol]
                 current_weight = pos.value / managed_capital if managed_capital > 0 else 0
 
