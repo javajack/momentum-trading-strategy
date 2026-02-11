@@ -239,18 +239,6 @@ strategy_allweather:
     breakout_defensive_mult: 1.20
     use_bullish_momentum_boost: true
     bullish_momentum_boost: 0.15
-    use_sideways_optimization: true
-    sideways_stress_min: 0.25
-    sideways_stress_max: 0.55
-    sideways_rs_trend_required: false
-    sideways_rs_trend_lookback: 10
-    sideways_rs_trend_min: 0.005
-    sideways_breakout_mult: 1.10
-    sideways_stop_mult: 1.15
-    sideways_volume_mult: 1.05
-    sideways_require_positive_momentum: false
-    sideways_min_momentum: 0.002
-    sideways_consistency_boost: 0.15
     recovery_drawdown_trigger: -0.07
     recovery_duration_days: 60
     recovery_filter_relaxation: 0.25

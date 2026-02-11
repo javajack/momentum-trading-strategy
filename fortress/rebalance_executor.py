@@ -12,7 +12,7 @@ from enum import Enum
 from typing import Callable, Dict, List, Optional
 
 from .config import RiskConfig
-from .order_manager import Order, OrderManager, OrderResult, OrderType
+from .order_manager import OrderManager, OrderResult, OrderType
 from .portfolio import Portfolio, Position
 from .instruments import InstrumentMapper
 from .utils import calculate_order_quantity, format_currency

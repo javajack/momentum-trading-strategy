@@ -5,7 +5,6 @@ Enforces invariant P4: All decisions logged with timestamp.
 """
 
 import logging
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional

@@ -23,13 +23,12 @@ from collections import deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from functools import lru_cache
 from typing import Deque, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 
-from .config import Config, get_default_config, RegimeConfig
+from .config import Config, get_default_config
 from .indicators import (
     calculate_drawdown,
     calculate_normalized_momentum_score,
@@ -48,7 +47,7 @@ from .indicators import (
 )
 from .portfolio import BacktestPortfolio
 from .risk_governor import RiskGovernor
-from .strategy import StrategyRegistry, BaseStrategy, StockScore
+from .strategy import StrategyRegistry, StockScore
 from .universe import Universe
 from .utils import renormalize_with_caps
 

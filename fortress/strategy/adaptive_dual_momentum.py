@@ -24,8 +24,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Dict, List, Optional, Set
 
-import numpy as np
-
 logger = logging.getLogger(__name__)
 
 from .base import BaseStrategy, ExitSignal, StockScore, StopLossConfig
@@ -45,14 +43,11 @@ from ..indicators import (
     SimpleRegimeResult,
     RegimeResult,
     BullRecoverySignals,
-    MomentumCrashSignal,
-    BreadthThrustResult,
-    VIXRecoveryResult,
 )
 from ..utils import renormalize_with_caps
 
 if TYPE_CHECKING:
-    from ..config import Config, AdaptiveDualMomentumConfig
+    from ..config import Config
     from ..market_data import MarketDataProvider
     from ..universe import Universe
 

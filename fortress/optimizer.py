@@ -16,7 +16,7 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn, TimeRemainingColumn
 from rich.table import Table
 
-from .backtest import BacktestConfig, BacktestEngine, BacktestResult
+from .backtest import BacktestConfig, BacktestEngine
 from .config import Config
 from .universe import Universe
 

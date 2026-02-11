@@ -80,7 +80,7 @@ Smallcaps show higher beta -- explosive in bull markets (+191.7% in 2023-2024) b
 ```
 fortress/
   cli.py                  Interactive CLI (login, scan, rebalance, backtest)
-  backtest.py             Backtesting engine with pre-computed caches (60x speedup)
+  backtest.py             Backtesting engine with vectorized breadth + asof lookups
   momentum_engine.py      Live-mode stock ranking, filtering, weight calculation
   indicators.py           NMS, regime detection, rebalance triggers, breadth
   config.py               All configuration dataclasses (Pydantic)
@@ -103,7 +103,7 @@ tests/                    160 tests covering indicators, backtest, strategies, r
 
 **Parity guarantee**: `backtest.py` and `momentum_engine.py` implement the same strategy logic in parallel. Backtests use pre-computed caches for speed; live mode fetches from the API. Both produce equivalent results.
 
-~18,000 lines of Python. ~2,400 lines of tests.
+~18,100 lines of Python. ~2,400 lines of tests.
 
 ## Key Features
 
@@ -121,8 +121,9 @@ All toggleable via config:
 - **Dynamic sector caps** -- Tighter sector limits in CAUTION/DEFENSIVE regimes (30%/25%/20%)
 - **Sector momentum filter** -- Soft penalty (not hard exclude) for bottom sectors by momentum
 - **Crash avoidance** -- Early-warning system detects slow grinds (1M <= -5% AND 3M <= -8%)
-- **Gold exhaustion scaling** -- Reduces gold allocation when gold is overextended above its 200-SMA
+- **Gold exhaustion scaling** -- Reduces gold allocation when gold is overextended above its 200-SMA. Freed weight redirects to equities in uptrends, cash in downtrends
 - **Trend guard** -- When NIFTY > 200-SMA, limits equity cuts to max 20% (prevents over-de-risking in uptrends)
+- **Recovery equity override** -- When market is recovering from drawdown with improving breadth, caps stress score to accelerate return to full equity
 
 ### Tiered Stop Loss System
 Stops adapt based on unrealized gain:
@@ -134,6 +135,13 @@ Stops adapt based on unrealized gain:
 | > 50% | 25% trailing (let winners run) |
 
 Plus trend-break exits, relative strength floor exits, and a minimum hold period (3 days) to avoid whipsaws.
+
+### LIQUIDBEES Capital Pool
+Capital flows through LIQUIDBEES (liquid ETF) as the single source and sink:
+- **Add capital**: Buy LIQUIDBEES manually -> next rebalance converts to equity
+- **Withdraw**: Sell LIQUIDBEES manually
+- **Surplus**: After equity/gold fills, remainder sweeps into LIQUIDBEES automatically
+- No idle demat cash -- capital is always earning returns (LIQUIDBEES ~6-7% annualized)
 
 ### Live Trading Integration
 - Zerodha Kite Connect API for order placement
@@ -231,6 +239,7 @@ The system is highly configurable. Key sections in `config.yaml`:
 | `position_sizing` | Target/min/max positions, sector caps, weighting method |
 | `risk` | Stop losses, drawdown limits, position limits |
 | `regime` | Stress thresholds, VIX levels, allocation curve, defensive scaling |
+| `strategy_simple` | Adaptive dual momentum: stops, recovery, crash avoidance, breadth |
 | `dynamic_rebalance` | Trigger conditions, min/max days between rebalances |
 | `profiles` | Per-profile universes, capital, overrides |
 

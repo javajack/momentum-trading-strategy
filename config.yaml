@@ -393,30 +393,7 @@ strategy_allweather:
     use_bullish_momentum_boost: true
     bullish_momentum_boost: 0.15      # 15% score boost for strong momentum
 
-    # SIDEWAYS MARKET OPTIMIZATION
-    # Focus on "execution discipline" stocks - consistent winners in choppy markets
-    # ENABLED: Significantly improves performance in sideways/bearish markets
-    # 18M test: +6.6% better returns, +7% better max DD vs disabled
-    use_sideways_optimization: true
-    sideways_stress_min: 0.25         # Min stress for sideways (not bullish)
-    sideways_stress_max: 0.55         # Max stress for sideways (not defensive)
 
-    # Sideways entry requirements - RELAXED to avoid blocking entries
-    sideways_rs_trend_required: false # Don't require, use for boost instead
-    sideways_rs_trend_lookback: 10    # Days to measure RS improvement
-    sideways_rs_trend_min: 0.005      # Lower threshold (0.5% improvement)
-
-    # Sideways filters - LESS STRICT to allow more entries
-    sideways_breakout_mult: 1.10      # Slightly higher quality (50 × 1.10 = 55)
-    sideways_stop_mult: 1.15          # Wider stops (avoid whipsaws)
-    sideways_volume_mult: 1.05        # Only slightly stricter volume
-
-    # Sideways momentum filter - DISABLED, use for boost instead
-    sideways_require_positive_momentum: false
-    sideways_min_momentum: 0.002      # Lower threshold for boost qualification
-
-    # Sideways score boost for consistent winners - HIGHER BOOST
-    sideways_consistency_boost: 0.15  # 15% boost for execution discipline
 
     # Recovery mode settings (ENHANCED for better bull recovery capture)
     # Activates after significant drawdown to help re-enter positions
