@@ -963,8 +963,9 @@ class FortressApp:
                 risk_config=self.config.risk,
             )
 
-            # Get current prices for all symbols
-            all_symbols = list(target_tickers | set(managed_holdings.keys()))
+            # Get current prices for all symbols (include gold + cash symbols for surplus sweep)
+            sweep_symbols = {self.config.regime.gold_symbol, self.config.regime.cash_symbol}
+            all_symbols = list(target_tickers | set(managed_holdings.keys()) | sweep_symbols)
             current_prices = {}
             try:
                 ltp_data = self.kite.ltp([f"NSE:{s}" for s in all_symbols])
@@ -1008,6 +1009,8 @@ class FortressApp:
                 current_prices=current_prices,
                 uninvested_capital=uninvested_capital,
                 additional_funding=additional_funding,
+                gold_symbol=self.config.regime.gold_symbol,
+                cash_symbol=self.config.regime.cash_symbol,
             )
 
             # Display execution plan
@@ -2316,20 +2319,26 @@ class FortressApp:
         eq_at_p1 = equity.loc[equity.index >= p1_ts]
         phase1_value = eq_at_p1.iloc[0] if len(eq_at_p1) > 0 else initial_capital
 
-        # Helper: NIFTY return for a date range
-        def _nifty_return(start_ts: pd.Timestamp, end_ts: pd.Timestamp):
-            nifty = None
-            for key in ["NIFTY 50", "NIFTY50", "NSE:NIFTY50"]:
+        # Helper: benchmark return for a date range
+        def _bench_return(symbol_keys: list[str], start_ts: pd.Timestamp, end_ts: pd.Timestamp):
+            bench = None
+            for key in symbol_keys:
                 if key in historical_data:
-                    nifty = historical_data[key]
+                    bench = historical_data[key]
                     break
-            if nifty is None:
+            if bench is None:
                 return None
-            mask = (nifty.index >= start_ts) & (nifty.index <= end_ts)
-            period = nifty.loc[mask, "close"]
+            mask = (bench.index >= start_ts) & (bench.index <= end_ts)
+            period = bench.loc[mask, "close"]
             if len(period) < 2:
                 return None
             return period.iloc[-1] / period.iloc[0] - 1
+
+        def _nifty_return(start_ts: pd.Timestamp, end_ts: pd.Timestamp):
+            return _bench_return(["NIFTY 50", "NIFTY50", "NSE:NIFTY50"], start_ts, end_ts)
+
+        def _midcap_return(start_ts: pd.Timestamp, end_ts: pd.Timestamp):
+            return _bench_return(["NIFTY MIDCAP 100", "NIFTYMIDCAP100"], start_ts, end_ts)
 
         # Show warmup summary
         warmup_return = phase1_value / initial_capital - 1
@@ -2384,7 +2393,9 @@ class FortressApp:
             )
 
             nifty_ret = _nifty_return(p_start, p_end)
+            midcap_ret = _midcap_return(p_start, p_end)
             alpha = phase_return - nifty_ret if nifty_ret is not None else None
+            alpha_midcap = phase_return - midcap_ret if midcap_ret is not None else None
 
             cum_return = end_val / phase1_value - 1
 
@@ -2393,7 +2404,9 @@ class FortressApp:
                 "end_val": end_val, "return": phase_return, "cagr": cagr,
                 "max_dd": max_dd, "sharpe": sharpe, "buy_trades": buy_trades,
                 "sell_trades": sell_trades, "nifty_ret": nifty_ret,
-                "alpha": alpha, "cum_return": cum_return, "days": days,
+                "midcap_ret": midcap_ret, "alpha": alpha,
+                "alpha_midcap": alpha_midcap,
+                "cum_return": cum_return, "days": days,
                 "start_str": start_str, "end_str": end_str,
             }
             phase_results.append(pr)
@@ -2409,6 +2422,7 @@ class FortressApp:
 
             sharpe_c = "green" if sharpe >= 0.5 else ("yellow" if sharpe >= 0 else "red")
             alpha_str = _cpct(alpha) if alpha is not None else "[dim]N/A[/dim]"
+            alpha_mc_str = _cpct(alpha_midcap) if alpha_midcap is not None else "[dim]N/A[/dim]"
 
             phase_table = Table(
                 title=f"Phase {idx}: {name}  [{phase_type}]",
@@ -2431,12 +2445,16 @@ class FortressApp:
                 "NIFTY 50 Return", _cpct(nifty_ret),
             )
             phase_table.add_row(
-                "CAGR", _cpct(cagr),
+                "MIDCAP 100 Return", _cpct(midcap_ret),
                 "Alpha vs NIFTY", alpha_str,
             )
             phase_table.add_row(
-                "Max Drawdown", _cpct(max_dd, invert=True),
+                "Alpha vs MIDCAP", alpha_mc_str,
                 "Sharpe Ratio", f"[{sharpe_c}]{sharpe:.2f}[/{sharpe_c}]",
+            )
+            phase_table.add_row(
+                "Max Drawdown", _cpct(max_dd, invert=True),
+                "CAGR", _cpct(cagr),
             )
             phase_table.add_row(
                 "Buy Trades", str(buy_trades),
@@ -2476,30 +2494,33 @@ class FortressApp:
             return f"[{c}]{v:+.1%}[/{c}]"
 
         # Compact all-phases table
+        has_midcap = any(pr.get("midcap_ret") is not None for pr in phase_results)
         summary_tbl = Table(title="All Phases", show_lines=True, title_style="bold cyan")
         summary_tbl.add_column("#", style="dim", width=3, justify="right")
-        summary_tbl.add_column("Phase", style="bold", max_width=32)
-        summary_tbl.add_column("Type", style="dim", max_width=18)
+        summary_tbl.add_column("Phase", style="bold", max_width=28)
+        summary_tbl.add_column("Type", style="dim", max_width=16)
         summary_tbl.add_column("Return", justify="right")
-        summary_tbl.add_column("CAGR", justify="right")
         summary_tbl.add_column("Max DD", justify="right")
-        summary_tbl.add_column("Sharpe", justify="right")
         summary_tbl.add_column("NIFTY", justify="right")
-        summary_tbl.add_column("Alpha", justify="right")
-        summary_tbl.add_column("End Value", justify="right")
+        summary_tbl.add_column("α N50", justify="right")
+        if has_midcap:
+            summary_tbl.add_column("MIDCAP", justify="right")
+            summary_tbl.add_column("α MC", justify="right")
+        summary_tbl.add_column("End Val", justify="right")
 
         for i, pr in enumerate(phase_results, 1):
-            sc = "green" if pr["sharpe"] >= 0.5 else ("yellow" if pr["sharpe"] >= 0 else "red")
-            summary_tbl.add_row(
+            row = [
                 str(i), pr["name"], pr["type"],
                 _cpct(pr["return"]),
-                _cpct(pr["cagr"]),
                 _cpct(pr["max_dd"], invert=True),
-                f"[{sc}]{pr['sharpe']:.2f}[/{sc}]",
                 _cpct(pr["nifty_ret"]),
                 _cpct(pr["alpha"]),
-                f"₹{pr['end_val']:,.0f}",
-            )
+            ]
+            if has_midcap:
+                row.append(_cpct(pr.get("midcap_ret")))
+                row.append(_cpct(pr.get("alpha_midcap")))
+            row.append(f"₹{pr['end_val']:,.0f}")
+            summary_tbl.add_row(*row)
 
         console.print(summary_tbl)
 
@@ -2537,7 +2558,17 @@ class FortressApp:
             nifty_cagr = (1 + nifty_total) ** (1 / phases_years) - 1 if phases_years > 0 else 0
             overall.add_row("NIFTY 50 Total Return", _cpct(nifty_total))
             overall.add_row("NIFTY 50 CAGR", _cpct(nifty_cagr))
-            overall.add_row("Total Alpha", _cpct(phases_return - nifty_total))
+            overall.add_row("Alpha vs NIFTY 50", _cpct(phases_return - nifty_total))
+
+        midcap_total = _midcap_return(
+            pd.Timestamp(active_phases[0][1]),
+            pd.Timestamp(active_phases[-1][2]),
+        )
+        if midcap_total is not None:
+            midcap_cagr = (1 + midcap_total) ** (1 / phases_years) - 1 if phases_years > 0 else 0
+            overall.add_row("MIDCAP 100 Total Return", _cpct(midcap_total))
+            overall.add_row("MIDCAP 100 CAGR", _cpct(midcap_cagr))
+            overall.add_row("Alpha vs MIDCAP 100", _cpct(phases_return - midcap_total))
 
         console.print(overall)
 
@@ -2583,6 +2614,9 @@ class FortressApp:
         best_alpha = max(alpha_phases, key=lambda p: p["alpha"]) if alpha_phases else None
         worst_alpha = min(alpha_phases, key=lambda p: p["alpha"]) if alpha_phases else None
 
+        alpha_mc_phases = [p for p in phase_results if p.get("alpha_midcap") is not None]
+        beats_midcap = [p for p in alpha_mc_phases if p["alpha_midcap"] > 0]
+
         bull = [p for p in phase_results if "Bull" in p["type"] or p["type"] == "Bullish"]
         bear = [p for p in phase_results if "Bear" in p["type"] or "Crash" in p["type"]]
 
@@ -2595,13 +2629,27 @@ class FortressApp:
         insights.add_row("Best Phase", f"{best['name']} ({best['return']:+.1%})")
         insights.add_row("Worst Phase", f"{worst['name']} ({worst['return']:+.1%})")
         if best_alpha:
-            insights.add_row("Highest Alpha", f"{best_alpha['name']} ({best_alpha['alpha']:+.1%})")
+            insights.add_row("Highest Alpha (N50)", f"{best_alpha['name']} ({best_alpha['alpha']:+.1%})")
         if worst_alpha:
-            insights.add_row("Lowest Alpha", f"{worst_alpha['name']} ({worst_alpha['alpha']:+.1%})")
+            insights.add_row("Lowest Alpha (N50)", f"{worst_alpha['name']} ({worst_alpha['alpha']:+.1%})")
+        if alpha_mc_phases:
+            insights.add_row("Beats MIDCAP 100", f"{len(beats_midcap)}/{len(alpha_mc_phases)} phases")
         if bull:
-            insights.add_row("Avg Bull Return", f"{np.mean([p['return'] for p in bull]):+.1%} ({len(bull)} phases)")
+            avg_bull = np.mean([p['return'] for p in bull])
+            bull_mc = [p for p in bull if p.get("midcap_ret") is not None]
+            bull_str = f"{avg_bull:+.1%} ({len(bull)} phases)"
+            if bull_mc:
+                avg_bull_mc = np.mean([p['midcap_ret'] for p in bull_mc])
+                bull_str += f" | MIDCAP avg {avg_bull_mc:+.1%}"
+            insights.add_row("Avg Bull Return", bull_str)
         if bear:
-            insights.add_row("Avg Bear/Crash Return", f"{np.mean([p['return'] for p in bear]):+.1%} ({len(bear)} phases)")
+            avg_bear = np.mean([p['return'] for p in bear])
+            bear_mc = [p for p in bear if p.get("midcap_ret") is not None]
+            bear_str = f"{avg_bear:+.1%} ({len(bear)} phases)"
+            if bear_mc:
+                avg_bear_mc = np.mean([p['midcap_ret'] for p in bear_mc])
+                bear_str += f" | MIDCAP avg {avg_bear_mc:+.1%}"
+            insights.add_row("Avg Bear/Crash Return", bear_str)
 
         console.print(insights)
         console.print()

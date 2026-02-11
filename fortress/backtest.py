@@ -2137,6 +2137,30 @@ class BacktestEngine:
                             if ticker not in stop_loss_entries:
                                 stop_loss_entries[ticker] = (price, price, trading_day_index[date])
 
+            # Sweep residual cash to cash_symbol (parity with live executor)
+            cash_sym = self.app_config.regime.cash_symbol
+            if portfolio.cash > 0 and cash_sym in prices and prices[cash_sym] > 0:
+                sweep_qty = int(portfolio.cash / prices[cash_sym])
+                if sweep_qty > 0:
+                    sweep_price = prices[cash_sym]
+                    sweep_cost = sweep_qty * sweep_price * self.config.transaction_cost
+                    stock = self.universe.get_stock(cash_sym)
+                    sweep_sector = stock.sector if stock else "Cash"
+                    if portfolio.buy(cash_sym, sweep_qty, sweep_price, sweep_sector):
+                        portfolio.cash -= sweep_cost
+                        trades.append(
+                            Trade(
+                                date=date,
+                                symbol=cash_sym,
+                                sector=sweep_sector,
+                                action="BUY",
+                                quantity=sweep_qty,
+                                price=sweep_price,
+                                value=sweep_qty * sweep_price,
+                                cost=sweep_cost,
+                            )
+                        )
+
             # Build rebalance trail record
             rebalance_number += 1
             regime_config = self.app_config.regime

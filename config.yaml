@@ -24,7 +24,7 @@ pure_momentum:
   weight_12m: 0.50           # 50% weight to 12M adjusted return
 
   # Entry filters (all must pass)
-  min_score_percentile: 95   # Top 5% by NMS for entry consideration
+  min_score_percentile: 85   # Top 15% by NMS for entry consideration
   min_52w_high_prox: 0.85    # Price >= 85% of 52-week high
   min_volume_ratio: 1.1      # 20-day volume > 50-day × 1.1
   min_daily_turnover: 20000000  # Rs 2 Cr minimum daily turnover
@@ -146,7 +146,7 @@ regime:
   # Graduated allocation settings (NEW - smooth transitions)
   use_graduated_allocation: true  # Use smooth stress-based allocation (BULLISH=100% equity)
   min_equity_allocation: 0.50     # Minimum equity at max stress
-  max_gold_allocation: 0.15       # Maximum gold allocation
+  max_gold_allocation: 0.10       # Maximum gold allocation
   max_cash_allocation: 0.25       # Maximum cash allocation
 
   # Gold exhaustion scaling (GE1): reduce gold when overextended above 200-SMA
@@ -638,6 +638,8 @@ profiles:
     max_positions: 15
     max_single_position: 0.10
     state_file: "strategy_state.json"
+    strategy_overrides:
+      stop_loss_multiplier: 1.10
   smallcap:
     universe_filter: ["NIFTYSC100"]
     initial_capital: 500000

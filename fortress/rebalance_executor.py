@@ -159,6 +159,8 @@ class RebalanceExecutor:
         current_prices: Dict[str, float],
         uninvested_capital: float = 0.0,
         additional_funding: float = 0.0,
+        gold_symbol: str = "",
+        cash_symbol: str = "",
     ) -> RebalancePlan:
         """
         Build execution plan from target weights.
@@ -169,6 +171,9 @@ class RebalanceExecutor:
             managed_capital: Total capital being managed
             current_prices: Dict of symbol -> current price
             uninvested_capital: Capital from previous failed buy orders to recover
+            additional_funding: Extra cash for initial builds
+            gold_symbol: Gold ETF symbol (e.g. GOLDBEES)
+            cash_symbol: Cash ETF symbol (e.g. LIQUIDBEES) for surplus sweep
 
         Returns:
             RebalancePlan with all trades
@@ -347,6 +352,128 @@ class RebalanceExecutor:
             # Remove zero-quantity trades
             plan.trades = [t for t in plan.trades if t.quantity > 0]
             plan.total_buy_value = new_total_buy
+
+        # Phase 3: Deploy surplus to keep capital fully allocated
+        # Priority: equity top-ups → gold top-up → cash_symbol sweep
+        surplus = available_for_buys - plan.total_buy_value
+        if surplus > 0 and cash_symbol and managed_capital > 0:
+            # Symbols that already have buy trades from Phase 2
+            phase2_buy_symbols = {t.symbol for t in plan.trades if t.is_buy}
+
+            # Compute effective current values after planned Phase 1-2 trades
+            def _effective_value(sym: str) -> float:
+                val = current_holdings[sym].value if sym in current_holdings else 0.0
+                for t in plan.trades:
+                    if t.symbol == sym:
+                        if t.is_buy:
+                            val += t.value
+                        elif t.is_sell:
+                            val -= t.value
+                return max(0.0, val)
+
+            # Step 1: Top up underweight equity positions pro-rata
+            equity_deficits = []
+            for symbol, tw in target_weights.items():
+                if symbol in (gold_symbol, cash_symbol):
+                    continue
+                if symbol in phase2_buy_symbols:
+                    continue  # Phase 2 already handled this
+                price = current_prices.get(symbol)
+                if not price or price <= 0:
+                    continue
+                eff_value = _effective_value(symbol)
+                target_value = managed_capital * tw
+                deficit = target_value - eff_value
+                if deficit > 0:
+                    equity_deficits.append((symbol, deficit, price, tw))
+
+            if equity_deficits:
+                total_deficit = sum(d for _, d, _, _ in equity_deficits)
+                # Cap total deployment to surplus (deploy pro-rata by deficit)
+                deploy_pool = min(surplus, total_deficit)
+                for symbol, deficit, price, tw in equity_deficits:
+                    if surplus <= 0:
+                        break
+                    alloc = deploy_pool * (deficit / total_deficit)
+                    lot_size = self.mapper.get_lot_size(symbol)
+                    qty, _ = calculate_order_quantity(alloc, price, lot_size)
+                    if qty > 0:
+                        cost = qty * price
+                        rounded_price = self.mapper.round_to_tick(price, symbol)
+                        if symbol in current_holdings:
+                            pos = current_holdings[symbol]
+                            sector = pos.sector
+                            cq = pos.quantity
+                            cw = pos.value / managed_capital
+                        else:
+                            stock = self.universe.get_stock(symbol)
+                            sector = stock.sector if stock else "UNKNOWN"
+                            cq = 0
+                            cw = 0.0
+                        action = TradeAction.BUY_INCREASE if symbol in current_holdings else TradeAction.BUY_NEW
+                        plan.trades.append(PlannedTrade(
+                            symbol=symbol, action=action, quantity=qty,
+                            price=rounded_price, value=cost, sector=sector,
+                            current_qty=cq, current_weight=cw,
+                            target_weight=tw, reason="Surplus deploy",
+                        ))
+                        plan.total_buy_value += cost
+                        surplus -= cost
+
+            # Step 2: Top up underweight gold
+            if surplus > 0 and gold_symbol and gold_symbol in target_weights:
+                if gold_symbol not in phase2_buy_symbols:
+                    gold_price = current_prices.get(gold_symbol)
+                    if gold_price and gold_price > 0:
+                        eff_gold = _effective_value(gold_symbol)
+                        gold_target = managed_capital * target_weights[gold_symbol]
+                        gold_deficit = gold_target - eff_gold
+                        if gold_deficit > 0:
+                            alloc = min(surplus, gold_deficit)
+                            lot_size = self.mapper.get_lot_size(gold_symbol)
+                            qty, _ = calculate_order_quantity(alloc, gold_price, lot_size)
+                            if qty > 0:
+                                cost = qty * gold_price
+                                rounded_price = self.mapper.round_to_tick(gold_price, gold_symbol)
+                                if gold_symbol in current_holdings:
+                                    pos = current_holdings[gold_symbol]
+                                    sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
+                                else:
+                                    sector, cq, cw = "Hedge", 0, 0.0
+                                action = TradeAction.BUY_INCREASE if gold_symbol in current_holdings else TradeAction.BUY_NEW
+                                plan.trades.append(PlannedTrade(
+                                    symbol=gold_symbol, action=action, quantity=qty,
+                                    price=rounded_price, value=cost, sector=sector,
+                                    current_qty=cq, current_weight=cw,
+                                    target_weight=target_weights[gold_symbol],
+                                    reason="Surplus deploy",
+                                ))
+                                plan.total_buy_value += cost
+                                surplus -= cost
+
+            # Step 3: Sweep remainder to cash_symbol (LIQUIDBEES)
+            if surplus > 0:
+                cash_price = current_prices.get(cash_symbol)
+                if cash_price and cash_price > 0:
+                    lot_size = self.mapper.get_lot_size(cash_symbol)
+                    qty, _ = calculate_order_quantity(surplus, cash_price, lot_size)
+                    if qty > 0:
+                        cost = qty * cash_price
+                        rounded_price = self.mapper.round_to_tick(cash_price, cash_symbol)
+                        if cash_symbol in current_holdings:
+                            pos = current_holdings[cash_symbol]
+                            sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
+                        else:
+                            sector, cq, cw = "Cash", 0, 0.0
+                        action = TradeAction.BUY_INCREASE if cash_symbol in current_holdings else TradeAction.BUY_NEW
+                        plan.trades.append(PlannedTrade(
+                            symbol=cash_symbol, action=action, quantity=qty,
+                            price=rounded_price, value=cost, sector=sector,
+                            current_qty=cq, current_weight=cw,
+                            target_weight=0.0, reason="Cash sweep",
+                        ))
+                        plan.total_buy_value += cost
+                        surplus -= cost
 
         # Calculate net cash impact
         plan.net_cash_needed = plan.total_buy_value - plan.total_sell_value
