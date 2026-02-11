@@ -344,6 +344,11 @@ class BacktestEngine:
         self._stock_symbols: List[str] = []  # Populated in _initialize_caches
         self._caches_initialized: bool = False
 
+        # P2: Pre-built close price Series for O(log n) .asof() lookups
+        self._close_prices: Dict[str, pd.Series] = {
+            symbol: df["close"] for symbol, df in self.data.items() if len(df) > 0
+        }
+
         # E9: Minimum hold period (only hard stop during first N days)
         strategy_cfg = getattr(self.app_config, "strategy_dual_momentum", None)
         self._min_hold_days: int = getattr(strategy_cfg, "min_hold_days", 10) if strategy_cfg else 10
@@ -415,8 +420,8 @@ class BacktestEngine:
         """
         Pre-compute market breadth for all trading dates.
 
-        Vectorized computation: calculates 50-day MA for each stock once,
-        then counts stocks above MA for each date.
+        Vectorized: computes 50-day MA on each stock's own data (no NaN gaps),
+        then aligns to common DataFrame for a single boolean comparison.
 
         Returns:
             Dict mapping date string to breadth value (0.0 to 1.0)
@@ -424,49 +429,32 @@ class BacktestEngine:
         if not self._stock_symbols:
             return {}
 
-        # Get trading days from reference
-        trading_days = self._get_trading_days()
-        if len(trading_days) == 0:
-            return {}
-
-        # Pre-compute 50-day MA for each stock (vectorized)
-        ma_50_dict: Dict[str, pd.Series] = {}
+        # Compute MA on each stock's own consecutive data, then align
+        close_dict = {}
+        ma_dict = {}
         for symbol in self._stock_symbols:
-            if symbol in self.data:
-                df = self.data[symbol]
-                if len(df) >= 50:
-                    ma_50_dict[symbol] = df["close"].rolling(50).mean()
+            if symbol in self.data and len(self.data[symbol]) >= 50:
+                s = self.data[symbol]["close"]
+                close_dict[symbol] = s
+                ma_dict[symbol] = s.rolling(50).mean()
 
-        if not ma_50_dict:
+        if not close_dict:
             return {}
 
-        # Build breadth cache for all dates
-        breadth_cache: Dict[str, float] = {}
+        close_df = pd.DataFrame(close_dict)
+        ma_50_df = pd.DataFrame(ma_dict)
 
-        for ts_date in trading_days:
-            above_ma = 0
-            valid_count = 0
+        # Vectorized: count stocks above their 50-day MA per date
+        above_ma = (close_df > ma_50_df) & close_df.notna() & ma_50_df.notna()
+        valid = close_df.notna() & ma_50_df.notna()
 
-            for symbol, ma_series in ma_50_dict.items():
-                if ts_date not in ma_series.index:
-                    continue
+        above_count = above_ma.sum(axis=1)
+        valid_count = valid.sum(axis=1)
 
-                ma_val = ma_series.loc[ts_date]
-                if pd.isna(ma_val):
-                    continue
+        breadth_series = above_count / valid_count.replace(0, np.nan)
+        breadth_series = breadth_series.fillna(0.5)
 
-                close_val = self.data[symbol].loc[ts_date, "close"]
-                if pd.isna(close_val):
-                    continue
-
-                valid_count += 1
-                if close_val > ma_val:
-                    above_ma += 1
-
-            breadth = above_ma / valid_count if valid_count > 0 else 0.5
-            breadth_cache[str(ts_date.date())] = breadth
-
-        return breadth_cache
+        return {str(d.date()): v for d, v in breadth_series.items()}
 
     def _precompute_market_returns(self) -> pd.Series:
         """
@@ -969,22 +957,15 @@ class BacktestEngine:
         Returns:
             Price or None if not found
         """
-        if symbol not in self.data:
+        series = self._close_prices.get(symbol)
+        if series is None:
             return None
 
-        df = self.data[symbol]
-
-        # C7: Only use data up to this date
-        # Convert to pandas Timestamp for proper comparison
         ts_date = pd.Timestamp(date)
-        mask = df.index <= ts_date
-        available = df[mask]
-
-        if len(available) == 0:
+        val = series.asof(ts_date)
+        if pd.isna(val):
             return None
-
-        # Get most recent price
-        return available["close"].iloc[-1]
+        return float(val)
 
     def _get_prices_at_date(
         self,
@@ -992,11 +973,15 @@ class BacktestEngine:
         date: datetime,
     ) -> Dict[str, float]:
         """Get prices for multiple symbols at date."""
-        return {
-            s: p
-            for s in symbols
-            if (p := self._get_price_at_date(s, date)) is not None
-        }
+        ts_date = pd.Timestamp(date)
+        result = {}
+        for s in symbols:
+            series = self._close_prices.get(s)
+            if series is not None:
+                val = series.asof(ts_date)
+                if not pd.isna(val):
+                    result[s] = float(val)
+        return result
 
     def _get_filtered_data(self, symbol: str, as_of_date: datetime) -> Optional[pd.DataFrame]:
         """

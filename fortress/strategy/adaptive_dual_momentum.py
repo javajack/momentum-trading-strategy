@@ -216,6 +216,9 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         # Track peak prices for trailing stops
         self._peak_prices: Dict[str, float] = {}
 
+        # P3: Cached config values dict (config never changes during a run)
+        self._cached_config_values: Optional[dict] = None
+
     @property
     def name(self) -> str:
         return "dual_momentum"
@@ -609,7 +612,10 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         )
 
     def _get_config_values(self) -> dict:
-        """Get configuration values with defaults."""
+        """Get configuration values with defaults. Cached after first call."""
+        if self._cached_config_values is not None:
+            return self._cached_config_values
+
         defaults = {
             # Dual Momentum
             "min_rs_threshold": 1.05,
@@ -760,6 +766,7 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
                     if hasattr(ps, key):
                         defaults[key] = getattr(ps, key)
 
+        self._cached_config_values = defaults
         return defaults
 
     def _get_stress_score(self) -> float:
