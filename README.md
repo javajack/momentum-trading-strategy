@@ -145,57 +145,81 @@ Plus trend-break exits, relative strength floor exits, and a minimum hold period
 
 ### Prerequisites
 - Python 3.10+
-- Zerodha Kite Connect API credentials ([apply here](https://kite.trade))
+- Zerodha Kite Connect API subscription ([apply here](https://kite.trade))
 
-### Installation
+### Step 1: Clone and install
 
 ```bash
 git clone https://github.com/javajack/stock-rotation.git
 cd stock-rotation
+```
 
-# Option 1: Use the startup script (creates venv, installs deps)
+`start.sh` handles everything automatically -- creates a virtual environment, installs dependencies, loads credentials, and launches the CLI. But you need to set up credentials first.
+
+### Step 2: Zerodha API credentials
+
+You need a Kite Connect API subscription from Zerodha. Once you have your API key and secret, create a `.env` file in the project root:
+
+```bash
+# Create .env with your credentials (this file is gitignored)
+cat > .env << 'EOF'
+ZERODHA_API_KEY=your_api_key_here
+ZERODHA_API_SECRET=your_api_secret_here
+EOF
+```
+
+`start.sh` sources this file on every launch, and `config.py` picks up the env vars automatically. The `.env` file is gitignored so credentials never end up in the repo.
+
+`config.yaml` is tracked in git and contains all strategy/portfolio configuration but **no credentials**. You should not need to edit it unless you want to tune strategy parameters.
+
+### Step 3: Run
+
+```bash
 ./start.sh
+```
 
-# Option 2: Manual setup
+On first run, `start.sh` will:
+1. Check Python version (3.10+ required)
+2. Create a virtual environment in `venv/`
+3. Install all dependencies from `pyproject.toml`
+4. Load credentials from `.env`
+5. Launch the interactive CLI
+
+Subsequent runs skip setup and go straight to the CLI.
+
+### Alternative: Manual setup
+
+If you prefer not to use `start.sh`:
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-```
 
-### Configuration
+# Load credentials
+source .env
 
-```bash
-cp config.example.yaml config.yaml
-# Edit config.yaml with your Zerodha API credentials
-```
-
-Or use environment variables:
-```bash
-export ZERODHA_API_KEY="your_api_key"
-export ZERODHA_API_SECRET="your_api_secret"
-```
-
-### Running
-
-```bash
-# Interactive CLI
-./start.sh
-# or
-.venv/bin/python -m fortress
+# Run
+python -m fortress
 
 # Run tests
-.venv/bin/python -m pytest tests/ -v
+python -m pytest tests/ -v
 ```
 
-The CLI presents a menu:
-1. **Login** -- Authenticate with Zerodha
-2. **Status** -- View current portfolio
+### CLI Menu
+
+Once running, the CLI presents:
+
+1. **Login** -- Authenticate with Zerodha (uses TOTP, caches token for the day)
+2. **Status** -- View current portfolio positions and allocation
 3. **Scan** -- Rank stocks by momentum score
-4. **Rebalance** -- Generate and execute trade orders
+4. **Rebalance** -- Generate and execute trade orders (dry-run or live)
 5. **Backtest** -- Run historical simulation (3M to 48M)
 6. **Strategy** -- Select active strategy
 7. **Triggers** -- Check if rebalance conditions are met
 9. **Market Phases** -- 10-year multi-phase backtest analysis
+
+A typical session: Login (1) -> check Triggers (7) -> Rebalance (4) in dry-run mode to preview -> Rebalance (4) in live mode to execute.
 
 ## Configuration Reference
 

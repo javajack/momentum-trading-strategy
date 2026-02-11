@@ -202,6 +202,14 @@ check_universe() {
 main() {
     cd "$SCRIPT_DIR"
 
+    # Load environment variables from .env if present
+    if [ -f "$SCRIPT_DIR/.env" ]; then
+        set -a
+        source "$SCRIPT_DIR/.env"
+        set +a
+        echo -e "${GREEN}✓ Environment loaded from .env${NC}"
+    fi
+
     check_python
     setup_venv
     activate_venv

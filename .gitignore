@@ -1,5 +1,4 @@
-# Configuration with credentials - use config.example.yaml as template
-config.yaml
+# config.example.yaml is the template; config.yaml is tracked (credentials via env vars)
 
 # Virtual environments
 venv/
