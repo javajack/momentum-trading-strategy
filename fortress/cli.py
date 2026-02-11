@@ -2073,7 +2073,13 @@ class FortressApp:
     # ------------------------------------------------------------------
 
     MARKET_PHASES = [
-        ("2015 Bull Run", "2015-03-01", "2015-08-24", "Bullish"),
+        # Pre-2015 phases (data from 2011-09-01, NMS ready ~2012-11)
+        ("2013 Consolidation", "2013-01-01", "2013-05-22", "Sideways"),
+        ("Taper Tantrum & Rupee Crisis", "2013-05-22", "2013-08-28", "Bearish"),
+        ("Pre-Election Rally", "2013-08-28", "2014-05-16", "Bullish"),
+        ("Modi Election Bull Run", "2014-05-16", "2015-03-03", "Bullish"),
+        # 2015 onwards
+        ("2015 Correction", "2015-03-03", "2015-08-24", "Bearish"),
         ("China Scare & Recovery", "2015-08-24", "2016-03-01", "Bearish→Recovery"),
         ("Pre-Demonetization Bull", "2016-03-01", "2016-11-08", "Bullish"),
         ("Demonetization Shock & Recovery", "2016-11-08", "2017-04-01", "Bearish→Recovery"),
@@ -2084,15 +2090,13 @@ class FortressApp:
         ("Post-COVID Rally", "2020-04-01", "2021-10-18", "Bullish"),
         ("2022 Correction (Ukraine/Rates)", "2021-10-18", "2022-06-17", "Bearish"),
         ("2023-24 Recovery & Bull Run", "2022-06-17", "2024-09-27", "Bullish"),
-        ("Late 2024-25 Correction", "2024-09-27", "2026-01-31", "Bearish/Sideways"),
+        ("Late 2024-25 Correction", "2024-09-27", "2026-02-11", "Bearish/Sideways"),
     ]
 
-    # Warmup / data requirements are computed dynamically from the earliest
-    # phase so that positions are active from day 1 of Phase 1:
-    #   bt_start        = earliest_phase - 12 months  (engine warmup)
-    #   required_data   = bt_start - 30 months         (NMS + 52w + SMA lookback)
-    _BT_WARMUP_MONTHS = 12   # engine warmup before first phase
-    _DATA_LOOKBACK_MONTHS = 30  # historical data needed before bt_start
+    # Backtest starts at Phase 1 with configured initial capital (no warmup).
+    # Data lookback ensures NMS + SMA + 52w high lookbacks have history.
+    _BT_WARMUP_MONTHS = 0    # no warmup — Phase 1 starts with initial capital
+    _DATA_LOOKBACK_MONTHS = 18  # NMS(252d) + 200-SMA + buffer
 
     def _do_market_phase_analysis(self):
         """Run a continuous 10-year backtest segmented by market phases."""
@@ -2298,12 +2302,17 @@ class FortressApp:
         def _midcap_return(start_ts: pd.Timestamp, end_ts: pd.Timestamp):
             return _bench_return(["NIFTY MIDCAP 100", "NIFTYMIDCAP100"], start_ts, end_ts)
 
-        # Show warmup summary
-        warmup_return = phase1_value / initial_capital - 1
-        console.print(
-            f"[dim]Warmup period ({bt_start.date()} → {active_phases[0][1]}): "
-            f"₹{initial_capital:,.0f} → ₹{phase1_value:,.0f} ({warmup_return:+.1%})[/dim]\n"
-        )
+        # Show warmup summary (only if there's a warmup period)
+        if self._BT_WARMUP_MONTHS > 0:
+            warmup_return = phase1_value / initial_capital - 1
+            console.print(
+                f"[dim]Warmup period ({bt_start.date()} → {active_phases[0][1]}): "
+                f"₹{initial_capital:,.0f} → ₹{phase1_value:,.0f} ({warmup_return:+.1%})[/dim]\n"
+            )
+        else:
+            console.print(
+                f"[dim]Capital at Phase 1 Start: ₹{phase1_value:,.0f}[/dim]\n"
+            )
 
         # ---- Phase-by-phase detail table (printed as we go) ----
         console.print(
