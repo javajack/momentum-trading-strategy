@@ -52,6 +52,29 @@ Key takeaways:
 - **Post-COVID rally**: +294.8% with only -5.6% max DD -- recovery mode captured the rebound
 - Capital grew from ~31L to ~2.63 Cr over the full period (20L initial + 12-month warmup)
 
+### Smallcap Profile (NIFTY Smallcap 100)
+
+Separate portfolio with wider stops, higher volatility target, and no gold allocation. Initial capital: 5L.
+
+| Period | Return | CAGR | Sharpe | Max DD | vs NIFTY 50 |
+|--------|--------|------|--------|--------|-------------|
+| 3 months | -1.67% | -6.54% | -0.70 | -7.28% | -2.6% |
+| 6 months | +6.64% | +13.69% | 0.57 | -6.84% | +1.1% |
+| 12 months | +1.83% | +1.84% | -0.19 | -14.82% | -10.6% |
+| 18 months | +1.63% | +1.08% | -0.19 | -21.79% | -4.9% |
+| 2023-2024 (bull) | +191.70% | +70.98% | 2.38 | -19.43% | +161.8% |
+
+The smallcap universe data begins mid-2022, so the market phases backtest only covers 2 phases:
+
+| # | Phase | Type | Return | NIFTY | Alpha | Max DD |
+|---|-------|------|--------|-------|-------|--------|
+| 1 | 2023-24 Bull Run | Bullish | +166.8% | +70.5% | +96.3% | -18.9% |
+| 2 | Late 2024-25 Correction | Bear/Sideways | -8.3% | -1.9% | -6.4% | -21.5% |
+
+**Overall: +143.2% | 27.8% CAGR | -21.5% Max DD | +78.2% alpha vs NIFTY 50** (5L grew to ~12.2L)
+
+Smallcaps show higher beta -- explosive in bull markets (+191.7% in 2023-2024) but deeper drawdowns during corrections (-21.8% vs -18.4% primary in the 18M period).
+
 ## Architecture
 
 ```
