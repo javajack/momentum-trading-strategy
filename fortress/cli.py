@@ -173,15 +173,12 @@ class FortressApp:
                         state["last_rebalance_date"] = None
                     if "last_regime" not in state:
                         state["last_regime"] = None
-                    if "uninvested_capital" not in state:
-                        state["uninvested_capital"] = 0.0
                     return state
             except Exception:
                 pass
         return {
             "managed_symbols": [], "peak_prices": {}, "updated": None,
             "last_rebalance_date": None, "last_regime": None,
-            "uninvested_capital": 0.0,
         }
 
     def _save_strategy_state(
@@ -190,7 +187,6 @@ class FortressApp:
         peak_prices: Optional[Dict[str, float]] = None,
         last_rebalance_date: Optional[str] = None,
         last_regime: Optional[str] = None,
-        uninvested_capital: Optional[float] = None,
     ):
         """Save strategy state to JSON file.
 
@@ -199,7 +195,6 @@ class FortressApp:
             peak_prices: Dict of symbol -> peak price for trailing stop tracking
             last_rebalance_date: ISO date string of last live rebalance (preserves existing if None)
             last_regime: String regime name at last rebalance (preserves existing if None)
-            uninvested_capital: Capital from failed buy orders (preserves existing if None)
         """
         state_file = self._get_strategy_state_file()
 
@@ -211,7 +206,6 @@ class FortressApp:
             "updated": datetime.now().isoformat(),
             "last_rebalance_date": last_rebalance_date if last_rebalance_date is not None else existing.get("last_rebalance_date"),
             "last_regime": last_regime if last_regime is not None else existing.get("last_regime"),
-            "uninvested_capital": uninvested_capital if uninvested_capital is not None else existing.get("uninvested_capital", 0.0),
         }
         try:
             with open(state_file, 'w') as f:
@@ -596,30 +590,21 @@ class FortressApp:
             }
 
             # Filter current holdings to only strategy-managed positions
-            # For EQUITY stocks: include all positions in universe
-            # For DEFENSIVE assets: check strategy state to distinguish strategy vs user holdings
+            # LIQUIDBEES (cash_symbol) and GOLDBEES (gold_symbol) are ALWAYS managed
+            # when present — they are the strategy's capital pool and hedge instrument
             managed_holdings: Dict[str, Position] = {}
             external_holdings: Dict[str, Position] = {}
 
-            # Load strategy state to identify strategy-managed symbols and peak prices
+            # Load strategy state to identify peak prices
             strategy_state = self._load_strategy_state()
-            strategy_managed_symbols = set(strategy_state.get("managed_symbols", []))
             peak_prices = strategy_state.get("peak_prices", {})
-
-            # If profile disallows gold, remove from managed_symbols so it's treated as external
-            if profile.max_gold_allocation is not None and profile.max_gold_allocation == 0.0:
-                strategy_managed_symbols.discard(self.config.regime.gold_symbol)
 
             for symbol, pos in snapshot.positions.items():
                 if symbol in external_etfs:
                     external_holdings[symbol] = pos
                 elif symbol in defensive_symbols:
-                    # For defensive assets, check if strategy has record of buying it
-                    if symbol in strategy_managed_symbols:
-                        managed_holdings[symbol] = pos
-                    else:
-                        # Not in strategy state - treat as user's external holding
-                        external_holdings[symbol] = pos
+                    # Defensive assets (LIQUIDBEES, GOLDBEES) are always managed
+                    managed_holdings[symbol] = pos
                 elif symbol in universe_symbols:
                     # Equity stocks in universe are strategy-managed
                     managed_holdings[symbol] = pos
@@ -637,67 +622,45 @@ class FortressApp:
                 if s in defensive_symbols
             )
 
-            # managed_capital = value of managed POSITIONS only
-            # Cash may include external sources (dividends, deposits, external ETF sales),
-            # so don't count it as "managed capital" - only use it for funding trades
-            available_cash = snapshot.cash
+            # managed_capital = value of ALL managed positions (equities + GOLDBEES + LIQUIDBEES)
+            # LIQUIDBEES is the strategy's capital pool — no demat cash needed
             managed_capital = current_equity_value + defensive_value
 
-            # Check for uninvested capital from previous failed buy orders
-            uninvested_capital = strategy_state.get("uninvested_capital", 0.0)
-            if uninvested_capital > 0:
-                # Cap at actual broker cash (user may have deployed it manually)
-                recoverable = min(uninvested_capital, available_cash)
-                if recoverable > 0:
+            # Cold-start: no managed positions at all
+            cash_symbol = self.config.regime.cash_symbol
+            if managed_capital == 0:
+                console.print(
+                    f"\n[bold bright_yellow]► NO MANAGED POSITIONS[/bold bright_yellow]"
+                )
+                console.print(
+                    f"  Target capital: {format_currency(profile.initial_capital)}"
+                )
+                cash_sym_price = None
+                try:
+                    ltp = self.kite.ltp([f"NSE:{cash_symbol}"])
+                    cash_sym_price = ltp.get(f"NSE:{cash_symbol}", {}).get("last_price")
+                except Exception:
+                    pass
+                if cash_sym_price:
+                    units_needed = int(profile.initial_capital / cash_sym_price) + 10
                     console.print(
-                        f"\n[bold bright_cyan]► Recovering {format_currency(recoverable)} "
-                        f"from previous failed buy orders[/bold bright_cyan]"
+                        f"  Buy [bold]{units_needed}[/bold] units of {cash_symbol} "
+                        f"(~₹{cash_sym_price:.2f} each = {format_currency(units_needed * cash_sym_price)})"
                     )
                 else:
                     console.print(
-                        f"\n[dim]Previous uninvested capital ({format_currency(uninvested_capital)}) "
-                        f"no longer available in broker cash[/dim]"
+                        f"  Buy {cash_symbol} worth {format_currency(profile.initial_capital)}"
                     )
-                    uninvested_capital = 0.0
-
-            # Initial portfolio build detection: underfunded portfolio needs cash deployment
-            additional_funding = 0.0
-            if managed_capital > 0 and managed_capital < profile.initial_capital * 0.50:
-                shortfall = profile.initial_capital - managed_capital
-                deployable = min(available_cash, shortfall)
-                if deployable > profile.initial_capital * 0.10:
-                    console.print(
-                        f"\n[bold bright_yellow]► INITIAL PORTFOLIO BUILD[/bold bright_yellow]"
-                    )
-                    console.print(
-                        f"  Managed capital: {format_currency(managed_capital)} "
-                        f"(target: {format_currency(profile.initial_capital)})"
-                    )
-                    console.print(
-                        f"  Available cash:  {format_currency(available_cash)}"
-                    )
-                    if Confirm.ask(
-                        f"  Deploy [bold]{format_currency(deployable)}[/bold] from cash?",
-                        default=True,
-                    ):
-                        additional_funding = deployable
-                        managed_capital += deployable
-                    else:
-                        console.print(
-                            "[dim]  Skipped — positions will be sized to sell proceeds only[/dim]"
-                        )
-                elif available_cash < profile.initial_capital * 0.10:
-                    console.print(
-                        f"\n[yellow]Managed capital ({format_currency(managed_capital)}) is well below "
-                        f"target ({format_currency(profile.initial_capital)}). "
-                        f"Consider loading more funds.[/yellow]"
-                    )
+                console.print(
+                    f"  Then run rebalance again — {cash_symbol} will be converted to equity positions."
+                )
+                return
 
             # Portfolio summary with capital breakdown
             console.print(f"[bold cyan]Strategy:[/bold cyan] {self.active_strategy.upper()}  |  "
                          f"[bold cyan]Managed Capital:[/bold cyan] {format_currency(managed_capital)}  |  "
                          f"[bold cyan]Equity:[/bold cyan] {format_currency(current_equity_value)}  |  "
-                         f"[bold cyan]Cash:[/bold cyan] {format_currency(available_cash)} [dim](not counted in capital)[/dim]")
+                         f"[bold cyan]Defensive:[/bold cyan] {format_currency(defensive_value)}")
 
             # Diagnostic breakdown: show merge details for managed positions
             if managed_holdings and snapshot.merge_diagnostics:
@@ -745,11 +708,10 @@ class FortressApp:
 
             # Total account value summary
             external_value = sum(pos.value for pos in external_holdings.values()) if external_holdings else 0
-            total_account = managed_capital + external_value + available_cash
+            total_account = managed_capital + external_value
             console.print(f"\n[bold]Total Account:[/bold] {format_currency(total_account)}  "
                          f"[dim](Managed {format_currency(managed_capital)} + "
-                         f"External {format_currency(external_value)} + "
-                         f"Cash {format_currency(available_cash)})[/dim]")
+                         f"External {format_currency(external_value)})[/dim]")
 
             # Get target portfolio with regime detection
             # Use managed_capital for weight calculations (not total portfolio)
@@ -1007,8 +969,6 @@ class FortressApp:
                 current_holdings=managed_holdings,
                 managed_capital=managed_capital,
                 current_prices=current_prices,
-                uninvested_capital=uninvested_capital,
-                additional_funding=additional_funding,
                 gold_symbol=self.config.regime.gold_symbol,
                 cash_symbol=self.config.regime.cash_symbol,
             )
@@ -1076,8 +1036,8 @@ class FortressApp:
                     return
 
                 # Reconcile state based on actual execution results
-                uninvested_capital = 0.0
                 if exec_result.failures:
+                    failed_value = 0.0
                     for order_result in exec_result.failures:
                         o = order_result.order
                         if o.order_type == OrderType.BUY:
@@ -1085,15 +1045,16 @@ class FortressApp:
                             if o.symbol not in current_managed:
                                 all_managed.discard(o.symbol)
                                 final_peak_prices.pop(o.symbol, None)
-                            uninvested_capital += o.value
+                            failed_value += o.value
                         elif o.order_type == OrderType.SELL:
                             # Failed sell: symbol is still held
                             all_managed.add(o.symbol)
 
-                    if uninvested_capital > 0:
+                    if failed_value > 0:
                         console.print(
-                            f"\n[bold bright_yellow]⚠ {format_currency(uninvested_capital)} "
-                            f"from failed buy orders will be recovered at next rebalance[/bold bright_yellow]"
+                            f"\n[bold bright_yellow]⚠ {format_currency(failed_value)} "
+                            f"from failed buy orders remains as demat cash — "
+                            f"buy {self.config.regime.cash_symbol} to redeploy[/bold bright_yellow]"
                         )
 
                 # After live execution, persist rebalance date and regime for trigger checks
@@ -1102,7 +1063,6 @@ class FortressApp:
                     list(all_managed), final_peak_prices,
                     last_rebalance_date=date.today().isoformat(),
                     last_regime=regime_value,
-                    uninvested_capital=uninvested_capital,
                 )
             else:
                 console.print("\n[bright_cyan]─── Dry-run complete ───[/bright_cyan]")

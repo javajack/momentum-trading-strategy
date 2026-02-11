@@ -47,7 +47,7 @@ position_sizing:
 # Rebalancing schedule (monthly proven optimal)
 rebalancing:
   frequency: "monthly"
-  rebalance_days: 21    # Trading days between rebalances (21 = monthly)
+  rebalance_days: 15    # Trading days between rebalances
   day: "friday"
   min_trade_value: 10000
 
@@ -186,7 +186,7 @@ paths:
 dynamic_rebalance:
   enabled: true                      # Enable dynamic rebalancing triggers
   min_days_between: 7                # Minimum days between rebalances (E8: tuned sweet spot)
-  max_days_between: 30               # Force rebalance after this many days
+  max_days_between: 15               # Force rebalance after this many days
 
   # Trigger 1: Regime Transition
   # Immediate rebalance when market regime changes (e.g., NORMAL→CAUTION)
@@ -588,7 +588,7 @@ strategy_simple:
   min_hold_days: 3                # Only hard stop during first 3 days (E9: tuning R2)
 
   # === Rebalancing ===
-  rebalance_days: 21              # 21 trading days = monthly
+  rebalance_days: 15              # 15 trading days between rebalances
 
   # ========================================================================
   # NEW: Crash Avoidance Settings (Momentum Crash Protection)

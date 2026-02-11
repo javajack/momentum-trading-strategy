@@ -157,21 +157,20 @@ class RebalanceExecutor:
         current_holdings: Dict[str, Position],
         managed_capital: float,
         current_prices: Dict[str, float],
-        uninvested_capital: float = 0.0,
-        additional_funding: float = 0.0,
         gold_symbol: str = "",
         cash_symbol: str = "",
     ) -> RebalancePlan:
         """
         Build execution plan from target weights.
 
+        LIQUIDBEES (cash_symbol) is the capital pool — sells fund buys,
+        surplus sweeps back to LIQUIDBEES. No demat cash dependency.
+
         Args:
             target_weights: Dict of symbol -> target weight
             current_holdings: Dict of symbol -> Position
-            managed_capital: Total capital being managed
+            managed_capital: Total capital being managed (incl LIQUIDBEES)
             current_prices: Dict of symbol -> current price
-            uninvested_capital: Capital from previous failed buy orders to recover
-            additional_funding: Extra cash for initial builds
             gold_symbol: Gold ETF symbol (e.g. GOLDBEES)
             cash_symbol: Cash ETF symbol (e.g. LIQUIDBEES) for surplus sweep
 
@@ -297,25 +296,8 @@ class RebalanceExecutor:
                         plan.trades.append(trade)
                         plan.total_buy_value += trade.value
 
-        # Auto-detect funding mode based on managed_capital
-        # - Seed mode (managed_capital == 0): Use available cash for initial positions
-        # - Self-funding mode (managed_capital > 0): Only use sell proceeds + recovered capital
-        if managed_capital == 0:
-            # Initial seeding - use available cash to establish positions
-            available_for_buys = plan.available_cash
-            plan.warnings.append("Seed mode: Using available cash for initial positions")
-        else:
-            # Self-funding mode - use sell proceeds + recovered uninvested capital + additional funding
-            recoverable = min(uninvested_capital, plan.available_cash) if uninvested_capital > 0 else 0.0
-            available_for_buys = plan.total_sell_value + recoverable + additional_funding
-            if recoverable > 0:
-                plan.warnings.append(
-                    f"Recovering {format_currency(recoverable)} from previous failed orders"
-                )
-            if additional_funding > 0:
-                plan.warnings.append(
-                    f"Initial build: deploying {format_currency(additional_funding)} from cash"
-                )
+        # Self-funding: buys funded entirely from sell proceeds (LIQUIDBEES + exits + reductions)
+        available_for_buys = plan.total_sell_value
 
         scaled = False
         if plan.total_buy_value > available_for_buys and plan.total_buy_value > 0:
@@ -478,29 +460,12 @@ class RebalanceExecutor:
         # Calculate net cash impact
         plan.net_cash_needed = plan.total_buy_value - plan.total_sell_value
 
-        if managed_capital == 0:
-            # Seed mode - check against available cash
-            if plan.net_cash_needed > plan.available_cash:
-                plan.margin_sufficient = False
-                shortfall = plan.net_cash_needed - plan.available_cash
-                plan.warnings.append(f"Need {format_currency(shortfall)} additional cash for seeding")
-            else:
-                plan.margin_sufficient = True
-        elif additional_funding > 0:
-            # Initial build mode - verify cash covers net buys
-            if plan.total_buy_value - plan.total_sell_value > plan.available_cash:
-                plan.margin_sufficient = False
-                shortfall = (plan.total_buy_value - plan.total_sell_value) - plan.available_cash
-                plan.warnings.append(f"Need {format_currency(shortfall)} additional cash")
-            else:
-                plan.margin_sufficient = True
-        else:
-            # Self-funding mode - always sufficient since buys are scaled to fit sells
-            plan.margin_sufficient = True
-            if scaled and plan.total_buy_value > plan.total_sell_value:
-                plan.warnings.append(
-                    f"Buys scaled to match sell proceeds ({format_currency(plan.total_sell_value)})"
-                )
+        # Self-funding: buys always fit within sell proceeds (already scaled above)
+        plan.margin_sufficient = True
+        if scaled:
+            plan.warnings.append(
+                f"Buys scaled to match sell proceeds ({format_currency(plan.total_sell_value)})"
+            )
 
         return plan
 

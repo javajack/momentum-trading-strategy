@@ -1105,7 +1105,7 @@ class BacktestEngine:
         C7: No look-ahead bias.
 
         If regime is provided and not BULLISH/NORMAL, equity weights are scaled
-        down and defensive positions (GOLDBEES, LIQUIDCASE) are added.
+        down and defensive positions (gold + cash symbols) are added.
 
         Args:
             as_of_date: Date for calculation
@@ -1434,7 +1434,7 @@ class BacktestEngine:
         # Apply sector weight limits with dynamic caps (E4)
         max_sector_exposure = self._get_effective_sector_cap(regime)
         ticker_to_sector = {s.ticker: s.sector for s in ranked_stocks}
-        # Include defensive symbols (GOLDBEES, LIQUIDCASE) from universe
+        # Include defensive symbols (gold + cash) from universe
         for ticker in weights:
             if ticker not in ticker_to_sector:
                 stock = self.universe.get_stock(ticker)
@@ -1544,21 +1544,21 @@ class BacktestEngine:
         effective_scale = max(combined_floor, combined_scale)
 
         if effective_scale < 1.0:
-            # Scale down equity positions only (not GOLDBEES/LIQUIDCASE)
+            # Scale down equity positions only (not gold/cash defensive symbols)
             regime_config = self.app_config.regime
             defensive_symbols = {regime_config.gold_symbol, regime_config.cash_symbol}
             equity_before = sum(w for t, w in weights.items() if t not in defensive_symbols)
             for ticker in list(weights.keys()):
                 if ticker not in defensive_symbols:
                     weights[ticker] *= effective_scale
-            # Redirect freed equity to LIQUIDCASE (Change 1)
+            # Redirect freed equity to cash_symbol (Change 1)
             equity_after = sum(w for t, w in weights.items() if t not in defensive_symbols)
             freed_weight = equity_before - equity_after
             if freed_weight > 0.01:
                 cash_sym = self.app_config.regime.cash_symbol
                 weights[cash_sym] = weights.get(cash_sym, 0) + freed_weight
 
-        # Catch-all: redirect any unallocated weight to LIQUIDCASE
+        # Catch-all: redirect any unallocated weight to cash_symbol
         # (e.g. when fewer stocks qualify than needed to fill 100% at max_single_position)
         total_weight = sum(weights.values())
         if total_weight < 0.999:
@@ -2029,7 +2029,7 @@ class BacktestEngine:
                     for ticker in list(target_weights.keys()):
                         if ticker not in defensive_syms:
                             target_weights[ticker] *= position_scale
-                    # Redirect freed equity to LIQUIDCASE (Change 1)
+                    # Redirect freed equity to cash_symbol (Change 1)
                     eq_after = sum(w for t, w in target_weights.items() if t not in defensive_syms)
                     freed = eq_before - eq_after
                     if freed > 0.01:

@@ -239,11 +239,13 @@ class MomentumEngine:
         self._current_drawdown: float = 0.0
         self._peak_portfolio_value: float = 0.0
 
-        # Excluded symbols (ETFs, hedges)
+        # Excluded symbols (ETFs, hedges) — config-based + hardcoded external ETFs
         self._excluded_symbols: Set[str] = {
             "LIQUIDCASE", "LIQUIDBEES", "LIQUIDETF",
             "NIFTYBEES", "JUNIORBEES", "MID150BEES",
             "HDFCSML250", "GOLDBEES", "HANGSENGBEES",
+            self.regime_config.gold_symbol,  # Parity with backtest._excluded_set
+            self.regime_config.cash_symbol,
         }
 
         # Portfolio daily returns for vol targeting (E2)
@@ -1533,7 +1535,7 @@ class MomentumEngine:
             for ticker in list(weights.keys()):
                 if ticker not in defensive_symbols:
                     weights[ticker] *= effective_scale
-            # Redirect freed equity to LIQUIDCASE (Change 1)
+            # Redirect freed equity to cash_symbol (Change 1)
             equity_after = sum(w for t, w in weights.items() if t not in defensive_symbols)
             freed_weight = equity_before - equity_after
             if freed_weight > 0.01:
@@ -1555,7 +1557,7 @@ class MomentumEngine:
                     cash_sym = self.regime_config.cash_symbol
                     weights[cash_sym] = weights.get(cash_sym, 0) + freed
 
-        # Catch-all: redirect any unallocated weight to LIQUIDCASE
+        # Catch-all: redirect any unallocated weight to cash_symbol
         # (e.g. when fewer stocks qualify than needed to fill 100% at max_single_position)
         total_weight = sum(weights.values())
         if total_weight < 0.999:
