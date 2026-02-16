@@ -207,6 +207,7 @@ fortress/
   cli.py                  Interactive CLI (login, scan, rebalance, backtest)
   backtest.py             Backtesting engine with vectorized breadth + asof lookups
   momentum_engine.py      Live-mode stock ranking, filtering, weight calculation
+  defensive.py            Shared defensive logic (gold, vol, breadth, sector caps)
   indicators.py           NMS, regime detection, rebalance triggers, breadth
   config.py               Configuration dataclasses (Pydantic)
   strategy/
@@ -227,12 +228,10 @@ tools/
   reconcile_state.py      Reconcile strategy state with live broker holdings
 config.example.yaml       Default configuration (copy to config.yaml)
 stock-universe.json       200 stocks: NIFTY 100 + MIDCAP 100, with sector mappings
-tests/                    160 tests covering indicators, backtest, strategies, risk
+tests/                    187 tests covering indicators, backtest, defensive, strategies, risk
 ```
 
-**Parity guarantee**: `backtest.py` and `momentum_engine.py` implement the same strategy logic. Backtests use pre-computed caches for speed; live mode fetches from the API. Both produce equivalent results -- what you backtest is what you trade.
-
-~18,500 lines of Python. ~2,400 lines of tests.
+**Parity guarantee**: `backtest.py` and `momentum_engine.py` share defensive logic via `defensive.py` -- gold allocation, vol targeting, breadth scaling, and sector caps are implemented once as pure functions. Backtests use pre-computed caches for speed; live mode fetches from the API. Both produce equivalent results -- what you backtest is what you trade.
 
 ## Configuration Reference
 
