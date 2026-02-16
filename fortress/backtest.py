@@ -2310,7 +2310,8 @@ class BacktestEngine:
             self._date_filtered_data.clear()
 
         # Final equity value (avoid duplicate key if last trading day == end_date)
-        final_date = self.config.end_date
+        # Convert to datetime to match trading loop dates (which use .to_pydatetime())
+        final_date = datetime.combine(self.config.end_date, datetime.min.time())
         prices = self._get_prices_at_date(list(self.data.keys()), final_date)
         portfolio.update_prices(prices)
         if not equity_values or equity_values[-1][0] != final_date:
