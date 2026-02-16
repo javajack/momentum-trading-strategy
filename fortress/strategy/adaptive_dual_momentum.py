@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 from ..indicators import (
     BullRecoverySignals,
+    MarketRegime,
     RegimeResult,
     SimpleRegime,
     SimpleRegimeResult,

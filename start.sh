@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# FORTRESS SIDEWAYS - Startup Script
+# FORTRESS MOMENTUM - Startup Script
 #
 # This script ensures the virtual environment and dependencies are set up,
 # then launches the interactive CLI.
@@ -17,12 +17,12 @@ NC='\033[0m' # No Color
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="$SCRIPT_DIR/venv"
+VENV_DIR="$SCRIPT_DIR/.venv"
 REQUIREMENTS_HASH_FILE="$VENV_DIR/.requirements_hash"
 
 echo -e "${BLUE}"
 echo "╔══════════════════════════════════════════════════════════╗"
-echo "║          FORTRESS SIDEWAYS - Startup                     ║"
+echo "║          FORTRESS MOMENTUM - Startup                     ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
@@ -135,52 +135,13 @@ install_deps() {
 check_config() {
     if [ ! -f "$SCRIPT_DIR/config.yaml" ]; then
         echo -e "${YELLOW}Warning: config.yaml not found${NC}"
-        echo -e "${YELLOW}Creating default config file...${NC}"
-
-        cat > "$SCRIPT_DIR/config.yaml" << 'EOF'
-# FORTRESS SIDEWAYS Configuration
-# Set your Zerodha API credentials below
-
-zerodha:
-  api_key: ""
-  api_secret: ""
-
-portfolio:
-  initial_capital: 1600000
-  max_positions: 20
-
-rotation:
-  top_sectors: 3
-  stocks_per_sector: 5
-  min_sector_stocks: 3
-  min_rrv_threshold: 0.5
-  rebalance_day: "friday"
-
-momentum:
-  lookback_return: 126
-  lookback_volatility: 63
-  trading_days_year: 252
-
-risk:
-  max_single_position: 0.08
-  hard_max_position: 0.12
-  max_sector_exposure: 0.35
-  hard_max_sector: 0.45
-  max_drawdown_warning: 0.15
-  max_drawdown_halt: 0.25
-  daily_loss_limit: 0.03
-  vix_caution: 20.0
-  vix_defensive: 25.0
-
-costs:
-  transaction_cost: 0.003
-
-paths:
-  universe_file: "stock-universe.json"
-  log_dir: "logs"
-  data_cache: ".cache"
-EOF
-        echo -e "${GREEN}✓ Default config created${NC}"
+        if [ -f "$SCRIPT_DIR/config.example.yaml" ]; then
+            cp "$SCRIPT_DIR/config.example.yaml" "$SCRIPT_DIR/config.yaml"
+            echo -e "${GREEN}✓ Created config.yaml from config.example.yaml${NC}"
+        else
+            echo -e "${RED}Error: config.example.yaml not found${NC}"
+            exit 1
+        fi
         echo -e "${YELLOW}Please edit config.yaml and add your Zerodha API credentials${NC}"
     else
         echo -e "${GREEN}✓ Config file exists${NC}"
@@ -218,7 +179,7 @@ main() {
     check_universe
 
     echo ""
-    echo -e "${GREEN}Starting FORTRESS SIDEWAYS...${NC}"
+    echo -e "${GREEN}Starting FORTRESS MOMENTUM...${NC}"
     echo ""
 
     # Run the CLI

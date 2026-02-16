@@ -19,44 +19,44 @@ The magic is in how it adapts:
 
 ## Does It Work?
 
-### 13-Year Multi-Phase Backtest (Apr 2013 -- Feb 2026)
+### 13-Year Multi-Phase Backtest (Jan 2013 -- Feb 2026)
 
-> Backtest run: 16 Feb 2026. Data: NSE daily OHLCV through 12 Feb 2026. Each phase starts fresh with 20L capital and 12 target positions.
+> Backtest run: 16 Feb 2026. Data: NSE daily OHLCV through 12 Feb 2026. Continuous backtest with compounding -- capital carries forward across phases (starts at 20L).
 
 A continuous backtest across 16 distinct market phases -- bull runs, bear markets, crashes, and everything in between.
 
-**Overall: 25.2% CAGR | 1.16 Sharpe | -22.9% Max DD | 20L grew to 3.85 Cr**
+**Overall: 19.8% CAGR | 0.87 Sharpe | -27.3% Max DD | 20L grew to 2.14 Cr**
 
-Nifty 50 B&H returned 14.7% CAGR over the same period. Nifty Midcap 100 B&H returned 20.6%.
+Nifty 50 B&H: 11.8% CAGR | Nifty Midcap 100 B&H: 16.0% CAGR over the same period.
 
 | # | Phase | Period | Type | Return | NIFTY 50 | Alpha | Max DD |
 |---|-------|--------|------|--------|----------|-------|--------|
-| 1 | Post-Taper Tantrum Rally | Apr 2013 -- Mar 2015 | Bullish | +83.0% | +48.3% | +34.7% | -8.2% |
-| 2 | Sideways Chop | Mar 2015 -- Mar 2016 | Sideways | +0.3% | -11.6% | +11.9% | -14.2% |
-| 3 | Demonetization Rally | Mar 2016 -- Jan 2018 | Bullish | +52.3% | +38.5% | +13.8% | -11.4% |
-| 4 | NBFC/ILFS Crisis | Jan 2018 -- Jun 2019 | Bearish | -2.3% | +6.1% | -8.4% | -18.2% |
-| 5 | Pre-COVID Sideways | Jun 2019 -- Jan 2020 | Sideways | +2.9% | +5.3% | -2.4% | -11.1% |
-| 6 | COVID Crash | Jan 2020 -- Apr 2020 | Crash | -14.1% | -29.3% | +15.2% | -30.0% |
-| 7 | V-Shape Recovery | Apr 2020 -- Nov 2020 | Recovery | +44.2% | +47.3% | -3.1% | -5.3% |
-| 8 | Post-COVID Bull | Nov 2020 -- Oct 2021 | Bullish | +62.0% | +42.5% | +19.5% | -6.3% |
-| 9 | Mid-Cap Rotation | Oct 2021 -- Jun 2022 | Bearish | +7.3% | -6.3% | +13.6% | -12.3% |
-| 10 | Rate Hike Bear | Jun 2022 -- Apr 2023 | Bear/Recovery | +6.5% | +1.2% | +5.3% | -10.2% |
-| 11 | Election Rally | Apr 2023 -- Jan 2024 | Bullish | +28.6% | +16.1% | +12.5% | -7.3% |
-| 12 | Pre-Election Euphoria | Jan 2024 -- Jun 2024 | Bullish | +28.3% | +12.3% | +16.0% | -3.4% |
-| 13 | Post-Election Correction | Jun 2024 -- Aug 2024 | Sideways | +8.1% | +8.3% | -0.3% | -4.2% |
-| 14 | Recovery & Rotation | Aug 2024 -- Oct 2024 | Recovery | +5.3% | +5.1% | +0.2% | -3.0% |
-| 15 | Q3 Selloff | Oct 2024 -- Jan 2025 | Bearish | -5.3% | -7.2% | +1.9% | -11.9% |
-| 16 | Recent | Jan 2025 -- Feb 2026 | Sideways | -3.3% | -5.3% | +2.0% | -16.2% |
+| 1 | 2013 Consolidation | Jan 2013 -- May 2013 | Sideways | -10.0% | +1.7% | -11.7% | -12.1% |
+| 2 | Taper Tantrum & Rupee Crisis | May 2013 -- Aug 2013 | Bearish | -2.4% | -11.4% | +9.0% | -8.0% |
+| 3 | Pre-Election Rally | Aug 2013 -- May 2014 | Bullish | +36.0% | +33.1% | +2.9% | -4.5% |
+| 4 | Modi Election Bull Run | May 2014 -- Mar 2015 | Bullish | +52.3% | +23.5% | +28.8% | -7.8% |
+| 5 | 2015 Correction | Mar 2015 -- Aug 2015 | Bearish | -10.8% | -12.5% | +1.7% | -15.6% |
+| 6 | China Scare & Recovery | Aug 2015 -- Mar 2016 | Bear/Recovery | -3.9% | -8.4% | +4.4% | -8.2% |
+| 7 | Pre-Demonetization Bull | Mar 2016 -- Nov 2016 | Bullish | +21.8% | +15.9% | +5.9% | -6.2% |
+| 8 | Demonetization Shock & Recovery | Nov 2016 -- Apr 2017 | Bear/Recovery | +0.3% | +8.8% | -8.5% | -8.7% |
+| 9 | 2017 Bull Run | Apr 2017 -- Jan 2018 | Bullish | +29.8% | +20.5% | +9.3% | -5.3% |
+| 10 | NBFC / IL&FS Crisis | Jan 2018 -- Mar 2019 | Bearish | -12.0% | -1.7% | -10.3% | -22.3% |
+| 11 | 2019 Recovery (Corp Tax Cut) | Mar 2019 -- Jan 2020 | Sideways/Bullish | +14.0% | +11.3% | +2.7% | -11.0% |
+| 12 | COVID Crash | Jan 2020 -- Apr 2020 | Crash | -18.7% | -32.0% | +13.3% | -20.5% |
+| 13 | Post-COVID Rally | Apr 2020 -- Oct 2021 | Bullish | +231.5% | +128.6% | +102.9% | -6.2% |
+| 14 | 2022 Correction (Ukraine/Rates) | Oct 2021 -- Jun 2022 | Bearish | -16.7% | -17.0% | +0.2% | -17.5% |
+| 15 | 2023-24 Recovery & Bull Run | Jun 2022 -- Sep 2024 | Bullish | +107.2% | +70.6% | +36.6% | -22.2% |
+| 16 | Late 2024-25 Correction | Sep 2024 -- Feb 2026 | Bear/Sideways | -1.7% | +0.6% | -2.2% | -16.2% |
 
-Positive alpha in **13 of 16 phases**. A few highlights:
+Positive alpha vs Nifty 50 in **10 of 16 phases**. A few highlights:
 
-- **COVID crash** (Phase 6): -14.1% vs NIFTY -29.3% -- defensive scaling saved ~15% of capital
-- **Post-COVID bull** (Phase 8): +62.0% vs NIFTY +42.5% -- momentum selection at its best
-- **Pre-Election Euphoria** (Phase 12): +28.3% vs NIFTY +12.3% -- concentrated bets in trending stocks
-- **Bear markets** (Phases 9, 10, 15): Consistently positive alpha, limiting damage while benchmarks fall
-- **NBFC crisis** (Phase 4): The weakest phase -- strategy lost -2.3% while NIFTY gained +6.1%
+- **Post-COVID rally** (Phase 13): +231.5% vs NIFTY +128.6% -- momentum selection at its best, +102.9pp alpha
+- **Modi bull run** (Phase 4): +52.3% vs NIFTY +23.5% -- concentrated bets in trending stocks
+- **COVID crash** (Phase 12): -18.7% vs NIFTY -32.0% -- defensive scaling saved ~13% of capital
+- **2023-24 bull run** (Phase 15): +107.2% vs NIFTY +70.6% -- sustained alpha over 2+ years
+- **NBFC crisis** (Phase 10): The weakest phase -- strategy lost -12.0% while NIFTY lost only -1.7%
 
-> **Honest note**: The strategy underperforms in sideways/choppy markets (Phase 5) and sector-rotation bears where large-caps hold up but midcaps don't (Phase 4). Momentum needs trends to work. The edge shows up over full cycles, not every quarter.
+> **Honest note**: The strategy underperforms in early consolidation phases (Phase 1) and prolonged bear markets where large-caps hold up but midcaps don't (Phase 10). Momentum needs trends to work. The edge shows up over full cycles, not every quarter.
 
 ## Getting Started
 
