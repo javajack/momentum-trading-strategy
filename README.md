@@ -1,56 +1,211 @@
 # FORTRESS MOMENTUM
 
-A momentum-based stock rotation system for Indian equities (NSE), built on top of the Zerodha Kite Connect API. Implements an adaptive dual momentum strategy with regime detection, dynamic rebalancing, and layered defensive scaling.
+A momentum-based stock rotation system for Indian equities (NSE). It picks high-momentum stocks, adapts to market conditions, and manages risk automatically -- so you can stay invested without constantly watching the market.
 
-## How It Works
+Built on top of the Zerodha Kite Connect API. Works with NIFTY 100 + MIDCAP 100 (200 stocks).
 
-The system ranks all stocks in its universe by **Normalized Momentum Score (NMS)** -- a volatility-adjusted blend of 6-month and 12-month returns, inspired by the Nifty 500 Momentum 50 index methodology. It then applies entry filters (52-week high proximity, trend, volume, liquidity) and builds a concentrated portfolio of 10-15 high-momentum positions.
+## What Does It Do?
 
-What makes it adaptive:
+Every few weeks, the system looks at all 200 stocks and asks: *which ones have the strongest momentum right now, and is it safe to be fully invested?*
 
-- **Regime Detection** -- A multi-timeframe stress model (VIX, breadth, returns) classifies the market as BULLISH, NORMAL, CAUTION, or DEFENSIVE. The portfolio's equity/gold/cash allocation shifts accordingly via a graduated curve rather than hard thresholds.
-- **Dynamic Rebalancing** -- Instead of fixed-interval rebalancing, the system checks daily for trigger conditions (regime transitions, VIX spikes, drawdown breaches, breadth thrusts) and only rebalances when necessary. This reduces trade count while staying responsive.
-- **Layered Defenses** -- Five independently toggleable layers protect during downturns: portfolio volatility targeting, breadth-based scaling, dynamic sector caps, sector momentum filtering, and crash avoidance. Each can be enabled/disabled in config.
-- **Recovery Modes** -- When markets recover from drawdowns, the system detects improving breadth and relaxes its defensive posture faster, avoiding the common problem of staying too defensive during rebounds.
+It ranks stocks by **Normalized Momentum Score (NMS)** -- a volatility-adjusted blend of 6-month and 12-month returns (inspired by the Nifty 500 Momentum 50 index). It then filters for quality (52-week high proximity, trend, volume) and builds a concentrated portfolio of 10-12 high-momentum positions.
 
-## Backtest Results
+The magic is in how it adapts:
+
+- **Reads the room** -- A stress model combining VIX, market breadth, and returns classifies conditions as BULLISH, NORMAL, CAUTION, or DEFENSIVE. The equity/gold/cash mix shifts smoothly along a graduated curve -- no sudden all-in or all-out moves.
+- **Rebalances when it matters** -- Instead of fixed schedules, it watches for triggers (regime shifts, VIX spikes, drawdowns, breadth thrusts) and acts only when needed. Fewer trades, lower costs, better timing.
+- **Protects the downside** -- Five independent defense layers (volatility targeting, breadth scaling, dynamic sector caps, sector momentum filter, crash avoidance) work together to reduce exposure in rough markets.
+- **Catches the recovery** -- When markets turn around, the system detects improving breadth and ramps back to full equity faster, avoiding the classic trap of staying defensive too long.
+
+## Does It Work?
+
+Here are recent backtests (as of Feb 2026):
 
 | Period | Return | CAGR | Sharpe | Max DD | vs NIFTY 50 |
 |--------|--------|------|--------|--------|-------------|
-| 2023-2024 (bull) | +75.25% | +32.46% | 1.44 | -11.56% | +45.3% |
-| 6 months | +8.55% | +17.79% | 0.83 | -5.86% | +3.1% |
-| 12 months | +7.78% | +7.81% | 0.19 | -8.85% | -4.6% |
-| 18 months (incl. correction) | -2.60% | -1.75% | -0.53 | -18.37% | -9.1% |
+| 3 months | -2.28% | -- | -- | -6.21% | -0.2% |
+| 6 months | +2.61% | +5.39% | 0.00 | -6.00% | +0.2% |
+| 12 months | +16.00% | +16.21% | 0.72 | -7.15% | +5.1% |
+| 24 months (incl. correction) | +17.64% | +8.48% | 0.22 | -13.37% | +1.4% |
 
-The 18-month period includes the Oct 2024 - Mar 2025 market correction, where the strategy went defensive (50%+ cash) and underperformed. The 2023-2024 bull run demonstrates the strategy's alpha generation in favorable conditions.
+The 24-month window includes the brutal Oct 2024 - Mar 2025 correction, where the strategy went defensive and preserved capital. Short-term numbers will always fluctuate -- the real story is in the long-term phases below.
 
-### 10-Year Market Phases (2015-2026)
+### 13-Year Multi-Phase Backtest (2013-2026)
 
-A continuous backtest across 12 distinct market phases, from the 2015 bull run through the late-2024 correction.
+A continuous backtest across 16 distinct market phases -- bull runs, bear markets, crashes, and everything in between.
 
-**Overall: +1,216.8% return | 24.2% CAGR | 1.16 Sharpe | -25.8% Max DD | +568% alpha vs NIFTY 50**
+**Overall: +1,207% return | 21.7% CAGR | 0.99 Sharpe | -29.6% Max DD**
 
-| # | Phase | Type | Return | NIFTY | Alpha | Max DD |
-|---|-------|------|--------|-------|-------|--------|
-| 1 | 2015 Bull Run | Bullish | -11.2% | -12.8% | +1.6% | -13.6% |
-| 2 | China Scare & Recovery | Bear/Recovery | +2.4% | -8.4% | +10.8% | -6.1% |
-| 3 | Pre-Demonetization Bull | Bullish | +17.6% | +15.9% | +1.7% | -6.1% |
-| 4 | Demonetization Shock | Bear/Recovery | +2.3% | +8.8% | -6.5% | -8.7% |
-| 5 | 2017 Bull Run | Bullish | +19.3% | +20.5% | -1.2% | -7.8% |
-| 6 | NBFC / IL&FS Crisis | Bearish | -15.9% | -1.7% | -14.2% | -21.2% |
-| 7 | 2019 Recovery | Sideways/Bull | +6.0% | +11.2% | -5.2% | -10.6% |
-| 8 | COVID Crash | Crash | -11.3% | -32.2% | +20.9% | -14.4% |
-| 9 | Post-COVID Rally | Bullish | +294.8% | +128.5% | +166.3% | -5.6% |
-| 10 | 2022 Correction | Bearish | +0.8% | -17.0% | +17.8% | -12.1% |
-| 11 | 2023-24 Bull Run | Bullish | +108.6% | +70.5% | +38.1% | -17.5% |
-| 12 | Late 2024-25 Correction | Bear/Sideways | +1.7% | -1.9% | +3.6% | -15.7% |
+Starting capital of 20L grew to 2.61 Cr over 13 years.
 
-Key takeaways:
-- **Bull phases** average +72.5% return (6 phases) -- captures upside aggressively
-- **Bear/crash phases** average -3.3% return (6 phases) -- strong downside protection
-- **COVID crash**: -11.3% vs NIFTY -32.2% (+20.9% alpha) -- defensive scaling worked
-- **Post-COVID rally**: +294.8% with only -5.6% max DD -- recovery mode captured the rebound
-- Capital grew from ~31L to ~2.63 Cr over the full period (20L initial + 12-month warmup)
+| # | Phase | Type | Return | NIFTY 50 | Alpha | Max DD |
+|---|-------|------|--------|----------|-------|--------|
+| 1 | 2013 Consolidation | Sideways | -11.7% | +1.7% | -13.4% | -17.1% |
+| 2 | Taper Tantrum | Bearish | +1.0% | -11.4% | +12.4% | -6.9% |
+| 3 | Pre-Election Rally | Bullish | +29.7% | +33.2% | -3.4% | -4.1% |
+| 4 | Modi Election Bull | Bullish | +64.6% | +23.9% | +40.7% | -7.3% |
+| 5 | 2015 Correction | Bearish | -10.1% | -12.5% | +2.4% | -12.8% |
+| 6 | China Scare & Recovery | Bear/Recovery | -0.0% | -8.4% | +8.3% | -7.9% |
+| 7 | Pre-Demonetization Bull | Bullish | +18.9% | +15.9% | +2.9% | -6.6% |
+| 8 | Demonetization Shock | Bear/Recovery | +1.4% | +8.8% | -7.4% | -8.8% |
+| 9 | 2017 Bull Run | Bullish | +20.0% | +20.5% | -0.5% | -6.0% |
+| 10 | NBFC / IL&FS Crisis | Bearish | -16.6% | -1.7% | -14.9% | -20.2% |
+| 11 | 2019 Recovery | Sideways/Bull | +6.6% | +11.3% | -4.7% | -11.6% |
+| 12 | COVID Crash | Crash | -16.4% | -32.2% | +15.7% | -20.5% |
+| 13 | Post-COVID Rally | Bullish | +268.4% | +128.6% | +139.8% | -6.0% |
+| 14 | 2022 Correction | Bearish | -7.4% | -17.0% | +9.6% | -10.6% |
+| 15 | 2023-24 Bull Run | Bullish | +115.2% | +70.5% | +44.6% | -19.6% |
+| 16 | Late 2024-25 Correction | Bear/Sideways | +4.4% | +0.6% | +3.9% | -12.2% |
+
+A few highlights:
+- **COVID crash**: -16.4% vs NIFTY -32.2% -- defensive scaling kicked in and saved ~16% of capital
+- **Post-COVID rally**: +268.4% with only -6.0% max DD -- recovery mode caught the rebound early
+- **2023-24 bull**: +115.2% vs NIFTY +70.5% -- momentum selection at its best
+- **Bear markets**: The strategy doesn't avoid all losses, but it consistently limits the damage
+
+> **Honest note**: The strategy underperforms in sideways/choppy markets and early-stage bear markets (phases 1, 10). Momentum is a trend-following approach -- it needs trends to work. The edge shows up over full cycles, not every quarter.
+
+## Getting Started
+
+### What You Need
+
+- Python 3.10+
+- A Zerodha trading account with [Kite Connect API](https://kite.trade) subscription
+- ~15-20L capital recommended (works with less, but position sizing gets tight below 10L)
+
+### Step 1: Clone
+
+```bash
+git clone https://github.com/javajack/stock-rotation.git
+cd stock-rotation
+```
+
+### Step 2: Set Up Credentials
+
+Create a `.env` file with your Zerodha API credentials:
+
+```bash
+cat > .env << 'EOF'
+ZERODHA_API_KEY=your_api_key_here
+ZERODHA_API_SECRET=your_api_secret_here
+EOF
+```
+
+This file is gitignored -- your credentials stay local.
+
+### Step 3: Configure
+
+```bash
+cp config.example.yaml config.yaml
+```
+
+Open `config.yaml` and adjust to your setup. The key settings to change:
+
+- `portfolio.initial_capital` -- Your starting capital (default: 20L)
+- `position_sizing.target_positions` -- How many stocks to hold (default: 12)
+
+Everything else has sensible defaults. You can always tune later.
+
+### Step 4: Run
+
+```bash
+./start.sh
+```
+
+On first run, this creates a virtual environment, installs dependencies, loads your credentials, and launches the CLI. Subsequent runs go straight to the menu.
+
+**Or manually:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+source .env
+python -m fortress
+```
+
+### Step 5: Your First Session
+
+The CLI menu:
+
+```
+1. Login          -- Authenticate with Zerodha (cached for the day)
+2. Status         -- See your current positions and P&L
+3. Scan           -- View top momentum stocks right now
+4. Rebalance      -- Generate trades (dry-run first, then live)
+5. Backtest       -- Run historical simulations
+6. Strategy       -- Select active strategy
+7. Triggers       -- Check if rebalance is needed today
+8. Market Phases  -- Run the full multi-phase backtest
+```
+
+**Recommended first steps:**
+
+1. **Login** (1) -- Authenticate with Zerodha
+2. **Scan** (3) -- See which stocks the system likes right now
+3. **Backtest** (5) -- Run a 12-month backtest to verify everything works
+4. **Triggers** (7) -- Check if today is a good day to start
+5. **Rebalance** (4) -- Run in **dry-run mode** first to see the plan, then go live
+
+> **Tip**: The system uses LIQUIDBEES (liquid ETF) as its capital pool. To get started, buy LIQUIDBEES worth your target capital through your broker. The next rebalance will automatically convert it into equity positions.
+
+## How Capital Works
+
+All capital flows through **LIQUIDBEES** (a liquid ETF earning ~6-7% annualized):
+
+- **Add money**: Buy LIQUIDBEES in your demat --> next rebalance deploys it into stocks
+- **Withdraw**: Sell some LIQUIDBEES --> that capital stays out
+- **Surplus**: After filling all stock positions, leftover cash sweeps into LIQUIDBEES
+- **No idle cash**: Your money is always working, even when parked
+
+This means you never need to worry about "cash drag" -- uninvested capital earns returns in LIQUIDBEES while waiting to be deployed.
+
+## Key Features
+
+### Adaptive Regime Detection
+
+The system classifies market conditions into four regimes:
+
+| Regime | Equity | Gold | Behavior |
+|--------|--------|------|----------|
+| BULLISH | 90-95% | 5-10% | Full momentum, tight stops |
+| NORMAL | 80-90% | 10-15% | Standard allocation |
+| CAUTION | 60-80% | 15-20% | Reduced exposure, wider stops |
+| DEFENSIVE | 40-60% | 20%+ | Capital preservation mode |
+
+Transitions happen smoothly along a graduated curve -- no sudden all-in or all-out flips.
+
+### Layered Defenses
+
+Five independent protection layers, all toggleable in config:
+
+1. **Volatility targeting** -- Scales down equity when portfolio vol exceeds 15%
+2. **Breadth scaling** -- Reduces exposure when fewer stocks are above their 50-day MA
+3. **Dynamic sector caps** -- Tighter sector limits in CAUTION/DEFENSIVE (30%/25%/20%)
+4. **Sector momentum filter** -- 15% score penalty for bottom sectors (soft filter, not hard block)
+5. **Crash avoidance** -- Early-warning when 1M return <= -5% AND 3M return <= -8%
+
+Plus: gold exhaustion scaling, trend guard (prevents over-de-risking in uptrends), and recovery equity override (faster return to full equity when breadth improves).
+
+### Tiered Stop Loss System
+
+Stops adapt to how much a position has gained:
+
+| Unrealized Gain | Trailing Stop | Philosophy |
+|-----------------|--------------|------------|
+| < 8% | 18% initial stop | Give new positions room |
+| 8-20% | 15% trailing | Protect early gains |
+| 20-50% | 15% trailing | Standard protection |
+| > 50% | 25% trailing | Let winners run |
+
+Additional exits: trend-break detection, relative strength floor, and a 3-day minimum hold period to prevent whipsaws.
+
+### Live Trading
+
+- **Dry-run mode** -- Preview every trade before committing
+- **Self-funding rebalances** -- Sells generate cash for buys within the same session
+- **Post-execution reconciliation** -- Handles failed orders gracefully
+- **Daily trigger checks** -- Only rebalance when the system detects a reason to
 
 ## Architecture
 
@@ -60,7 +215,7 @@ fortress/
   backtest.py             Backtesting engine with vectorized breadth + asof lookups
   momentum_engine.py      Live-mode stock ranking, filtering, weight calculation
   indicators.py           NMS, regime detection, rebalance triggers, breadth
-  config.py               All configuration dataclasses (Pydantic)
+  config.py               Configuration dataclasses (Pydantic)
   strategy/
     adaptive_dual_momentum.py   Main strategy: tiered stops, trend breaks, RS exits
     base.py                     Strategy interface
@@ -72,163 +227,55 @@ fortress/
   market_data.py          Zerodha historical data provider
   instruments.py          NSE instrument mapping
   cache.py                Parquet-based data cache with incremental updates
-  universe.py             Stock universe loader with sub-universe filtering
+  universe.py             Stock universe loader (NIFTY 100 + MIDCAP 100)
   auth.py                 Zerodha authentication (TOTP + request token)
   utils.py                Weight renormalization, rate limiting
+tools/
+  reconcile_state.py      Reconcile strategy state with live broker holdings
+config.example.yaml       Default configuration (copy to config.yaml)
+stock-universe.json       200 stocks: NIFTY 100 + MIDCAP 100, with sector mappings
 tests/                    159 tests covering indicators, backtest, strategies, risk
 ```
 
-**Parity guarantee**: `backtest.py` and `momentum_engine.py` implement the same strategy logic in parallel. Backtests use pre-computed caches for speed; live mode fetches from the API. Both produce equivalent results.
+**Parity guarantee**: `backtest.py` and `momentum_engine.py` implement the same strategy logic. Backtests use pre-computed caches for speed; live mode fetches from the API. Both produce equivalent results -- what you backtest is what you trade.
 
-~18,100 lines of Python. ~2,400 lines of tests.
-
-## Key Features
-
-### Defensive Enhancements
-All toggleable via config:
-- **Volatility targeting** -- Scales equity exposure down when portfolio vol exceeds target (default 15%)
-- **Breadth scaling** -- Reduces exposure when fewer stocks are above their 50-day MA
-- **Dynamic sector caps** -- Tighter sector limits in CAUTION/DEFENSIVE regimes (30%/25%/20%)
-- **Sector momentum filter** -- Soft penalty (not hard exclude) for bottom sectors by momentum
-- **Crash avoidance** -- Early-warning system detects slow grinds (1M <= -5% AND 3M <= -8%)
-- **Gold exhaustion scaling** -- Reduces gold allocation when gold is overextended above its 200-SMA. Freed weight redirects to equities in uptrends, cash in downtrends
-- **Trend guard** -- When NIFTY > 200-SMA, limits equity cuts to max 20% (prevents over-de-risking in uptrends)
-- **Recovery equity override** -- When market is recovering from drawdown with improving breadth, caps stress score to accelerate return to full equity
-
-### Tiered Stop Loss System
-Stops adapt based on unrealized gain:
-| Gain Tier | Trailing Stop |
-|-----------|--------------|
-| < 8% | 18% initial stop |
-| 8-20% | 15% trailing |
-| 20-50% | 15% trailing |
-| > 50% | 25% trailing (let winners run) |
-
-Plus trend-break exits, relative strength floor exits, and a minimum hold period (3 days) to avoid whipsaws.
-
-### LIQUIDBEES Capital Pool
-Capital flows through LIQUIDBEES (liquid ETF) as the single source and sink:
-- **Add capital**: Buy LIQUIDBEES manually -> next rebalance converts to equity
-- **Withdraw**: Sell LIQUIDBEES manually
-- **Surplus**: After equity/gold fills, remainder sweeps into LIQUIDBEES automatically
-- No idle demat cash -- capital is always earning returns (LIQUIDBEES ~6-7% annualized)
-
-### Live Trading Integration
-- Zerodha Kite Connect API for order placement
-- Dry-run mode for testing without real orders
-- Post-execution reconciliation (handles failed buys/sells gracefully)
-- Self-funding rebalances (sells fund buys within same session)
-
-## Setup
-
-### Prerequisites
-- Python 3.10+
-- Zerodha Kite Connect API subscription ([apply here](https://kite.trade))
-
-### Step 1: Clone and install
-
-```bash
-git clone https://github.com/javajack/stock-rotation.git
-cd stock-rotation
-```
-
-`start.sh` handles everything automatically -- creates a virtual environment, installs dependencies, loads credentials, and launches the CLI. But you need to set up credentials first.
-
-### Step 2: Zerodha API credentials
-
-You need a Kite Connect API subscription from Zerodha. Once you have your API key and secret, create a `.env` file in the project root:
-
-```bash
-# Create .env with your credentials (this file is gitignored)
-cat > .env << 'EOF'
-ZERODHA_API_KEY=your_api_key_here
-ZERODHA_API_SECRET=your_api_secret_here
-EOF
-```
-
-`start.sh` sources this file on every launch, and `config.py` picks up the env vars automatically. The `.env` file is gitignored so credentials never end up in the repo.
-
-`config.yaml` is gitignored -- copy `config.example.yaml` to `config.yaml` on first setup. It contains all strategy/portfolio configuration but **no credentials**. You should not need to edit it unless you want to tune strategy parameters.
-
-### Step 3: Configure
-
-```bash
-cp config.example.yaml config.yaml
-```
-
-Review `config.yaml` and adjust portfolio settings (initial capital, target positions, etc.) to match your setup. The defaults are sensible for a ~20L portfolio.
-
-### Step 4: Run
-
-```bash
-./start.sh
-```
-
-On first run, `start.sh` will:
-1. Check Python version (3.10+ required)
-2. Create a virtual environment in `venv/`
-3. Install all dependencies from `pyproject.toml`
-4. Load credentials from `.env`
-5. Launch the interactive CLI
-
-Subsequent runs skip setup and go straight to the CLI.
-
-### Alternative: Manual setup
-
-If you prefer not to use `start.sh`:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-
-# Load credentials
-source .env
-
-# Run
-python -m fortress
-
-# Run tests
-python -m pytest tests/ -v
-```
-
-### CLI Menu
-
-Once running, the CLI presents:
-
-1. **Login** -- Authenticate with Zerodha (uses TOTP, caches token for the day)
-2. **Status** -- View current portfolio positions and allocation
-3. **Scan** -- Rank stocks by momentum score
-4. **Rebalance** -- Generate and execute trade orders (dry-run or live)
-5. **Backtest** -- Run historical simulation (3M to 48M)
-6. **Strategy** -- Select active strategy
-7. **Triggers** -- Check if rebalance conditions are met
-9. **Market Phases** -- 10-year multi-phase backtest analysis
-
-A typical session: Login (1) -> check Triggers (7) -> Rebalance (4) in dry-run mode to preview -> Rebalance (4) in live mode to execute.
+~18,200 lines of Python. ~2,400 lines of tests.
 
 ## Configuration Reference
 
-The system is highly configurable. Key sections in `config.yaml`:
+All strategy parameters live in `config.yaml`. Key sections:
 
-| Section | Controls |
-|---------|----------|
+| Section | What It Controls |
+|---------|-----------------|
+| `portfolio` | Initial capital, universe file |
 | `pure_momentum` | NMS lookbacks, entry filters, percentile thresholds |
-| `position_sizing` | Target/min/max positions, sector caps, weighting method |
+| `position_sizing` | Target/min/max positions, sector caps, weighting |
 | `risk` | Stop losses, drawdown limits, position limits |
 | `regime` | Stress thresholds, VIX levels, allocation curve, defensive scaling |
-| `strategy_simple` | Adaptive dual momentum: stops, recovery, crash avoidance, breadth |
+| `strategy_simple` | Stops, recovery detection, crash avoidance, breadth smoothing |
 | `dynamic_rebalance` | Trigger conditions, min/max days between rebalances |
 
-See `config.example.yaml` for all available options with documentation.
+See `config.example.yaml` for all available options with inline documentation.
 
 ## Research Basis
 
-The strategy draws from:
+The strategy draws from well-studied academic and practitioner research:
+
 - **Dual Momentum** (Gary Antonacci) -- Combining absolute and relative momentum for +440 bps annually vs index
-- **Nifty 500 Momentum 50** -- NSE's own momentum index methodology for stock selection
+- **Nifty 500 Momentum 50** -- NSE's own momentum index methodology, adapted for stock selection
 - **Volatility Targeting** (Moskowitz et al.) -- Reduces max drawdown by ~6.6%, can double Sharpe ratio
 - **Regime Detection** -- Multi-factor stress scoring for adaptive allocation
+
+## Disclaimer
+
+This is a personal project shared for educational purposes. It is **not financial advice**.
+
+- Past backtest performance does not guarantee future results
+- Momentum strategies can and do underperform, especially in choppy/sideways markets
+- Always do your own research before deploying real capital
+- Start with dry-run mode and small amounts until you're comfortable with the system
+
+The author uses this system with real capital, but your risk tolerance and circumstances may differ.
 
 ## License
 
