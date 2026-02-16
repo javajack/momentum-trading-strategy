@@ -78,19 +78,6 @@ setup_venv() {
     fi
 }
 
-# Activate virtual environment
-activate_venv() {
-    echo -e "${YELLOW}Activating virtual environment...${NC}"
-
-    if [ -f "$VENV_DIR/bin/activate" ]; then
-        source "$VENV_DIR/bin/activate"
-        echo -e "${GREEN}✓ Virtual environment activated${NC}"
-    else
-        echo -e "${RED}Error: Could not find venv activation script${NC}"
-        exit 1
-    fi
-}
-
 # Install/update dependencies
 install_deps() {
     CURRENT_HASH=$(get_requirements_hash)
@@ -101,7 +88,7 @@ install_deps() {
     fi
 
     # Check if fortress is installed
-    if ! python -c "import fortress" 2>/dev/null; then
+    if ! "$VENV_DIR/bin/python" -c "import fortress" 2>/dev/null; then
         NEEDS_INSTALL=true
     elif [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
         NEEDS_INSTALL=true
@@ -113,11 +100,8 @@ install_deps() {
     if [ "$NEEDS_INSTALL" = true ]; then
         echo -e "${YELLOW}Installing dependencies...${NC}"
 
-        # Upgrade pip first
-        pip install --upgrade pip --quiet
-
-        # Install the package with dev dependencies
-        pip install -e "$SCRIPT_DIR[dev]" --quiet
+        "$VENV_DIR/bin/pip" install --upgrade pip --quiet
+        "$VENV_DIR/bin/pip" install -e "$SCRIPT_DIR[dev]" --quiet
 
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✓ Dependencies installed${NC}"
@@ -173,7 +157,6 @@ main() {
 
     check_python
     setup_venv
-    activate_venv
     install_deps
     check_config
     check_universe
@@ -182,8 +165,8 @@ main() {
     echo -e "${GREEN}Starting FORTRESS MOMENTUM...${NC}"
     echo ""
 
-    # Run the CLI
-    exec python -m fortress
+    # Run the CLI using venv python explicitly
+    exec "$VENV_DIR/bin/python" -m fortress
 }
 
 # Handle Ctrl+C gracefully
