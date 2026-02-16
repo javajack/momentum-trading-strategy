@@ -142,6 +142,10 @@ class BacktestConfig:
     use_regime_detection: bool = True
     compare_benchmarks: bool = True
 
+    # Per-profile benchmarks: list of (symbol, display_name) tuples
+    # Default: [("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")]
+    benchmark_symbols: Optional[List[Tuple[str, str]]] = None
+
     # Per-profile gold override
     profile_max_gold: Optional[float] = None
 
@@ -225,9 +229,8 @@ class BacktestResult:
     regime_transitions: int = 0
     time_in_regime: Optional[Dict[str, float]] = None
 
-    # Benchmark comparison
-    nifty_50_return: Optional[float] = None
-    nifty_midcap_100_return: Optional[float] = None
+    # Benchmark comparison: list of (display_name, return) tuples
+    benchmark_returns: Optional[List[Tuple[str, Optional[float]]]] = None
 
     # Strategy used
     strategy_name: str = "dual_momentum"
@@ -910,42 +913,35 @@ class BacktestEngine:
 
     def _calculate_benchmark_returns(
         self,
-    ) -> Tuple[Optional[float], Optional[float]]:
+    ) -> List[Tuple[str, Optional[float]]]:
         """
         Calculate benchmark returns over the backtest period.
 
         Returns:
-            Tuple of (nifty_50_return, nifty_midcap_100_return)
+            List of (display_name, return) tuples for each benchmark.
         """
-        nifty_return = None
-        midcap_return = None
+        benchmarks = self.config.benchmark_symbols or [
+            ("NIFTY 50", "Nifty 50"),
+            ("NIFTY MIDCAP 100", "Nifty Midcap 100"),
+        ]
 
         ts_start = pd.Timestamp(self.config.start_date)
         ts_end = pd.Timestamp(self.config.end_date)
 
-        # Nifty 50
-        nifty_symbol = "NIFTY 50"
-        if nifty_symbol in self.data:
-            df = self.data[nifty_symbol]
-            mask = (df.index >= ts_start) & (df.index <= ts_end)
-            available = df[mask]
-            if len(available) >= 2:
-                start_price = available["close"].iloc[0]
-                end_price = available["close"].iloc[-1]
-                nifty_return = (end_price - start_price) / start_price
+        results = []
+        for symbol, display_name in benchmarks:
+            ret = None
+            if symbol in self.data:
+                df = self.data[symbol]
+                mask = (df.index >= ts_start) & (df.index <= ts_end)
+                available = df[mask]
+                if len(available) >= 2:
+                    start_price = available["close"].iloc[0]
+                    end_price = available["close"].iloc[-1]
+                    ret = (end_price - start_price) / start_price
+            results.append((display_name, ret))
 
-        # Nifty Midcap 100
-        midcap_symbol = "NIFTY MIDCAP 100"
-        if midcap_symbol in self.data:
-            df = self.data[midcap_symbol]
-            mask = (df.index >= ts_start) & (df.index <= ts_end)
-            available = df[mask]
-            if len(available) >= 2:
-                start_price = available["close"].iloc[0]
-                end_price = available["close"].iloc[-1]
-                midcap_return = (end_price - start_price) / start_price
-
-        return nifty_return, midcap_return
+        return results
 
     def _get_price_at_date(
         self,
@@ -1188,22 +1184,28 @@ class BacktestEngine:
         if not selected:
             return {}
 
-        # Calculate weights (momentum-weighted)
-        min_nms = min(s[2] for s in selected)
-        adjusted_scores = [s[2] - min_nms + 0.01 for s in selected]
-        total_score = sum(adjusted_scores)
-
         # Position sizing config
         ps = self.app_config.position_sizing
         max_weight = ps.max_single_position
         min_weight = ps.min_single_position
         max_sector = ps.max_sector_exposure
 
-        weights = {}
-        for i, (ticker, sector, nms) in enumerate(selected):
-            raw_weight = adjusted_scores[i] / total_score
-            weight = max(min_weight, min(max_weight, raw_weight))
-            weights[ticker] = weight
+        # Calculate weights based on sizing method
+        sizing_method = ps.method
+        if sizing_method == "equal":
+            base_weight = 1.0 / len(selected)
+            weights = {ticker: base_weight for ticker, sector, nms in selected}
+        else:
+            # Momentum-weighted (default)
+            min_nms = min(s[2] for s in selected)
+            adjusted_scores = [s[2] - min_nms + 0.01 for s in selected]
+            total_score = sum(adjusted_scores)
+
+            weights = {}
+            for i, (ticker, sector, nms) in enumerate(selected):
+                raw_weight = adjusted_scores[i] / total_score
+                weight = max(min_weight, min(max_weight, raw_weight))
+                weights[ticker] = weight
 
         # Normalize with iterative capping to maintain position limits
         # Uses shared utility for logic parity with live rebalance (momentum_engine.py)
@@ -2321,9 +2323,9 @@ class BacktestEngine:
         )
 
         # Calculate benchmark returns
-        nifty_return, midcap_return = None, None
+        bench_returns = []
         if self.config.compare_benchmarks:
-            nifty_return, midcap_return = self._calculate_benchmark_returns()
+            bench_returns = self._calculate_benchmark_returns()
 
         # Calculate regime statistics
         regime_df = pd.DataFrame(regime_history) if regime_history else None
@@ -2349,8 +2351,7 @@ class BacktestEngine:
             regime_df,
             regime_transitions,
             time_in_regime,
-            nifty_return,
-            midcap_return,
+            bench_returns,
             self._strategy_name,
             rebalance_trail,
         )
@@ -2363,8 +2364,7 @@ class BacktestEngine:
         regime_history: Optional[pd.DataFrame] = None,
         regime_transitions: int = 0,
         time_in_regime: Optional[Dict[str, float]] = None,
-        nifty_50_return: Optional[float] = None,
-        nifty_midcap_100_return: Optional[float] = None,
+        benchmark_returns: Optional[List[Tuple[str, Optional[float]]]] = None,
         strategy_name: str = "dual_momentum",
         rebalance_trail: Optional[List[RebalanceRecord]] = None,
     ) -> BacktestResult:
@@ -2387,8 +2387,7 @@ class BacktestEngine:
                 regime_history=regime_history,
                 regime_transitions=regime_transitions,
                 time_in_regime=time_in_regime,
-                nifty_50_return=nifty_50_return,
-                nifty_midcap_100_return=nifty_midcap_100_return,
+                benchmark_returns=benchmark_returns or [],
                 strategy_name=strategy_name,
                 rebalance_trail=rebalance_trail or [],
             )
@@ -2485,8 +2484,7 @@ class BacktestEngine:
             regime_history=regime_history,
             regime_transitions=regime_transitions,
             time_in_regime=time_in_regime,
-            nifty_50_return=nifty_50_return,
-            nifty_midcap_100_return=nifty_midcap_100_return,
+            benchmark_returns=benchmark_returns or [],
             strategy_name=strategy_name,
             rebalance_trail=rebalance_trail or [],
         )

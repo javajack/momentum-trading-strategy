@@ -635,6 +635,28 @@ profiles:
       sector_exclude_bullish: 2
       sector_exclude_caution: 1
       sector_exclude_defensive: 0
+  microcap:
+    universe_filter: ["MICROCAP150"]
+    initial_capital: 300000
+    target_positions: 15
+    min_positions: 10
+    max_positions: 20
+    max_single_position: 0.08
+    max_gold_allocation: 0.0
+    cash_symbol: "ICICILIQ"
+    position_sizing_method: "equal"
+    state_file: "strategy_state_microcap.json"
+    strategy_overrides:
+      target_portfolio_vol: 0.25
+      stop_loss_multiplier: 1.35
+      rs_exit_threshold: 0.85
+      min_52w_high_prox: 0.75
+      min_hold_days: 5
+      trend_break_buffer: 0.06
+      min_days_between: 14
+      sector_exclude_bullish: 2
+      sector_exclude_caution: 1
+      sector_exclude_defensive: 0
 
 # Excluded symbols (ETFs, liquid funds)
 excluded_symbols:
@@ -647,3 +669,4 @@ excluded_symbols:
   - HDFCSML250
   - GOLDBEES
   - HANGSENGBEES
+  - ICICILIQ

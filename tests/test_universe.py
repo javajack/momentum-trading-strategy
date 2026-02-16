@@ -4,8 +4,9 @@ Tests for universe module.
 Verifies invariants D1-D5.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from fortress.universe import Universe, UniverseValidationError
 
@@ -50,9 +51,9 @@ class TestStockIntegrity:
             assert stock.api_format.startswith("NSE:"), f"{stock.ticker} bad api_format"
 
     def test_stock_count(self, universe):
-        """Verify expected stock count (NIFTY100 + MIDCAP100 + NIFTYSC100)."""
+        """Verify expected stock count (NIFTY100 + MIDCAP100 + NIFTYSC100 + MICROCAP150)."""
         stocks = universe.get_all_stocks()
-        assert len(stocks) == 300, f"Expected 300 stocks, got {len(stocks)}"
+        assert len(stocks) == 450, f"Expected 450 stocks, got {len(stocks)}"
 
     def test_no_duplicate_tickers(self, universe):
         """D4: No duplicate tickers in universe."""
@@ -97,7 +98,7 @@ class TestUniverseFiltering:
         universe_path = project_root / "stock-universe.json"
         u = Universe(str(universe_path))
         stocks = u.get_all_stocks()
-        assert len(stocks) == 300
+        assert len(stocks) == 450
 
 
 class TestSectorData:

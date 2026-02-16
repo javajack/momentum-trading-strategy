@@ -1210,6 +1210,14 @@ class ProfileConfig(BaseModel):
         le=0.35,
         description="Per-profile gold cap. None=use global. 0.0=no gold hedge.",
     )
+    cash_symbol: Optional[str] = Field(
+        default=None,
+        description="Per-profile cash ETF symbol. None=use global (LIQUIDBEES).",
+    )
+    position_sizing_method: Optional[str] = Field(
+        default=None,
+        description="Per-profile sizing: 'equal' or 'momentum_weighted'. None=use global.",
+    )
     strategy_overrides: Optional[StrategyOverrides] = Field(
         default=None,
         description="Per-profile strategy parameter overrides",
@@ -1259,6 +1267,7 @@ class Config(BaseModel):
             "HDFCSML250",
             "GOLDBEES",
             "HANGSENGBEES",
+            "ICICILIQ",
         ]
     )
 
@@ -1298,48 +1307,59 @@ class Config(BaseModel):
     def with_profile_overrides(self, profile_name: Optional[str] = None) -> "Config":
         """Return a Config copy with profile strategy overrides applied.
 
-        For profiles without overrides (e.g. primary), returns self (identity).
+        Processes profile-level fields (cash_symbol, position_sizing_method)
+        and then strategy overrides. Returns self (identity) if nothing to override.
         """
         profile = self.get_profile(profile_name)
-        overrides = profile.strategy_overrides
-        if overrides is None:
-            return self
 
         updates: Dict = {}
         sdm_updates: Dict = {}
         pm_updates: Dict = {}
         regime_updates: Dict = {}
         dyn_updates: Dict = {}
+        ps_updates: Dict = {}
 
-        if overrides.target_portfolio_vol is not None:
-            regime_updates["target_portfolio_vol"] = overrides.target_portfolio_vol
-        if overrides.stop_loss_multiplier is not None:
-            m = overrides.stop_loss_multiplier
-            sdm = self.strategy_dual_momentum
-            sdm_updates.update(
-                tier1_trailing=round(sdm.tier1_trailing * m, 4),
-                tier2_trailing=round(sdm.tier2_trailing * m, 4),
-                tier3_trailing=round(sdm.tier3_trailing * m, 4),
-                tier4_trailing=round(sdm.tier4_trailing * m, 4),
-                hard_stop=round(sdm.hard_stop * m, 4),
-            )
-        for attr in (
-            "rs_exit_threshold",
-            "min_52w_high_prox",
-            "min_hold_days",
-            "trend_break_buffer",
-            "sector_exclude_bullish",
-            "sector_exclude_caution",
-            "sector_exclude_defensive",
-        ):
-            val = getattr(overrides, attr, None)
-            if val is not None:
-                sdm_updates[attr] = val
-        # min_52w_high_prox also lives in pure_momentum (used by backtest config)
-        if overrides.min_52w_high_prox is not None:
-            pm_updates["min_52w_high_prox"] = overrides.min_52w_high_prox
-        if overrides.min_days_between is not None:
-            dyn_updates["min_days_between"] = overrides.min_days_between
+        # Per-profile cash symbol (e.g. ICICILIQ for microcap)
+        if profile.cash_symbol is not None:
+            regime_updates["cash_symbol"] = profile.cash_symbol
+        # Per-profile position sizing method (e.g. "equal" for microcap)
+        if profile.position_sizing_method is not None:
+            ps_updates["method"] = profile.position_sizing_method
+
+        overrides = profile.strategy_overrides
+        if overrides is None and not regime_updates and not ps_updates:
+            return self
+
+        if overrides is not None:
+            if overrides.target_portfolio_vol is not None:
+                regime_updates["target_portfolio_vol"] = overrides.target_portfolio_vol
+            if overrides.stop_loss_multiplier is not None:
+                m = overrides.stop_loss_multiplier
+                sdm = self.strategy_dual_momentum
+                sdm_updates.update(
+                    tier1_trailing=round(sdm.tier1_trailing * m, 4),
+                    tier2_trailing=round(sdm.tier2_trailing * m, 4),
+                    tier3_trailing=round(sdm.tier3_trailing * m, 4),
+                    tier4_trailing=round(sdm.tier4_trailing * m, 4),
+                    hard_stop=round(sdm.hard_stop * m, 4),
+                )
+            for attr in (
+                "rs_exit_threshold",
+                "min_52w_high_prox",
+                "min_hold_days",
+                "trend_break_buffer",
+                "sector_exclude_bullish",
+                "sector_exclude_caution",
+                "sector_exclude_defensive",
+            ):
+                val = getattr(overrides, attr, None)
+                if val is not None:
+                    sdm_updates[attr] = val
+            # min_52w_high_prox also lives in pure_momentum (used by backtest config)
+            if overrides.min_52w_high_prox is not None:
+                pm_updates["min_52w_high_prox"] = overrides.min_52w_high_prox
+            if overrides.min_days_between is not None:
+                dyn_updates["min_days_between"] = overrides.min_days_between
 
         if sdm_updates:
             updates["strategy_dual_momentum"] = self.strategy_dual_momentum.model_copy(
@@ -1351,6 +1371,8 @@ class Config(BaseModel):
             updates["regime"] = self.regime.model_copy(update=regime_updates)
         if dyn_updates:
             updates["dynamic_rebalance"] = self.dynamic_rebalance.model_copy(update=dyn_updates)
+        if ps_updates:
+            updates["position_sizing"] = self.position_sizing.model_copy(update=ps_updates)
 
         return self.model_copy(update=updates) if updates else self
 

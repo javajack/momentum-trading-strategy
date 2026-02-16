@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 
 console = Console()
 
@@ -50,9 +50,9 @@ class CacheManager:
     """
 
     # Concurrency settings
-    LOAD_WORKERS = 8       # Parallel file reads
-    UPDATE_WORKERS = 4     # Concurrent API calls
-    API_RATE_LIMIT = 3.0   # Max API calls per second
+    LOAD_WORKERS = 8  # Parallel file reads
+    UPDATE_WORKERS = 4  # Concurrent API calls
+    API_RATE_LIMIT = 3.0  # Max API calls per second
 
     def __init__(self, config, universe, market_data=None):
         """
@@ -72,8 +72,15 @@ class CacheManager:
         # Build symbol list
         all_stocks = universe.get_all_stocks()
         self._symbols = [s.zerodha_symbol for s in all_stocks]
-        self._symbols.extend(["NIFTY 50", "NIFTY MIDCAP 100", "NIFTY SMLCAP 100", "INDIA VIX"])
+        self._symbols.extend(
+            ["NIFTY 50", "NIFTY MIDCAP 100", "NIFTY SMLCAP 100", "NIFTY SMLCAP 250", "INDIA VIX"]
+        )
         self._symbols.extend([config.regime.gold_symbol, config.regime.cash_symbol])
+        # Add per-profile cash symbols (e.g. ICICILIQ for microcap)
+        for pname in config.get_profile_names():
+            p = config.get_profile(pname)
+            if p.cash_symbol and p.cash_symbol not in self._symbols:
+                self._symbols.append(p.cash_symbol)
 
         # Rate limiting state
         self._api_timestamps: List[float] = []
@@ -124,8 +131,9 @@ class CacheManager:
         loaded_dates: Dict[str, date] = {}
 
         with ThreadPoolExecutor(max_workers=self.LOAD_WORKERS) as executor:
-            futures = {executor.submit(self._load_single_file, symbol): symbol
-                      for symbol in self._symbols}
+            futures = {
+                executor.submit(self._load_single_file, symbol): symbol for symbol in self._symbols
+            }
 
             for future in as_completed(futures):
                 result = future.result()
@@ -200,9 +208,8 @@ class CacheManager:
             if not self._manifest_file.exists():
                 return False
             meta = json.loads(self._manifest_file.read_text())
-            return (
-                meta.get("target") == str(self.get_target_date())
-                and meta.get("date") == str(datetime.now().date())
+            return meta.get("target") == str(self.get_target_date()) and meta.get("date") == str(
+                datetime.now().date()
             )
         except Exception:
             return False
@@ -210,12 +217,16 @@ class CacheManager:
     def _save_update_manifest(self, target: date, updated_count: int, stale_count: int):
         """Save manifest recording this update attempt."""
         try:
-            self._manifest_file.write_text(json.dumps({
-                "target": str(target),
-                "date": str(datetime.now().date()),
-                "updated": updated_count,
-                "stale": stale_count,
-            }))
+            self._manifest_file.write_text(
+                json.dumps(
+                    {
+                        "target": str(target),
+                        "date": str(datetime.now().date()),
+                        "updated": updated_count,
+                        "stale": stale_count,
+                    }
+                )
+            )
         except Exception:
             pass
 
@@ -314,7 +325,9 @@ class CacheManager:
         global _SESSION_CACHE, _SESSION_LAST_DATES
 
         if self.market_data is None:
-            console.print("[yellow]Cannot update - not logged in. Please login first (Option 1).[/yellow]")
+            console.print(
+                "[yellow]Cannot update - not logged in. Please login first (Option 1).[/yellow]"
+            )
             return self._data
 
         # Load existing cache first
@@ -351,9 +364,7 @@ class CacheManager:
             if incremental:
                 with ThreadPoolExecutor(max_workers=self.UPDATE_WORKERS) as executor:
                     futures = {
-                        executor.submit(
-                            self._fetch_incremental, symbol, last_date, to_date
-                        ): symbol
+                        executor.submit(self._fetch_incremental, symbol, last_date, to_date): symbol
                         for symbol, last_date in incremental
                     }
 
@@ -373,9 +384,7 @@ class CacheManager:
             if full_fetch:
                 with ThreadPoolExecutor(max_workers=self.UPDATE_WORKERS) as executor:
                     futures = {
-                        executor.submit(
-                            self._fetch_full, symbol, from_date_full, to_date
-                        ): symbol
+                        executor.submit(self._fetch_full, symbol, from_date_full, to_date): symbol
                         for symbol in full_fetch
                     }
 
@@ -402,7 +411,9 @@ class CacheManager:
                     if _SESSION_LAST_DATES.get(symbol, date.min) < target:
                         _SESSION_LAST_DATES[symbol] = target
 
-        console.print(f"[dim]Cache updated ({len(self._data)} symbols, {updated_count} refreshed)[/dim]")
+        console.print(
+            f"[dim]Cache updated ({len(self._data)} symbols, {updated_count} refreshed)[/dim]"
+        )
         return self._data
 
     def load_and_update(self, lookback_days: int = 400) -> Dict[str, pd.DataFrame]:
@@ -424,7 +435,9 @@ class CacheManager:
         # Skip re-fetching if we already tried today for the same target
         # (handles market holidays where API returns no new data)
         if self._was_already_attempted_today():
-            console.print(f"[dim]Cache is current ({len(self._data)} symbols, already checked today)[/dim]")
+            console.print(
+                f"[dim]Cache is current ({len(self._data)} symbols, already checked today)[/dim]"
+            )
             return self._data
 
         return self.update(lookback_days)
@@ -453,8 +466,7 @@ class CacheManager:
 
         if self.market_data is None:
             console.print(
-                "[yellow]Cannot backfill — not logged in. "
-                "Please login first (Option 1).[/yellow]"
+                "[yellow]Cannot backfill — not logged in. Please login first (Option 1).[/yellow]"
             )
             return 0
 
@@ -474,14 +486,11 @@ class CacheManager:
 
         if not to_backfill:
             console.print(
-                f"[dim]Cache already covers {required_start} "
-                f"({len(_SESSION_CACHE)} symbols)[/dim]"
+                f"[dim]Cache already covers {required_start} ({len(_SESSION_CACHE)} symbols)[/dim]"
             )
             return 0
 
-        console.print(
-            f"[cyan]Backfilling {len(to_backfill)} symbols to {required_start} …[/cyan]"
-        )
+        console.print(f"[cyan]Backfilling {len(to_backfill)} symbols to {required_start} …[/cyan]")
 
         from_dt = datetime.combine(required_start, datetime.min.time())
         backfilled = 0
@@ -506,11 +515,7 @@ class CacheManager:
                     if to_dt <= from_dt:
                         progress.update(task, advance=1)
                         continue
-                    futures[
-                        executor.submit(
-                            self._fetch_full, symbol, from_dt, to_dt
-                        )
-                    ] = symbol
+                    futures[executor.submit(self._fetch_full, symbol, from_dt, to_dt)] = symbol
 
                 for future in as_completed(futures):
                     symbol = futures[future]
@@ -535,8 +540,7 @@ class CacheManager:
                     progress.update(task, advance=1)
 
         console.print(
-            f"[green]Backfilled {backfilled}/{len(to_backfill)} symbols "
-            f"to {required_start}[/green]"
+            f"[green]Backfilled {backfilled}/{len(to_backfill)} symbols to {required_start}[/green]"
         )
         return backfilled
 

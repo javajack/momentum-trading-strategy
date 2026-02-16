@@ -14,12 +14,12 @@ from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
+from fortress.backtest import BacktestConfig, BacktestEngine
 from fortress.config import load_config
 from fortress.universe import Universe
-from fortress.backtest import BacktestConfig, BacktestEngine
 
 
 def load_cached_data(cache_dir: str = ".cache") -> dict:
@@ -112,9 +112,9 @@ def run_backtest_with_config(
 
         # Collect trigger stats
         trigger_counts = {}
-        if hasattr(engine, '_rebalance_triggers_log') and engine._rebalance_triggers_log:
+        if hasattr(engine, "_rebalance_triggers_log") and engine._rebalance_triggers_log:
             for entry in engine._rebalance_triggers_log:
-                for trigger in entry.get('triggers_fired', []):
+                for trigger in entry.get("triggers_fired", []):
                     trigger_counts[trigger] = trigger_counts.get(trigger, 0) + 1
 
         return {
@@ -127,10 +127,21 @@ def run_backtest_with_config(
             "sharpe_ratio": result.sharpe_ratio,
             "total_trades": result.total_trades,
             "win_rate": result.win_rate,
-            "nifty_return": result.nifty_50_return,
-            "alpha": result.total_return - (result.nifty_50_return or 0),
+            "nifty_return": next(
+                (r for n, r in (result.benchmark_returns or []) if n.startswith("Nifty 50")), None
+            ),
+            "alpha": result.total_return
+            - (
+                next(
+                    (r for n, r in (result.benchmark_returns or []) if n.startswith("Nifty 50")),
+                    None,
+                )
+                or 0
+            ),
             "trigger_counts": trigger_counts,
-            "total_rebalances": len(engine._rebalance_triggers_log) if hasattr(engine, '_rebalance_triggers_log') else 0,
+            "total_rebalances": len(engine._rebalance_triggers_log)
+            if hasattr(engine, "_rebalance_triggers_log")
+            else 0,
         }
     except Exception as e:
         print(f"  Error: {e}")
@@ -157,53 +168,76 @@ def analyze_vix_recovery_trigger(data: dict, universe: Universe):
     for threshold in thresholds:
         print(f"  Testing VIX decline threshold: {threshold:.0%}...", end=" ")
         result = run_backtest_with_config(
-            data, universe, start_date, end_date,
+            data,
+            universe,
+            start_date,
+            end_date,
             use_dynamic=True,
             vix_recovery_decline=threshold,
-            label=f"VIX_{threshold:.0%}"
+            label=f"VIX_{threshold:.0%}",
         )
         if result:
-            vix_triggers = result['trigger_counts'].get('VIX_RECOVERY', 0)
+            vix_triggers = result["trigger_counts"].get("VIX_RECOVERY", 0)
             print(f"Return: {result['total_return']:.1%}, VIX triggers: {vix_triggers}")
-            result['vix_threshold'] = threshold
+            result["vix_threshold"] = threshold
             results.append(result)
 
     # Print comparison table
     print("\n  VIX Recovery Threshold Comparison:")
     print("  " + "-" * 76)
-    print(f"  {'Threshold':<12} {'Return':>10} {'Alpha':>10} {'MaxDD':>10} {'VIX Triggers':>14} {'Trades':>10}")
+    print(
+        f"  {'Threshold':<12} {'Return':>10} {'Alpha':>10} {'MaxDD':>10} {'VIX Triggers':>14} {'Trades':>10}"
+    )
     print("  " + "-" * 76)
     for r in results:
-        vix_triggers = r['trigger_counts'].get('VIX_RECOVERY', 0)
+        vix_triggers = r["trigger_counts"].get("VIX_RECOVERY", 0)
         threshold_str = f"{r['vix_threshold']:.0%}"
-        print(f"  {threshold_str:<12} {r['total_return']:>9.1%} {r['alpha']:>9.1%} {r['max_drawdown']:>9.1%} {vix_triggers:>14} {r['total_trades']:>10}")
+        print(
+            f"  {threshold_str:<12} {r['total_return']:>9.1%} {r['alpha']:>9.1%} {r['max_drawdown']:>9.1%} {vix_triggers:>14} {r['total_trades']:>10}"
+        )
 
     # Test with VIX_RECOVERY disabled
     print("\n1.2 Impact of disabling VIX_RECOVERY trigger")
     print("-" * 80)
 
     result_with_vix = run_backtest_with_config(
-        data, universe, start_date, end_date,
+        data,
+        universe,
+        start_date,
+        end_date,
         use_dynamic=True,
         vix_recovery_trigger=True,
-        label="VIX_ENABLED"
+        label="VIX_ENABLED",
     )
 
     result_without_vix = run_backtest_with_config(
-        data, universe, start_date, end_date,
+        data,
+        universe,
+        start_date,
+        end_date,
         use_dynamic=True,
         vix_recovery_trigger=False,
-        label="VIX_DISABLED"
+        label="VIX_DISABLED",
     )
 
     if result_with_vix and result_without_vix:
         print(f"\n  {'Metric':<25} {'VIX Enabled':>15} {'VIX Disabled':>15} {'Diff':>15}")
         print("  " + "-" * 70)
-        print(f"  {'Total Return':<25} {result_with_vix['total_return']:>14.1%} {result_without_vix['total_return']:>14.1%} {result_with_vix['total_return'] - result_without_vix['total_return']:>+14.1%}")
-        print(f"  {'Alpha':<25} {result_with_vix['alpha']:>14.1%} {result_without_vix['alpha']:>14.1%} {result_with_vix['alpha'] - result_without_vix['alpha']:>+14.1%}")
-        print(f"  {'Max Drawdown':<25} {result_with_vix['max_drawdown']:>14.1%} {result_without_vix['max_drawdown']:>14.1%} {result_with_vix['max_drawdown'] - result_without_vix['max_drawdown']:>+14.1%}")
-        print(f"  {'Total Trades':<25} {result_with_vix['total_trades']:>15} {result_without_vix['total_trades']:>15} {result_with_vix['total_trades'] - result_without_vix['total_trades']:>+15}")
-        print(f"  {'Total Rebalances':<25} {result_with_vix['total_rebalances']:>15} {result_without_vix['total_rebalances']:>15} {result_with_vix['total_rebalances'] - result_without_vix['total_rebalances']:>+15}")
+        print(
+            f"  {'Total Return':<25} {result_with_vix['total_return']:>14.1%} {result_without_vix['total_return']:>14.1%} {result_with_vix['total_return'] - result_without_vix['total_return']:>+14.1%}"
+        )
+        print(
+            f"  {'Alpha':<25} {result_with_vix['alpha']:>14.1%} {result_without_vix['alpha']:>14.1%} {result_with_vix['alpha'] - result_without_vix['alpha']:>+14.1%}"
+        )
+        print(
+            f"  {'Max Drawdown':<25} {result_with_vix['max_drawdown']:>14.1%} {result_without_vix['max_drawdown']:>14.1%} {result_with_vix['max_drawdown'] - result_without_vix['max_drawdown']:>+14.1%}"
+        )
+        print(
+            f"  {'Total Trades':<25} {result_with_vix['total_trades']:>15} {result_without_vix['total_trades']:>15} {result_with_vix['total_trades'] - result_without_vix['total_trades']:>+15}"
+        )
+        print(
+            f"  {'Total Rebalances':<25} {result_with_vix['total_rebalances']:>15} {result_without_vix['total_rebalances']:>15} {result_with_vix['total_rebalances'] - result_without_vix['total_rebalances']:>+15}"
+        )
 
     return results
 
@@ -228,35 +262,40 @@ def test_tuned_parameters(data: dict, universe: Universe):
     for min_days in min_days_options:
         print(f"  Testing min_days_between={min_days}...", end=" ")
         result = run_backtest_with_config(
-            data, universe, start_date, end_date,
+            data,
+            universe,
+            start_date,
+            end_date,
             use_dynamic=True,
             min_days_between=min_days,
-            label=f"min_{min_days}d"
+            label=f"min_{min_days}d",
         )
         if result:
             print(f"Return: {result['total_return']:.1%}, Rebalances: {result['total_rebalances']}")
-            result['min_days'] = min_days
+            result["min_days"] = min_days
             results.append(result)
 
     # Also test fixed rebalancing as baseline
     print(f"  Testing Fixed 21-day rebalancing...", end=" ")
     result_fixed = run_backtest_with_config(
-        data, universe, start_date, end_date,
-        use_dynamic=False,
-        label="Fixed_21d"
+        data, universe, start_date, end_date, use_dynamic=False, label="Fixed_21d"
     )
     if result_fixed:
         print(f"Return: {result_fixed['total_return']:.1%}")
-        result_fixed['min_days'] = "Fixed"
+        result_fixed["min_days"] = "Fixed"
         results.append(result_fixed)
 
     # Print comparison table
     print("\n  Min Days Between Comparison:")
     print("  " + "-" * 90)
-    print(f"  {'Min Days':<10} {'Return':>10} {'Alpha':>10} {'CAGR':>10} {'MaxDD':>10} {'Sharpe':>10} {'Rebal':>10} {'Trades':>10}")
+    print(
+        f"  {'Min Days':<10} {'Return':>10} {'Alpha':>10} {'CAGR':>10} {'MaxDD':>10} {'Sharpe':>10} {'Rebal':>10} {'Trades':>10}"
+    )
     print("  " + "-" * 90)
     for r in results:
-        print(f"  {str(r['min_days']):<10} {r['total_return']:>9.1%} {r['alpha']:>9.1%} {r['cagr']:>9.1%} {r['max_drawdown']:>9.1%} {r['sharpe_ratio']:>9.2f} {r['total_rebalances']:>10} {r['total_trades']:>10}")
+        print(
+            f"  {str(r['min_days']):<10} {r['total_return']:>9.1%} {r['alpha']:>9.1%} {r['cagr']:>9.1%} {r['max_drawdown']:>9.1%} {r['sharpe_ratio']:>9.2f} {r['total_rebalances']:>10} {r['total_trades']:>10}"
+        )
 
     # Find optimal configuration
     print("\n2.2 Optimal Configuration Analysis")
@@ -264,17 +303,19 @@ def test_tuned_parameters(data: dict, universe: Universe):
 
     # Calculate a composite score (return - drawdown penalty - trade cost penalty)
     for r in results:
-        if r['min_days'] != "Fixed":
+        if r["min_days"] != "Fixed":
             # Score = Return + (better DD bonus) - (trade cost penalty)
-            trade_cost_penalty = r['total_trades'] * 0.003 * 0.01  # Rough estimate
-            dd_bonus = (0.25 + r['max_drawdown']) * 0.5  # Bonus for better DD
-            r['composite_score'] = r['total_return'] + dd_bonus - trade_cost_penalty
+            trade_cost_penalty = r["total_trades"] * 0.003 * 0.01  # Rough estimate
+            dd_bonus = (0.25 + r["max_drawdown"]) * 0.5  # Bonus for better DD
+            r["composite_score"] = r["total_return"] + dd_bonus - trade_cost_penalty
         else:
-            r['composite_score'] = r['total_return']
+            r["composite_score"] = r["total_return"]
 
-    best = max([r for r in results if r['min_days'] != "Fixed"], key=lambda x: x['composite_score'])
+    best = max([r for r in results if r["min_days"] != "Fixed"], key=lambda x: x["composite_score"])
     print(f"  Best dynamic config: min_days_between={best['min_days']}")
-    print(f"    Return: {best['total_return']:.1%}, Alpha: {best['alpha']:.1%}, MaxDD: {best['max_drawdown']:.1%}")
+    print(
+        f"    Return: {best['total_return']:.1%}, Alpha: {best['alpha']:.1%}, MaxDD: {best['max_drawdown']:.1%}"
+    )
 
     return results
 
@@ -308,28 +349,35 @@ def test_market_phases(data: dict, universe: Universe):
 
         # Dynamic with optimal settings (min_days=10)
         result_dynamic = run_backtest_with_config(
-            data, universe, start, end,
+            data,
+            universe,
+            start,
+            end,
             use_dynamic=True,
             min_days_between=10,
-            label=f"{phase_name}_Dynamic"
+            label=f"{phase_name}_Dynamic",
         )
 
         # Fixed rebalancing
         result_fixed = run_backtest_with_config(
-            data, universe, start, end,
-            use_dynamic=False,
-            label=f"{phase_name}_Fixed"
+            data, universe, start, end, use_dynamic=False, label=f"{phase_name}_Fixed"
         )
 
         if result_dynamic and result_fixed:
-            diff_return = result_dynamic['total_return'] - result_fixed['total_return']
-            diff_dd = result_dynamic['max_drawdown'] - result_fixed['max_drawdown']
+            diff_return = result_dynamic["total_return"] - result_fixed["total_return"]
+            diff_dd = result_dynamic["max_drawdown"] - result_fixed["max_drawdown"]
 
             print(f"    {'Metric':<20} {'Dynamic':>12} {'Fixed':>12} {'Diff':>12}")
-            print(f"    {'-'*56}")
-            print(f"    {'Return':<20} {result_dynamic['total_return']:>11.1%} {result_fixed['total_return']:>11.1%} {diff_return:>+11.1%}")
-            print(f"    {'Max Drawdown':<20} {result_dynamic['max_drawdown']:>11.1%} {result_fixed['max_drawdown']:>11.1%} {diff_dd:>+11.1%}")
-            print(f"    {'Trades':<20} {result_dynamic['total_trades']:>12} {result_fixed['total_trades']:>12} {result_dynamic['total_trades'] - result_fixed['total_trades']:>+12}")
+            print(f"    {'-' * 56}")
+            print(
+                f"    {'Return':<20} {result_dynamic['total_return']:>11.1%} {result_fixed['total_return']:>11.1%} {diff_return:>+11.1%}"
+            )
+            print(
+                f"    {'Max Drawdown':<20} {result_dynamic['max_drawdown']:>11.1%} {result_fixed['max_drawdown']:>11.1%} {diff_dd:>+11.1%}"
+            )
+            print(
+                f"    {'Trades':<20} {result_dynamic['total_trades']:>12} {result_fixed['total_trades']:>12} {result_dynamic['total_trades'] - result_fixed['total_trades']:>+12}"
+            )
 
             # Determine winner
             if diff_return > 0.01:  # Dynamic better by >1%
@@ -339,17 +387,19 @@ def test_market_phases(data: dict, universe: Universe):
             else:
                 winner = "TIE"
 
-            results.append({
-                "phase": phase_name,
-                "dynamic_return": result_dynamic['total_return'],
-                "fixed_return": result_fixed['total_return'],
-                "dynamic_dd": result_dynamic['max_drawdown'],
-                "fixed_dd": result_fixed['max_drawdown'],
-                "diff_return": diff_return,
-                "diff_dd": diff_dd,
-                "winner": winner,
-                "dynamic_triggers": result_dynamic.get('trigger_counts', {}),
-            })
+            results.append(
+                {
+                    "phase": phase_name,
+                    "dynamic_return": result_dynamic["total_return"],
+                    "fixed_return": result_fixed["total_return"],
+                    "dynamic_dd": result_dynamic["max_drawdown"],
+                    "fixed_dd": result_fixed["max_drawdown"],
+                    "diff_return": diff_return,
+                    "diff_dd": diff_dd,
+                    "winner": winner,
+                    "dynamic_triggers": result_dynamic.get("trigger_counts", {}),
+                }
+            )
 
             print(f"    {'Winner':<20} {winner:>36}")
 
@@ -359,12 +409,14 @@ def test_market_phases(data: dict, universe: Universe):
     print(f"  {'Phase':<25} {'Dyn Return':>12} {'Fix Return':>12} {'Diff':>10} {'Winner':>12}")
     print("  " + "-" * 75)
     for r in results:
-        print(f"  {r['phase']:<25} {r['dynamic_return']:>11.1%} {r['fixed_return']:>11.1%} {r['diff_return']:>+9.1%} {r['winner']:>12}")
+        print(
+            f"  {r['phase']:<25} {r['dynamic_return']:>11.1%} {r['fixed_return']:>11.1%} {r['diff_return']:>+9.1%} {r['winner']:>12}"
+        )
 
     # Count wins
-    dynamic_wins = sum(1 for r in results if "DYNAMIC" in r['winner'])
-    fixed_wins = sum(1 for r in results if "FIXED" in r['winner'])
-    ties = sum(1 for r in results if r['winner'] == "TIE")
+    dynamic_wins = sum(1 for r in results if "DYNAMIC" in r["winner"])
+    fixed_wins = sum(1 for r in results if "FIXED" in r["winner"])
+    ties = sum(1 for r in results if r["winner"] == "TIE")
 
     print(f"\n  Overall: Dynamic wins {dynamic_wins}, Fixed wins {fixed_wins}, Ties {ties}")
 
@@ -395,34 +447,47 @@ def run_final_comparison(data: dict, universe: Universe):
 
         # Optimized dynamic
         result_dynamic = run_backtest_with_config(
-            data, universe, start, end,
+            data,
+            universe,
+            start,
+            end,
             use_dynamic=True,
             min_days_between=10,
             vix_recovery_decline=0.20,
-            label=f"{period_name}_Optimized"
+            label=f"{period_name}_Optimized",
         )
 
         # Fixed
         result_fixed = run_backtest_with_config(
-            data, universe, start, end,
-            use_dynamic=False,
-            label=f"{period_name}_Fixed"
+            data, universe, start, end, use_dynamic=False, label=f"{period_name}_Fixed"
         )
 
         if result_dynamic and result_fixed:
             print(f"  {'Metric':<20} {'Optimized Dyn':>15} {'Fixed':>15} {'Diff':>15}")
-            print(f"  {'-'*65}")
-            print(f"  {'Return':<20} {result_dynamic['total_return']:>14.1%} {result_fixed['total_return']:>14.1%} {result_dynamic['total_return'] - result_fixed['total_return']:>+14.1%}")
-            print(f"  {'Alpha':<20} {result_dynamic['alpha']:>14.1%} {result_fixed['alpha']:>14.1%} {result_dynamic['alpha'] - result_fixed['alpha']:>+14.1%}")
-            print(f"  {'Max Drawdown':<20} {result_dynamic['max_drawdown']:>14.1%} {result_fixed['max_drawdown']:>14.1%} {result_dynamic['max_drawdown'] - result_fixed['max_drawdown']:>+14.1%}")
-            print(f"  {'Sharpe':<20} {result_dynamic['sharpe_ratio']:>14.2f} {result_fixed['sharpe_ratio']:>14.2f} {result_dynamic['sharpe_ratio'] - result_fixed['sharpe_ratio']:>+14.2f}")
-            print(f"  {'Trades':<20} {result_dynamic['total_trades']:>15} {result_fixed['total_trades']:>15} {result_dynamic['total_trades'] - result_fixed['total_trades']:>+15}")
+            print(f"  {'-' * 65}")
+            print(
+                f"  {'Return':<20} {result_dynamic['total_return']:>14.1%} {result_fixed['total_return']:>14.1%} {result_dynamic['total_return'] - result_fixed['total_return']:>+14.1%}"
+            )
+            print(
+                f"  {'Alpha':<20} {result_dynamic['alpha']:>14.1%} {result_fixed['alpha']:>14.1%} {result_dynamic['alpha'] - result_fixed['alpha']:>+14.1%}"
+            )
+            print(
+                f"  {'Max Drawdown':<20} {result_dynamic['max_drawdown']:>14.1%} {result_fixed['max_drawdown']:>14.1%} {result_dynamic['max_drawdown'] - result_fixed['max_drawdown']:>+14.1%}"
+            )
+            print(
+                f"  {'Sharpe':<20} {result_dynamic['sharpe_ratio']:>14.2f} {result_fixed['sharpe_ratio']:>14.2f} {result_dynamic['sharpe_ratio'] - result_fixed['sharpe_ratio']:>+14.2f}"
+            )
+            print(
+                f"  {'Trades':<20} {result_dynamic['total_trades']:>15} {result_fixed['total_trades']:>15} {result_dynamic['total_trades'] - result_fixed['total_trades']:>+15}"
+            )
 
-            results.append({
-                "period": period_name,
-                "dynamic": result_dynamic,
-                "fixed": result_fixed,
-            })
+            results.append(
+                {
+                    "period": period_name,
+                    "dynamic": result_dynamic,
+                    "fixed": result_fixed,
+                }
+            )
 
     return results
 
@@ -440,7 +505,9 @@ def main():
     print(f"Loaded {len(data)} symbols")
 
     if "NIFTY 50" in data:
-        print(f"NIFTY 50: {data['NIFTY 50'].index.min().date()} to {data['NIFTY 50'].index.max().date()}")
+        print(
+            f"NIFTY 50: {data['NIFTY 50'].index.min().date()} to {data['NIFTY 50'].index.max().date()}"
+        )
 
     universe = Universe("stock-universe.json")
 

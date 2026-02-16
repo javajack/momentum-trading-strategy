@@ -10,16 +10,16 @@ import json
 import sys
 import time
 from datetime import date, datetime, timedelta
-from dateutil.relativedelta import relativedelta
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple, TypeVar
 
 import click
 import numpy as np
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
@@ -28,10 +28,10 @@ from .backtest import BacktestConfig, BacktestEngine, BacktestResult
 from .cache import CacheManager
 from .config import Config, load_config
 from .indicators import (
+    MarketRegime,
     calculate_drawdown,
     calculate_market_breadth,
     detect_breadth_thrust,
-    MarketRegime,
     should_trigger_rebalance,
 )
 from .instruments import InstrumentMapper
@@ -39,9 +39,15 @@ from .market_data import MarketDataProvider
 from .momentum_engine import MomentumEngine
 from .order_manager import OrderManager, OrderType
 from .portfolio import Portfolio, Position
-from .rebalance_executor import RebalanceExecutor, RebalancePlan, ExecutionResult, TradeAction
+from .rebalance_executor import (
+    ExecutionResult,
+    PlannedTrade,
+    RebalanceExecutor,
+    RebalancePlan,
+    TradeAction,
+)
 from .risk_governor import RiskGovernor
-from .strategy import StrategyRegistry, BaseStrategy
+from .strategy import BaseStrategy, StrategyRegistry
 from .universe import Universe
 from .utils import format_currency, format_percentage, validate_market_hours
 
@@ -66,8 +72,7 @@ def with_retry(
             error_str = str(e).lower()
 
             is_network_error = any(
-                msg in error_str
-                for msg in ["timeout", "connection", "network", "reset", "refused"]
+                msg in error_str for msg in ["timeout", "connection", "network", "reset", "refused"]
             )
 
             if not is_network_error or attempt == max_retries - 1:
@@ -93,6 +98,7 @@ class FortressApp:
         ("5", "Backtest", "Run historical simulation"),
         ("6", "Strategy", "Select active strategy"),
         ("7", "Triggers", "Check if rebalance is needed"),
+        ("8", "Exit All", "Liquidate all managed positions"),
         ("9", "Market Phases", "10-year multi-phase backtest analysis"),
         ("0", "Exit", "Exit application"),
     ]
@@ -175,8 +181,11 @@ class FortressApp:
             except Exception:
                 pass
         return {
-            "managed_symbols": [], "peak_prices": {}, "updated": None,
-            "last_rebalance_date": None, "last_regime": None,
+            "managed_symbols": [],
+            "peak_prices": {},
+            "updated": None,
+            "last_rebalance_date": None,
+            "last_regime": None,
         }
 
     def _save_strategy_state(
@@ -202,11 +211,13 @@ class FortressApp:
             "managed_symbols": sorted(managed_symbols),
             "peak_prices": peak_prices or {},
             "updated": datetime.now().isoformat(),
-            "last_rebalance_date": last_rebalance_date if last_rebalance_date is not None else existing.get("last_rebalance_date"),
+            "last_rebalance_date": last_rebalance_date
+            if last_rebalance_date is not None
+            else existing.get("last_rebalance_date"),
             "last_regime": last_regime if last_regime is not None else existing.get("last_regime"),
         }
         try:
-            with open(state_file, 'w') as f:
+            with open(state_file, "w") as f:
                 json.dump(state, f, indent=2)
         except Exception as e:
             console.print(f"[yellow]Warning: Could not save strategy state: {e}[/yellow]")
@@ -241,13 +252,16 @@ class FortressApp:
     def _get_profile_sizing(self):
         """Get a PositionSizingConfig with profile overrides applied."""
         from .config import PositionSizingConfig
+
         profile = self.config.get_profile(self.active_profile_name)
-        return self.config.position_sizing.model_copy(update={
-            "target_positions": profile.target_positions,
-            "min_positions": profile.min_positions,
-            "max_positions": profile.max_positions,
-            "max_single_position": profile.max_single_position,
-        })
+        return self.config.position_sizing.model_copy(
+            update={
+                "target_positions": profile.target_positions,
+                "min_positions": profile.min_positions,
+                "max_positions": profile.max_positions,
+                "max_single_position": profile.max_single_position,
+            }
+        )
 
     def _ensure_auth(self) -> bool:
         """Ensure we have valid authentication."""
@@ -342,6 +356,8 @@ class FortressApp:
                 self._do_select_strategy()
             elif choice == "7":
                 self._do_trigger_check()
+            elif choice == "8":
+                self._do_exit_all_positions()
             elif choice == "9":
                 self._do_market_phase_analysis()
             else:
@@ -352,9 +368,7 @@ class FortressApp:
         console.print(Panel("Zerodha Authentication", style="bright_blue"))
 
         try:
-            self.auth = ZerodhaAuth(
-                self.config.zerodha.api_key, self.config.zerodha.api_secret
-            )
+            self.auth = ZerodhaAuth(self.config.zerodha.api_key, self.config.zerodha.api_secret)
             self.kite = self.auth.login_interactive()
             console.print("[green]✓ Authentication successful![/green]")
 
@@ -399,7 +413,11 @@ class FortressApp:
             table.add_row("Invested", format_currency(snapshot.invested_value))
             table.add_row("Unrealized P&L", format_currency(snapshot.unrealized_pnl))
             # Calculate P&L percentage
-            pnl_pct = snapshot.unrealized_pnl / snapshot.invested_value if snapshot.invested_value > 0 else 0.0
+            pnl_pct = (
+                snapshot.unrealized_pnl / snapshot.invested_value
+                if snapshot.invested_value > 0
+                else 0.0
+            )
             table.add_row("P&L %", format_percentage(pnl_pct))
             table.add_row("Positions", str(len(snapshot.positions)))
 
@@ -448,6 +466,7 @@ class FortressApp:
 
             # Use BacktestDataProvider with cached data (no API calls during scan)
             from .market_data import BacktestDataProvider
+
             cached_provider = BacktestDataProvider(historical_data)
 
             # Initialize momentum engine with cached provider and cached data
@@ -519,8 +538,12 @@ class FortressApp:
 
         # Prompt for execution mode
         console.print("[bold white]Execution Mode:[/bold white]")
-        console.print("  [bold bright_cyan]1[/bold bright_cyan] [dim]─[/dim] Dry Run [dim](show plan only, no orders placed)[/dim]")
-        console.print("  [bold bright_yellow]2[/bold bright_yellow] [dim]─[/dim] Live [dim](place real orders with confirmation)[/dim]")
+        console.print(
+            "  [bold bright_cyan]1[/bold bright_cyan] [dim]─[/dim] Dry Run [dim](show plan only, no orders placed)[/dim]"
+        )
+        console.print(
+            "  [bold bright_yellow]2[/bold bright_yellow] [dim]─[/dim] Live [dim](place real orders with confirmation)[/dim]"
+        )
         console.print()
 
         mode_choice = Prompt.ask("Select mode", choices=["1", "2"], default="1")
@@ -529,7 +552,9 @@ class FortressApp:
             console.print("[bright_cyan]► DRY-RUN mode[/bright_cyan]\n")
             self._do_rebalance(dry_run=True)
         else:
-            console.print("[bold bright_yellow]► LIVE mode - orders will be placed![/bold bright_yellow]\n")
+            console.print(
+                "[bold bright_yellow]► LIVE mode - orders will be placed![/bold bright_yellow]\n"
+            )
             self._do_rebalance(dry_run=False)
 
     def _do_rebalance(self, dry_run: bool = True):
@@ -551,6 +576,7 @@ class FortressApp:
 
             # Use BacktestDataProvider with cached data (no API calls during rebalance)
             from .market_data import BacktestDataProvider
+
             cached_provider = BacktestDataProvider(historical_data)
 
             # Initialize momentum engine with cached provider and cached data
@@ -583,8 +609,14 @@ class FortressApp:
 
             # ETFs/funds NOT managed by strategy (user's external holdings)
             external_etfs = {
-                "NIFTYBEES", "JUNIORBEES", "MID150BEES", "HDFCSML250",
-                "HANGSENGBEES", "HNGSNGBEES", "LIQUIDCASE", "LIQUIDETF",
+                "NIFTYBEES",
+                "JUNIORBEES",
+                "MID150BEES",
+                "HDFCSML250",
+                "HANGSENGBEES",
+                "HNGSNGBEES",
+                "LIQUIDCASE",
+                "LIQUIDETF",
             }
 
             # Filter current holdings to only strategy-managed positions
@@ -611,13 +643,14 @@ class FortressApp:
                     external_holdings[symbol] = pos
 
             # Calculate current value of equity positions (definitely strategy-managed)
-            equity_holdings = {s: p for s, p in managed_holdings.items() if s not in defensive_symbols}
+            equity_holdings = {
+                s: p for s, p in managed_holdings.items() if s not in defensive_symbols
+            }
             current_equity_value = sum(pos.value for pos in equity_holdings.values())
 
             # Calculate defensive holdings value (GOLDBEES that are strategy-managed)
             defensive_value = sum(
-                pos.value for s, pos in managed_holdings.items()
-                if s in defensive_symbols
+                pos.value for s, pos in managed_holdings.items() if s in defensive_symbols
             )
 
             # managed_capital = value of ALL managed positions (equities + GOLDBEES + LIQUIDBEES)
@@ -627,12 +660,8 @@ class FortressApp:
             # Cold-start: no managed positions at all
             cash_symbol = self.config.regime.cash_symbol
             if managed_capital == 0:
-                console.print(
-                    f"\n[bold bright_yellow]► NO MANAGED POSITIONS[/bold bright_yellow]"
-                )
-                console.print(
-                    f"  Target capital: {format_currency(profile.initial_capital)}"
-                )
+                console.print(f"\n[bold bright_yellow]► NO MANAGED POSITIONS[/bold bright_yellow]")
+                console.print(f"  Target capital: {format_currency(profile.initial_capital)}")
                 cash_sym_price = None
                 try:
                     ltp = self.kite.ltp([f"NSE:{cash_symbol}"])
@@ -655,22 +684,28 @@ class FortressApp:
                 return
 
             # Portfolio summary with capital breakdown
-            console.print(f"[bold cyan]Strategy:[/bold cyan] {self.active_strategy.upper()}  |  "
-                         f"[bold cyan]Managed Capital:[/bold cyan] {format_currency(managed_capital)}  |  "
-                         f"[bold cyan]Equity:[/bold cyan] {format_currency(current_equity_value)}  |  "
-                         f"[bold cyan]Defensive:[/bold cyan] {format_currency(defensive_value)}")
+            console.print(
+                f"[bold cyan]Strategy:[/bold cyan] {self.active_strategy.upper()}  |  "
+                f"[bold cyan]Managed Capital:[/bold cyan] {format_currency(managed_capital)}  |  "
+                f"[bold cyan]Equity:[/bold cyan] {format_currency(current_equity_value)}  |  "
+                f"[bold cyan]Defensive:[/bold cyan] {format_currency(defensive_value)}"
+            )
 
             # Diagnostic breakdown: show merge details for managed positions
             if managed_holdings and snapshot.merge_diagnostics:
                 ext_count = len(external_holdings)
-                console.print(f"\n[dim]Portfolio Breakdown ({len(managed_holdings)} managed, {ext_count} external):[/dim]")
+                console.print(
+                    f"\n[dim]Portfolio Breakdown ({len(managed_holdings)} managed, {ext_count} external):[/dim]"
+                )
                 diag_table = Table(show_header=True, box=None, padding=(0, 1))
                 diag_table.add_column("Symbol", style="bold")
                 diag_table.add_column("Hld", justify="right", style="dim")
                 diag_table.add_column("Day", justify="right")
                 diag_table.add_column("Net", justify="right", style="bold")
                 diag_table.add_column("Value", justify="right", style="cyan")
-                for symbol, pos in sorted(managed_holdings.items(), key=lambda x: x[1].value, reverse=True):
+                for symbol, pos in sorted(
+                    managed_holdings.items(), key=lambda x: x[1].value, reverse=True
+                ):
                     diag = snapshot.merge_diagnostics.get(symbol)
                     if diag:
                         day_str = f"+{diag.day_bought}" if diag.day_bought else ""
@@ -687,29 +722,47 @@ class FortressApp:
                         )
                     else:
                         diag_table.add_row(
-                            symbol, str(pos.quantity), "—", str(pos.quantity), format_currency(pos.value),
+                            symbol,
+                            str(pos.quantity),
+                            "—",
+                            str(pos.quantity),
+                            format_currency(pos.value),
                         )
-                diag_table.add_row("", "", "", "[bold]Total[/bold]", f"[bold]{format_currency(managed_capital)}[/bold]")
+                diag_table.add_row(
+                    "",
+                    "",
+                    "",
+                    "[bold]Total[/bold]",
+                    f"[bold]{format_currency(managed_capital)}[/bold]",
+                )
                 console.print(diag_table)
 
             # Show external holdings in a table if present
             if external_holdings:
                 external_value = sum(pos.value for pos in external_holdings.values())
-                console.print(f"\n[dim]External Holdings (not managed): {format_currency(external_value)}[/dim]")
+                console.print(
+                    f"\n[dim]External Holdings (not managed): {format_currency(external_value)}[/dim]"
+                )
                 ext_table = Table(show_header=False, box=None, padding=(0, 2))
                 ext_table.add_column("Symbol", style="dim")
                 ext_table.add_column("Qty", justify="right", style="dim")
                 ext_table.add_column("Value", justify="right", style="dim")
-                for symbol, pos in sorted(external_holdings.items(), key=lambda x: x[1].value, reverse=True):
+                for symbol, pos in sorted(
+                    external_holdings.items(), key=lambda x: x[1].value, reverse=True
+                ):
                     ext_table.add_row(symbol, str(pos.quantity), format_currency(pos.value))
                 console.print(ext_table)
 
             # Total account value summary
-            external_value = sum(pos.value for pos in external_holdings.values()) if external_holdings else 0
+            external_value = (
+                sum(pos.value for pos in external_holdings.values()) if external_holdings else 0
+            )
             total_account = managed_capital + external_value
-            console.print(f"\n[bold]Total Account:[/bold] {format_currency(total_account)}  "
-                         f"[dim](Managed {format_currency(managed_capital)} + "
-                         f"External {format_currency(external_value)})[/dim]")
+            console.print(
+                f"\n[bold]Total Account:[/bold] {format_currency(total_account)}  "
+                f"[dim](Managed {format_currency(managed_capital)} + "
+                f"External {format_currency(external_value)})[/dim]"
+            )
 
             # Get target portfolio with regime detection
             # Use managed_capital for weight calculations (not total portfolio)
@@ -736,14 +789,18 @@ class FortressApp:
                     "defensive": "red",
                 }.get(regime.regime.value, "white")
 
-                regime_line = (f"[bold]Regime:[/bold] [{regime_color}]{regime.regime.value.upper()}[/{regime_color}]  |  "
-                              f"52W: {regime.nifty_52w_position:.0%}  |  "
-                              f"VIX: {regime.vix_level:.1f}  |  "
-                              f"3M: {regime.nifty_3m_return:+.1%}")
+                regime_line = (
+                    f"[bold]Regime:[/bold] [{regime_color}]{regime.regime.value.upper()}[/{regime_color}]  |  "
+                    f"52W: {regime.nifty_52w_position:.0%}  |  "
+                    f"VIX: {regime.vix_level:.1f}  |  "
+                    f"3M: {regime.nifty_3m_return:+.1%}"
+                )
 
                 if regime.equity_weight < 1.0:
-                    regime_line += (f"  |  [yellow]Allocation: Eq {regime.equity_weight:.0%} / "
-                                   f"Gold {regime.gold_weight:.0%}[/yellow]")
+                    regime_line += (
+                        f"  |  [yellow]Allocation: Eq {regime.equity_weight:.0%} / "
+                        f"Gold {regime.gold_weight:.0%}[/yellow]"
+                    )
 
                 console.print(f"\n{regime_line}")
 
@@ -754,7 +811,9 @@ class FortressApp:
             # Sanity check: verify weights sum to ~100%
             total_weight = sum(target_weights.values())
             if abs(total_weight - 1.0) > 0.01:  # Allow 1% tolerance for rounding
-                console.print(f"[yellow]Warning: Target weights sum to {total_weight:.1%} (expected 100%)[/yellow]")
+                console.print(
+                    f"[yellow]Warning: Target weights sum to {total_weight:.1%} (expected 100%)[/yellow]"
+                )
 
             # Get top stocks for display (need to call select_top_stocks again)
             profile = self.config.get_profile(self.active_profile_name)
@@ -770,7 +829,9 @@ class FortressApp:
             equity_count = len([t for t in target_weights if t not in defensive_symbols])
             defensive_count = len([t for t in target_weights if t in defensive_symbols])
 
-            console.print(f"\n[bold]Target Portfolio ({equity_count} stocks + {defensive_count} defensive):[/bold]")
+            console.print(
+                f"\n[bold]Target Portfolio ({equity_count} stocks + {defensive_count} defensive):[/bold]"
+            )
 
             # Build ticker lookup for display
             ticker_lookup = {s.ticker: s for s in top_stocks}
@@ -781,7 +842,9 @@ class FortressApp:
                 if ticker in defensive_symbols:
                     # Gold hedge gets its own "sector"
                     if ticker == self.config.regime.gold_symbol:
-                        sector_weights["GOLD (Hedge)"] = sector_weights.get("GOLD (Hedge)", 0) + weight
+                        sector_weights["GOLD (Hedge)"] = (
+                            sector_weights.get("GOLD (Hedge)", 0) + weight
+                        )
                 else:
                     stock = ticker_lookup.get(ticker)
                     if stock:
@@ -800,7 +863,9 @@ class FortressApp:
             if self.config.regime.gold_symbol in target_weights:
                 sector_counts["GOLD (Hedge)"] = 1
 
-            for sector in sorted(sector_weights.keys(), key=lambda s: sector_weights[s], reverse=True):
+            for sector in sorted(
+                sector_weights.keys(), key=lambda s: sector_weights[s], reverse=True
+            ):
                 weight = sector_weights[sector]
                 count = sector_counts.get(sector, 0)
                 # Different color scheme for defensive vs equity
@@ -901,10 +966,14 @@ class FortressApp:
                         pass
                     else:
                         # For equity stocks, check weight-based reduction
-                        current_weight = current_value / managed_capital if managed_capital > 0 else 0
+                        current_weight = (
+                            current_value / managed_capital if managed_capital > 0 else 0
+                        )
                         if current_weight > target_weight * 1.1:  # 10% tolerance
                             reduce_amount = current_value - target_value
-                            partial_sells.append((symbol, reduce_amount, current_weight, target_weight))
+                            partial_sells.append(
+                                (symbol, reduce_amount, current_weight, target_weight)
+                            )
 
             # Note: Gold skip logic is handled by select_portfolio_with_regime() via
             # _should_skip_gold() using the config-driven gold_skip_logic setting.
@@ -949,10 +1018,16 @@ class FortressApp:
 
             # Display enforced stop loss exits prominently
             if stop_loss_exits:
-                console.print(f"\n[bold bright_red]🛑 STOP LOSS TRIGGERED - ENFORCED EXITS[/bold bright_red]")
+                console.print(
+                    f"\n[bold bright_red]🛑 STOP LOSS TRIGGERED - ENFORCED EXITS[/bold bright_red]"
+                )
                 for symbol, loss_pct, stop_type in stop_loss_exits:
-                    console.print(f"  [bright_red]✗ {symbol}[/bright_red] [bold]{loss_pct:+.1%}[/bold] - {stop_type}")
-                console.print("[dim]  These positions will be SOLD (same as backtest behavior)[/dim]")
+                    console.print(
+                        f"  [bright_red]✗ {symbol}[/bright_red] [bold]{loss_pct:+.1%}[/bold] - {stop_type}"
+                    )
+                console.print(
+                    "[dim]  These positions will be SOLD (same as backtest behavior)[/dim]"
+                )
 
                 # Renormalize weights after removing stop-loss exits
                 if target_weights:
@@ -985,7 +1060,9 @@ class FortressApp:
             if stop_loss_warnings:
                 console.print(f"\n[bold bright_yellow]⚠ APPROACHING STOP LOSS[/bold bright_yellow]")
                 for symbol, loss_pct, stop_type in stop_loss_warnings:
-                    console.print(f"  [bright_yellow]↓ {symbol}[/bright_yellow] {loss_pct:+.1%} - {stop_type}")
+                    console.print(
+                        f"  [bright_yellow]↓ {symbol}[/bright_yellow] {loss_pct:+.1%} - {stop_type}"
+                    )
                 console.print("[dim]  Monitor these positions closely[/dim]")
 
             # Show warnings
@@ -995,8 +1072,12 @@ class FortressApp:
             # Check margin
             if not plan.margin_sufficient:
                 console.print(f"\n[bold bright_red]⚠ INSUFFICIENT MARGIN[/bold bright_red]")
-                console.print(f"  [dim]Available:[/dim] [white]{format_currency(plan.available_cash)}[/white]")
-                console.print(f"  [dim]Need:[/dim]      [bright_red]{format_currency(plan.net_cash_needed)}[/bright_red]")
+                console.print(
+                    f"  [dim]Available:[/dim] [white]{format_currency(plan.available_cash)}[/white]"
+                )
+                console.print(
+                    f"  [dim]Need:[/dim]      [bright_red]{format_currency(plan.net_cash_needed)}[/bright_red]"
+                )
 
             # Update strategy state with current target symbols and peak prices
             current_managed = set(managed_holdings.keys())
@@ -1058,7 +1139,8 @@ class FortressApp:
                 # After live execution, persist rebalance date and regime for trigger checks
                 regime_value = regime.regime.value if regime else None
                 self._save_strategy_state(
-                    list(all_managed), final_peak_prices,
+                    list(all_managed),
+                    final_peak_prices,
                     last_rebalance_date=date.today().isoformat(),
                     last_regime=regime_value,
                 )
@@ -1069,6 +1151,7 @@ class FortressApp:
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
             import traceback
+
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
 
     def _enforce_stop_losses(
@@ -1121,17 +1204,17 @@ class FortressApp:
             peak_price = updated_peaks.get(symbol, entry_price)
 
             # Get stop loss config from strategy (same as backtest line 1543)
-            if self.momentum_engine and hasattr(self.momentum_engine, 'get_stop_loss_config'):
+            if self.momentum_engine and hasattr(self.momentum_engine, "get_stop_loss_config"):
                 stop_config = self.momentum_engine.get_stop_loss_config(symbol, gain_from_entry)
                 # Handle both StopLossConfig object and dict
-                if hasattr(stop_config, 'initial_stop'):
+                if hasattr(stop_config, "initial_stop"):
                     initial_stop = stop_config.initial_stop
                     trailing_stop = stop_config.trailing_stop
-                    trailing_activation = getattr(stop_config, 'trailing_activation', 0.08)
+                    trailing_activation = getattr(stop_config, "trailing_activation", 0.08)
                 else:
-                    initial_stop = stop_config.get('initial_stop', 0.18)
-                    trailing_stop = stop_config.get('trailing_stop', 0.15)
-                    trailing_activation = stop_config.get('trailing_activation', 0.08)
+                    initial_stop = stop_config.get("initial_stop", 0.18)
+                    trailing_stop = stop_config.get("trailing_stop", 0.15)
+                    trailing_activation = stop_config.get("trailing_activation", 0.08)
             else:
                 # Fallback to config defaults
                 initial_stop = self.config.risk.initial_stop_loss
@@ -1154,11 +1237,13 @@ class FortressApp:
                 if gain_from_peak <= -trailing_stop:
                     # ENFORCE: Remove from target weights
                     target_weights.pop(symbol, None)
-                    exits.append((
-                        symbol,
-                        gain_from_entry,
-                        f"TRAILING STOP ({trailing_stop:.0%} from peak, was +{(peak_price/entry_price - 1):.0%})"
-                    ))
+                    exits.append(
+                        (
+                            symbol,
+                            gain_from_entry,
+                            f"TRAILING STOP ({trailing_stop:.0%} from peak, was +{(peak_price / entry_price - 1):.0%})",
+                        )
+                    )
                     # Clean up peak tracking for exited position
                     updated_peaks.pop(symbol, None)
                     continue
@@ -1205,14 +1290,14 @@ class FortressApp:
             gain_from_entry = (current_price - entry_price) / entry_price
 
             # Get stop config
-            if self.momentum_engine and hasattr(self.momentum_engine, 'get_stop_loss_config'):
+            if self.momentum_engine and hasattr(self.momentum_engine, "get_stop_loss_config"):
                 stop_config = self.momentum_engine.get_stop_loss_config(symbol, gain_from_entry)
-                if hasattr(stop_config, 'initial_stop'):
+                if hasattr(stop_config, "initial_stop"):
                     initial_stop = stop_config.initial_stop
                     trailing_stop = stop_config.trailing_stop
                 else:
-                    initial_stop = stop_config.get('initial_stop', 0.18)
-                    trailing_stop = stop_config.get('trailing_stop', 0.15)
+                    initial_stop = stop_config.get("initial_stop", 0.18)
+                    trailing_stop = stop_config.get("trailing_stop", 0.15)
             else:
                 initial_stop = 0.18
                 trailing_stop = 0.15
@@ -1220,11 +1305,13 @@ class FortressApp:
             # Warning if approaching initial stop (within 5% of trigger)
             warning_threshold = -initial_stop * 0.7  # Warn at 70% of stop
             if gain_from_entry <= warning_threshold and gain_from_entry > -initial_stop:
-                warnings.append((
-                    symbol,
-                    gain_from_entry,
-                    f"approaching initial stop ({gain_from_entry:.1%} vs {-initial_stop:.0%} trigger)"
-                ))
+                warnings.append(
+                    (
+                        symbol,
+                        gain_from_entry,
+                        f"approaching initial stop ({gain_from_entry:.1%} vs {-initial_stop:.0%} trigger)",
+                    )
+                )
 
         return sorted(warnings, key=lambda x: x[1])
 
@@ -1281,9 +1368,13 @@ class FortressApp:
 
             # Show total P&L summary for sells
             if total_pnl >= 0:
-                console.print(f"  [bold]Total Realized P&L:[/bold] [bright_green]+{format_currency(total_pnl)}[/bright_green]")
+                console.print(
+                    f"  [bold]Total Realized P&L:[/bold] [bright_green]+{format_currency(total_pnl)}[/bright_green]"
+                )
             else:
-                console.print(f"  [bold]Total Realized P&L:[/bold] [bright_red]{format_currency(total_pnl)}[/bright_red]")
+                console.print(
+                    f"  [bold]Total Realized P&L:[/bold] [bright_red]{format_currency(total_pnl)}[/bright_red]"
+                )
 
         if plan.buy_new_trades:
             buy_table = Table(
@@ -1333,13 +1424,23 @@ class FortressApp:
 
         # Cash flow summary with semantic colors
         console.print(f"\n[bold bright_white]Cash Flow:[/bold bright_white]")
-        console.print(f"  [dim]Sell proceeds:[/dim]    [bright_green]+{format_currency(plan.total_sell_value)}[/bright_green]")
-        console.print(f"  [dim]Buy cost:[/dim]         [bright_red]-{format_currency(plan.total_buy_value)}[/bright_red]")
-        console.print(f"  [dim]Demat cash:[/dim]       [white]{format_currency(plan.available_cash)}[/white] [dim](not used for buys)[/dim]")
+        console.print(
+            f"  [dim]Sell proceeds:[/dim]    [bright_green]+{format_currency(plan.total_sell_value)}[/bright_green]"
+        )
+        console.print(
+            f"  [dim]Buy cost:[/dim]         [bright_red]-{format_currency(plan.total_buy_value)}[/bright_red]"
+        )
+        console.print(
+            f"  [dim]Demat cash:[/dim]       [white]{format_currency(plan.available_cash)}[/white] [dim](not used for buys)[/dim]"
+        )
         if plan.net_cash_needed > 0:
-            console.print(f"  [bold bright_yellow]► Net cash needed: {format_currency(plan.net_cash_needed)}[/bold bright_yellow]")
+            console.print(
+                f"  [bold bright_yellow]► Net cash needed: {format_currency(plan.net_cash_needed)}[/bold bright_yellow]"
+            )
         else:
-            console.print(f"  [bold bright_cyan]► Net cash freed: {format_currency(-plan.net_cash_needed)}[/bold bright_cyan]")
+            console.print(
+                f"  [bold bright_cyan]► Net cash freed: {format_currency(-plan.net_cash_needed)}[/bold bright_cyan]"
+            )
 
     def _execute_with_confirmation(
         self, executor: RebalanceExecutor, plan: RebalancePlan
@@ -1355,20 +1456,28 @@ class FortressApp:
 
         console.print("\n[bold bright_yellow]═══ CONFIRMATION REQUIRED ═══[/bold bright_yellow]")
         console.print(f"[white]Total orders:[/white] [bold]{len(plan.trades)}[/bold]")
-        console.print(f"  [bright_red]SELL:[/bright_red]     {len(plan.sell_trades)} orders ({format_currency(plan.total_sell_value)})")
+        console.print(
+            f"  [bright_red]SELL:[/bright_red]     {len(plan.sell_trades)} orders ({format_currency(plan.total_sell_value)})"
+        )
         console.print(f"  [bright_green]BUY NEW:[/bright_green]  {len(plan.buy_new_trades)} orders")
-        console.print(f"  [bright_cyan]INCREASE:[/bright_cyan] {len(plan.buy_increase_trades)} orders")
+        console.print(
+            f"  [bright_cyan]INCREASE:[/bright_cyan] {len(plan.buy_increase_trades)} orders"
+        )
         console.print(f"  [dim]Total buy:[/dim] {format_currency(plan.total_buy_value)}")
 
         # First confirmation
-        if not Confirm.ask("\n[bold bright_white]Proceed with order placement?[/bold bright_white]", default=False):
+        if not Confirm.ask(
+            "\n[bold bright_white]Proceed with order placement?[/bold bright_white]", default=False
+        ):
             console.print("[bright_yellow]Cancelled by user[/bright_yellow]")
             return None
 
         # Second confirmation - type CONFIRM
         console.print("\n[bold bright_red]⚠ FINAL CONFIRMATION ⚠[/bold bright_red]")
         console.print("[white]This will place REAL orders with your broker.[/white]")
-        confirm_text = Prompt.ask("Type [bold bright_white]CONFIRM[/bold bright_white] to execute", default="")
+        confirm_text = Prompt.ask(
+            "Type [bold bright_white]CONFIRM[/bold bright_white] to execute", default=""
+        )
 
         if confirm_text.strip().upper() != "CONFIRM":
             console.print("[bright_yellow]Cancelled - did not type CONFIRM[/bright_yellow]")
@@ -1387,7 +1496,11 @@ class FortressApp:
             task = progress.add_task("[bright_cyan]Placing orders...", total=len(plan.trades))
 
             def on_order_complete(order, result):
-                status = "[bright_green]✓[/bright_green]" if result.success else "[bright_red]✗[/bright_red]"
+                status = (
+                    "[bright_green]✓[/bright_green]"
+                    if result.success
+                    else "[bright_red]✗[/bright_red]"
+                )
                 msg = "" if result.success else f" [dim]- {result.message}[/dim]"
                 progress.update(
                     task,
@@ -1406,7 +1519,9 @@ class FortressApp:
         console.print("\n[bold bright_white]═══ EXECUTION RESULTS ═══[/bold bright_white]")
 
         if result.successes:
-            console.print(f"\n[bold bright_green]Successful Orders ({len(result.successes)}):[/bold bright_green]")
+            console.print(
+                f"\n[bold bright_green]Successful Orders ({len(result.successes)}):[/bold bright_green]"
+            )
             for order_result in result.successes:
                 o = order_result.order
                 console.print(
@@ -1417,16 +1532,24 @@ class FortressApp:
                     console.print(f"    [dim]Order ID: {o.order_id}[/dim]")
 
         if result.failures:
-            console.print(f"\n[bold bright_red]Failed Orders ({len(result.failures)}):[/bold bright_red]")
+            console.print(
+                f"\n[bold bright_red]Failed Orders ({len(result.failures)}):[/bold bright_red]"
+            )
             for order_result in result.failures:
                 o = order_result.order
-                console.print(f"  [bright_red]✗[/bright_red] {o.symbol}: {o.order_type.value} {o.quantity}")
+                console.print(
+                    f"  [bright_red]✗[/bright_red] {o.symbol}: {o.order_type.value} {o.quantity}"
+                )
                 console.print(f"    [red]Error: {order_result.message}[/red]")
 
         # Summary
         console.print(f"\n[bold bright_white]Summary:[/bold bright_white]")
-        console.print(f"  [dim]Succeeded:[/dim] [bold bright_green]{len(result.successes)}[/bold bright_green]")
-        console.print(f"  [dim]Failed:[/dim]    [bold bright_red]{len(result.failures)}[/bold bright_red]")
+        console.print(
+            f"  [dim]Succeeded:[/dim] [bold bright_green]{len(result.successes)}[/bold bright_green]"
+        )
+        console.print(
+            f"  [dim]Failed:[/dim]    [bold bright_red]{len(result.failures)}[/bold bright_red]"
+        )
 
         if result.failures:
             console.print(
@@ -1434,7 +1557,165 @@ class FortressApp:
                 "and handle manually if needed.[/bright_yellow]"
             )
         elif result.successes:
-            console.print("\n[bold bright_green]✓ All orders placed successfully![/bold bright_green]")
+            console.print(
+                "\n[bold bright_green]✓ All orders placed successfully![/bold bright_green]"
+            )
+
+    def _do_exit_all_positions(self):
+        """Liquidate all managed equity positions and sweep to cash ETF."""
+        profile_label = self.active_profile_name.upper()
+        console.print(
+            Panel(
+                f"EXIT ALL POSITIONS [{profile_label}]",
+                style="bold bright_red",
+            )
+        )
+
+        if not self._ensure_auth():
+            return
+
+        # Load current positions
+        snapshot = self.portfolio.load_combined_positions()
+        if not snapshot.positions:
+            console.print("[yellow]No positions found.[/yellow]")
+            return
+
+        # Identify managed equity positions (same logic as _do_rebalance)
+        profile = self.config.get_profile(self.active_profile_name)
+        universe_symbols = {s.zerodha_symbol for s in self.universe.get_all_stocks()}
+        cash_symbol = self.effective_config.regime.cash_symbol
+
+        if profile.max_gold_allocation is not None and profile.max_gold_allocation == 0.0:
+            defensive_symbols = set()
+        else:
+            defensive_symbols = {self.config.regime.gold_symbol}
+        defensive_symbols.add(cash_symbol)
+
+        external_etfs = {
+            "NIFTYBEES",
+            "JUNIORBEES",
+            "MID150BEES",
+            "HDFCSML250",
+            "HANGSENGBEES",
+            "HNGSNGBEES",
+            "LIQUIDCASE",
+            "LIQUIDETF",
+        }
+        # Also exclude other profiles' cash symbols
+        for pname in self.config.get_profile_names():
+            p = self.config.get_profile(pname)
+            if p.cash_symbol and p.cash_symbol != cash_symbol:
+                external_etfs.add(p.cash_symbol)
+
+        equity_positions = {}
+        for symbol, pos in snapshot.positions.items():
+            if symbol in external_etfs or symbol in defensive_symbols:
+                continue
+            if symbol in universe_symbols:
+                equity_positions[symbol] = pos
+
+        if not equity_positions:
+            console.print("[yellow]No managed equity positions to exit.[/yellow]")
+            return
+
+        # Display positions to be liquidated
+        total_value = sum(pos.value for pos in equity_positions.values())
+        table = Table(title=f"Positions to Liquidate ({len(equity_positions)} stocks)")
+        table.add_column("Symbol", style="cyan")
+        table.add_column("Qty", justify="right")
+        table.add_column("Price", justify="right")
+        table.add_column("Value", justify="right")
+
+        for symbol in sorted(equity_positions.keys()):
+            pos = equity_positions[symbol]
+            table.add_row(
+                symbol,
+                str(pos.quantity),
+                f"{pos.current_price:,.2f}",
+                format_currency(pos.value),
+            )
+
+        console.print(table)
+        console.print(f"\n[bold]Total equity value: {format_currency(total_value)}[/bold]")
+        console.print(f"[dim]Proceeds will be swept to {cash_symbol}[/dim]")
+
+        # First confirmation
+        if not Confirm.ask(
+            f"\n[bold bright_red]Sell ALL {len(equity_positions)} equity positions?[/bold bright_red]",
+            default=False,
+        ):
+            console.print("[bright_yellow]Cancelled.[/bright_yellow]")
+            return
+
+        # Second confirmation — type LIQUIDATE
+        console.print("\n[bold bright_red]FINAL CONFIRMATION[/bold bright_red]")
+        confirm_text = Prompt.ask(
+            "Type [bold bright_white]LIQUIDATE[/bold bright_white] to proceed", default=""
+        )
+        if confirm_text.strip().upper() != "LIQUIDATE":
+            console.print("[bright_yellow]Cancelled - did not type LIQUIDATE[/bright_yellow]")
+            return
+
+        # Build liquidation plan: SELL_EXIT all equity, BUY cash_symbol with proceeds
+        trades = []
+        total_sell = 0.0
+        for symbol, pos in equity_positions.items():
+            trade = PlannedTrade(
+                symbol=symbol,
+                action=TradeAction.SELL_EXIT,
+                quantity=pos.quantity,
+                price=pos.current_price,
+                value=pos.value,
+                sector=pos.sector if hasattr(pos, "sector") else "",
+                current_qty=pos.quantity,
+                reason="Exit all positions",
+            )
+            trades.append(trade)
+            total_sell += pos.value
+
+        plan = RebalancePlan(
+            trades=trades,
+            total_sell_value=total_sell,
+            total_buy_value=0.0,
+        )
+
+        # Display and execute
+        self._display_execution_plan(plan)
+
+        executor = RebalanceExecutor(
+            kite=self.kite,
+            portfolio=self.portfolio,
+            instrument_mapper=self.market_data.mapper,
+            order_manager=OrderManager(
+                self.kite,
+                RiskGovernor(self.config.risk, self.config.portfolio),
+                dry_run=False,
+            ),
+            universe=self.universe,
+            risk_config=self.config.risk,
+        )
+
+        exec_result = executor.execute_plan(plan)
+
+        if exec_result and exec_result.successes:
+            console.print(
+                f"\n[bold bright_green]Liquidation complete — "
+                f"{len(exec_result.successes)} orders placed[/bold bright_green]"
+            )
+            if exec_result.failures:
+                console.print(f"[bright_red]{len(exec_result.failures)} orders failed[/bright_red]")
+
+            # Save state: empty managed symbols
+            self._save_strategy_state(
+                managed_symbols=[],
+                peak_prices={},
+                last_rebalance_date=date.today().isoformat(),
+            )
+            console.print(
+                f"[dim]Strategy state cleared. Buy {cash_symbol} to redeploy capital later.[/dim]"
+            )
+        else:
+            console.print("[bright_red]Liquidation failed or no orders executed.[/bright_red]")
 
     def _do_trigger_check(self):
         """Check if any dynamic rebalancing triggers have fired.
@@ -1453,12 +1734,15 @@ class FortressApp:
             # Load cached data (no API call)
             historical_data = self.cache.load(silent=True)
             if not historical_data or len(historical_data) < 50:
-                console.print("[yellow]Insufficient cached data (need ≥50 symbols). "
-                              "Run option 3 (Scan) first to populate cache.[/yellow]")
+                console.print(
+                    "[yellow]Insufficient cached data (need ≥50 symbols). "
+                    "Run option 3 (Scan) first to populate cache.[/yellow]"
+                )
                 return
 
             # Build lightweight MomentumEngine with cached provider
             from .market_data import BacktestDataProvider
+
             cached_provider = BacktestDataProvider(historical_data)
 
             self.momentum_engine = MomentumEngine(
@@ -1557,9 +1841,7 @@ class FortressApp:
                 market_3m_return = 0.0
 
             # E6: Early warning crash detection (slow grind without VIX spike)
-            early_warning_active = (
-                market_1m_return <= -0.05 and market_3m_return <= -0.08
-            )
+            early_warning_active = market_1m_return <= -0.05 and market_3m_return <= -0.08
 
             # --- Breadth thrust ---
             # Build daily breadth series (pct_above_50ma) for last 15 days
@@ -1621,7 +1903,10 @@ class FortressApp:
             alloc_str = ""
             if regime and regime.stress_score > 0:
                 from .indicators import calculate_graduated_allocation
-                eq, gd, _ = calculate_graduated_allocation(regime.stress_score, self.effective_config.regime)
+
+                eq, gd, _ = calculate_graduated_allocation(
+                    regime.stress_score, self.effective_config.regime
+                )
                 alloc_str = f" → equity {eq:.0%} / gold {gd:.0%}"
 
             lines = [
@@ -1636,10 +1921,14 @@ class FortressApp:
             ]
 
             if early_warning_active:
-                lines.append(f"  [bright_yellow]⚠ EARLY WARNING: 1M ({market_1m_return:+.1%}) ≤ -5% AND 3M ({market_3m_return:+.1%}) ≤ -8% — crash avoidance may activate[/bright_yellow]")
+                lines.append(
+                    f"  [bright_yellow]⚠ EARLY WARNING: 1M ({market_1m_return:+.1%}) ≤ -5% AND 3M ({market_3m_return:+.1%}) ≤ -8% — crash avoidance may activate[/bright_yellow]"
+                )
 
             if regime_stale:
-                lines.append(f"  [bright_yellow]⚠ Last rebalance was {days_since_last} days ago — regime history unreliable[/bright_yellow]")
+                lines.append(
+                    f"  [bright_yellow]⚠ Last rebalance was {days_since_last} days ago — regime history unreliable[/bright_yellow]"
+                )
 
             if trigger.should_rebalance:
                 trigger_names = ", ".join(trigger.triggers_fired)
@@ -1652,19 +1941,24 @@ class FortressApp:
                 days_remaining = dyn_config.max_days_between - days_since_last
                 lines.append("")
                 lines.append(f"  [dim]✗ No rebalance needed today[/dim]")
-                lines.append(f"  [dim]Next forced rebalance in: {days_remaining} trading days[/dim]")
+                lines.append(
+                    f"  [dim]Next forced rebalance in: {days_remaining} trading days[/dim]"
+                )
                 border_style = "dim"
 
             panel_content = "\n".join(lines)
-            console.print(Panel(
-                panel_content,
-                title=f"[bold]TRIGGER CHECK — {t1_date}[/bold]",
-                border_style=border_style,
-            ))
+            console.print(
+                Panel(
+                    panel_content,
+                    title=f"[bold]TRIGGER CHECK — {t1_date}[/bold]",
+                    border_style=border_style,
+                )
+            )
 
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
             import traceback
+
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
 
     def _do_backtest(self):
@@ -1689,8 +1983,7 @@ class FortressApp:
         console.print(strategy_table)
 
         strategy_input = Prompt.ask(
-            "\nSelect strategy (or Enter to keep current)",
-            default=""
+            "\nSelect strategy (or Enter to keep current)", default=""
         ).strip()
 
         if strategy_input:
@@ -1754,7 +2047,10 @@ class FortressApp:
                 console.print("[red]Invalid input[/red]")
                 return
 
-        rebal_input = Prompt.ask("Rebalance days (5=weekly, 21=monthly)", default=str(self.config.rebalancing.rebalance_days))
+        rebal_input = Prompt.ask(
+            "Rebalance days (5=weekly, 21=monthly)",
+            default=str(self.config.rebalancing.rebalance_days),
+        )
         try:
             rebalance_days = int(rebal_input)
             if rebalance_days < 1:
@@ -1771,11 +2067,15 @@ class FortressApp:
         historical_data = self.cache.load()
 
         if len(historical_data) < 50:
-            console.print(f"[yellow]Insufficient cached data ({len(historical_data)} symbols).[/yellow]")
+            console.print(
+                f"[yellow]Insufficient cached data ({len(historical_data)} symbols).[/yellow]"
+            )
             if self.cache.market_data:
                 historical_data = self.cache.load_and_update()
             else:
-                console.print("[yellow]Login first to fetch data, or run Rebalance to populate cache.[/yellow]")
+                console.print(
+                    "[yellow]Login first to fetch data, or run Rebalance to populate cache.[/yellow]"
+                )
                 return
 
         if len(historical_data) < 50:
@@ -1820,6 +2120,15 @@ class FortressApp:
         console.print(f"[cyan]Using strategy: {self.active_strategy}[/cyan]\n")
 
         profile = self.config.get_profile(self.active_profile_name)
+
+        # Profile-specific benchmarks
+        benchmark_map = {
+            "primary": [("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")],
+            "smallcap": [("NIFTY 50", "Nifty 50"), ("NIFTY SMLCAP 100", "Nifty Smlcap 100")],
+            "microcap": [("NIFTY 50", "Nifty 50"), ("NIFTY SMLCAP 250", "Nifty Smlcap 250")],
+        }
+        bench_symbols = benchmark_map.get(self.active_profile_name)
+
         bt_config = BacktestConfig(
             start_date=start_date,
             end_date=end_date,
@@ -1835,6 +2144,7 @@ class FortressApp:
             weight_12m=self.effective_config.pure_momentum.weight_12m,
             strategy_name=self.active_strategy,
             profile_max_gold=profile.max_gold_allocation,
+            benchmark_symbols=bench_symbols,
         )
 
         engine = BacktestEngine(
@@ -1878,7 +2188,13 @@ class FortressApp:
             nifty_str = f"NIFTY {rec.nifty_price:,.0f}"
             sma_str = f"SMA {rec.nifty_sma:,.0f}" if rec.nifty_sma > 0 else "SMA n/a"
             vix_color = "green" if rec.vix_value < 18 else "yellow" if rec.vix_value < 25 else "red"
-            breadth_color = "green" if rec.breadth_value >= 0.50 else "yellow" if rec.breadth_value >= 0.30 else "red"
+            breadth_color = (
+                "green"
+                if rec.breadth_value >= 0.50
+                else "yellow"
+                if rec.breadth_value >= 0.30
+                else "red"
+            )
             console.print(
                 f"  Trend: {nifty_str} vs {sma_str} {trend_mark}"
                 f" | VIX: [{vix_color}]{rec.vix_value:.1f}[/{vix_color}]"
@@ -1902,7 +2218,9 @@ class FortressApp:
                 freed_pct = (1.0 - rec.gold_exhaustion_scale) * rec.gold_weight * 100
                 if rec.gold_weight > 0:
                     freed_pct = (1.0 - rec.gold_exhaustion_scale) * 100
-                scale_parts.append(f"gold_exhaust={rec.gold_exhaustion_scale:.2f} ({freed_pct:.0f}% freed)")
+                scale_parts.append(
+                    f"gold_exhaust={rec.gold_exhaustion_scale:.2f} ({freed_pct:.0f}% freed)"
+                )
             if scale_parts:
                 console.print(f"  [dim]Scales: {', '.join(scale_parts)}[/dim]")
 
@@ -1947,67 +2265,67 @@ class FortressApp:
         # Capital amounts
         table.add_row("Starting Capital", format_currency(result.initial_capital))
         profit_color = "bright_green" if result.total_profit > 0 else "bright_red"
-        table.add_row("Final Value", f"[{profit_color}]{format_currency(result.final_value)}[/{profit_color}]")
-        table.add_row("Total Profit", f"[{profit_color}]{format_currency(result.total_profit)}[/{profit_color}]")
-        table.add_row("Peak Value", f"[bright_cyan]{format_currency(result.peak_value)}[/bright_cyan]")
+        table.add_row(
+            "Final Value", f"[{profit_color}]{format_currency(result.final_value)}[/{profit_color}]"
+        )
+        table.add_row(
+            "Total Profit",
+            f"[{profit_color}]{format_currency(result.total_profit)}[/{profit_color}]",
+        )
+        table.add_row(
+            "Peak Value", f"[bright_cyan]{format_currency(result.peak_value)}[/bright_cyan]"
+        )
 
         # Performance metrics
-        cagr_color = "bright_green" if result.cagr > 0.20 else "yellow" if result.cagr > 0 else "bright_red"
-        dd_color = "bright_green" if result.max_drawdown > -0.15 else "yellow" if result.max_drawdown > -0.25 else "bright_red"
+        cagr_color = (
+            "bright_green" if result.cagr > 0.20 else "yellow" if result.cagr > 0 else "bright_red"
+        )
+        dd_color = (
+            "bright_green"
+            if result.max_drawdown > -0.15
+            else "yellow"
+            if result.max_drawdown > -0.25
+            else "bright_red"
+        )
 
         table.add_row("Total Return", format_percentage(result.total_return))
         table.add_row("CAGR", f"[{cagr_color}]{format_percentage(result.cagr)}[/{cagr_color}]")
         table.add_row("Sharpe Ratio", f"{result.sharpe_ratio:.2f}")
-        table.add_row("Max Drawdown", f"[{dd_color}]{format_percentage(result.max_drawdown)}[/{dd_color}]")
+        table.add_row(
+            "Max Drawdown", f"[{dd_color}]{format_percentage(result.max_drawdown)}[/{dd_color}]"
+        )
         table.add_row("Win Rate", format_percentage(result.win_rate))
         table.add_row("Total Trades", str(result.total_trades))
 
         console.print(table)
 
         # Benchmark comparison table
-        if result.nifty_50_return is not None or result.nifty_midcap_100_return is not None:
+        if result.benchmark_returns:
             bench_table = Table(title="Benchmark Comparison")
             bench_table.add_column("Strategy/Index", style="cyan")
             bench_table.add_column("Return", justify="right")
-            bench_table.add_column("vs NIFTY 50", justify="right")
+            bench_table.add_column("vs Strategy", justify="right")
 
             # Strategy row
-            strategy_vs_nifty = ""
-            if result.nifty_50_return is not None:
-                diff = result.total_return - result.nifty_50_return
-                color = "green" if diff > 0 else "red"
-                strategy_vs_nifty = f"[{color}]{diff:+.1%}[/{color}]"
-
             strategy_color = "green" if result.total_return > 0 else "red"
             strategy_label = f"FORTRESS ({strategy_upper})"
             bench_table.add_row(
                 strategy_label,
                 f"[{strategy_color}]{format_percentage(result.total_return)}[/{strategy_color}]",
-                strategy_vs_nifty,
+                "-",
             )
 
-            # Nifty 50 row
-            if result.nifty_50_return is not None:
-                n50_color = "green" if result.nifty_50_return > 0 else "red"
-                bench_table.add_row(
-                    "NIFTY 50",
-                    f"[{n50_color}]{format_percentage(result.nifty_50_return)}[/{n50_color}]",
-                    "-",
-                )
-
-            # Nifty Midcap 100 row
-            if result.nifty_midcap_100_return is not None:
-                mc_color = "green" if result.nifty_midcap_100_return > 0 else "red"
-                mc_vs_nifty = ""
-                if result.nifty_50_return is not None:
-                    mc_diff = result.nifty_midcap_100_return - result.nifty_50_return
-                    mc_diff_color = "green" if mc_diff > 0 else "red"
-                    mc_vs_nifty = f"[{mc_diff_color}]{mc_diff:+.1%}[/{mc_diff_color}]"
-                bench_table.add_row(
-                    "NIFTY MIDCAP 100",
-                    f"[{mc_color}]{format_percentage(result.nifty_midcap_100_return)}[/{mc_color}]",
-                    mc_vs_nifty,
-                )
+            # Benchmark rows
+            for name, ret in result.benchmark_returns:
+                if ret is not None:
+                    ret_color = "green" if ret > 0 else "red"
+                    diff = result.total_return - ret
+                    diff_color = "green" if diff > 0 else "red"
+                    bench_table.add_row(
+                        name.upper(),
+                        f"[{ret_color}]{format_percentage(ret)}[/{ret_color}]",
+                        f"[{diff_color}]{diff:+.1%}[/{diff_color}]",
+                    )
 
             console.print(bench_table)
 
@@ -2061,9 +2379,7 @@ class FortressApp:
                     if avg > 0.01:  # Skip negligible allocations
                         color = "green" if mx <= 0.30 else "yellow" if mx <= 0.40 else "red"
                         sector_table.add_row(
-                            sector[:15],
-                            f"{avg:.1%}",
-                            f"[{color}]{mx:.1%}[/{color}]"
+                            sector[:15], f"{avg:.1%}", f"[{color}]{mx:.1%}[/{color}]"
                         )
 
                 console.print(sector_table)
@@ -2095,7 +2411,7 @@ class FortressApp:
 
     # Backtest starts at Phase 1 with configured initial capital (no warmup).
     # Data lookback ensures NMS + SMA + 52w high lookbacks have history.
-    _BT_WARMUP_MONTHS = 0    # no warmup — Phase 1 starts with initial capital
+    _BT_WARMUP_MONTHS = 0  # no warmup — Phase 1 starts with initial capital
     _DATA_LOOKBACK_MONTHS = 18  # NMS(252d) + 200-SMA + buffer
 
     def _do_market_phase_analysis(self):
@@ -2153,9 +2469,7 @@ class FortressApp:
                 if backfilled > 0:
                     # Reload from the now-updated session cache
                     historical_data = self.cache.data
-                    earliest = min(
-                        df.index[0] for df in historical_data.values() if len(df) > 0
-                    )
+                    earliest = min(df.index[0] for df in historical_data.values() if len(df) > 0)
                     console.print(f"[green]Data now starts {earliest.date()}[/green]")
             else:
                 console.print(
@@ -2205,6 +2519,14 @@ class FortressApp:
         )
 
         profile = self.config.get_profile(self.active_profile_name)
+
+        # Profile-specific benchmarks
+        benchmark_map = {
+            "primary": [("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")],
+            "smallcap": [("NIFTY 50", "Nifty 50"), ("NIFTY SMLCAP 100", "Nifty Smlcap 100")],
+            "microcap": [("NIFTY 50", "Nifty 50"), ("NIFTY SMLCAP 250", "Nifty Smlcap 250")],
+        }
+
         bt_config = BacktestConfig(
             start_date=bt_start,
             end_date=bt_end,
@@ -2221,6 +2543,7 @@ class FortressApp:
             weight_12m=self.effective_config.pure_momentum.weight_12m,
             strategy_name=self.active_strategy,
             profile_max_gold=profile.max_gold_allocation,
+            benchmark_symbols=benchmark_map.get(self.active_profile_name),
         )
 
         engine = BacktestEngine(
@@ -2251,9 +2574,7 @@ class FortressApp:
         # Strategy entry filters are strict (52w high proximity, volume surge,
         # min turnover, etc.); even after NMS warmup the first position may
         # lag.  Skip phases that end before the strategy actually trades.
-        first_buy = next(
-            (t for t in result.trades if t.action == "BUY"), None
-        )
+        first_buy = next((t for t in result.trades if t.action == "BUY"), None)
         if not first_buy:
             console.print("[yellow]No trades executed in entire backtest![/yellow]")
             return
@@ -2267,8 +2588,7 @@ class FortressApp:
             return
 
         console.print(
-            f"[dim]First position entered: {first_trade_ts.date()} "
-            f"({first_buy.symbol})[/dim]"
+            f"[dim]First position entered: {first_trade_ts.date()} ({first_buy.symbol})[/dim]"
         )
         if pre_trade:
             console.print(
@@ -2310,9 +2630,7 @@ class FortressApp:
                 f"₹{initial_capital:,.0f} → ₹{phase1_value:,.0f} ({warmup_return:+.1%})[/dim]\n"
             )
         else:
-            console.print(
-                f"[dim]Capital at Phase 1 Start: ₹{phase1_value:,.0f}[/dim]\n"
-            )
+            console.print(f"[dim]Capital at Phase 1 Start: ₹{phase1_value:,.0f}[/dim]\n")
 
         # ---- Phase-by-phase detail table (printed as we go) ----
         console.print(
@@ -2331,7 +2649,9 @@ class FortressApp:
             eq_slice = equity.loc[mask]
 
             if len(eq_slice) < 2:
-                console.print(f"  [yellow]Phase {idx}: {name} — insufficient data, skipping[/yellow]")
+                console.print(
+                    f"  [yellow]Phase {idx}: {name} — insufficient data, skipping[/yellow]"
+                )
                 continue
 
             start_val = eq_slice.iloc[0]
@@ -2351,11 +2671,13 @@ class FortressApp:
                 sharpe = 0.0
 
             buy_trades = sum(
-                1 for t in result.trades
+                1
+                for t in result.trades
                 if p_start <= pd.Timestamp(t.date) <= p_end and t.action == "BUY"
             )
             sell_trades = sum(
-                1 for t in result.trades
+                1
+                for t in result.trades
                 if p_start <= pd.Timestamp(t.date) <= p_end and t.action == "SELL"
             )
 
@@ -2367,14 +2689,24 @@ class FortressApp:
             cum_return = end_val / phase1_value - 1
 
             pr = {
-                "name": name, "type": phase_type, "start_val": start_val,
-                "end_val": end_val, "return": phase_return, "cagr": cagr,
-                "max_dd": max_dd, "sharpe": sharpe, "buy_trades": buy_trades,
-                "sell_trades": sell_trades, "nifty_ret": nifty_ret,
-                "midcap_ret": midcap_ret, "alpha": alpha,
+                "name": name,
+                "type": phase_type,
+                "start_val": start_val,
+                "end_val": end_val,
+                "return": phase_return,
+                "cagr": cagr,
+                "max_dd": max_dd,
+                "sharpe": sharpe,
+                "buy_trades": buy_trades,
+                "sell_trades": sell_trades,
+                "nifty_ret": nifty_ret,
+                "midcap_ret": midcap_ret,
+                "alpha": alpha,
                 "alpha_midcap": alpha_midcap,
-                "cum_return": cum_return, "days": days,
-                "start_str": start_str, "end_str": end_str,
+                "cum_return": cum_return,
+                "days": days,
+                "start_str": start_str,
+                "end_str": end_str,
             }
             phase_results.append(pr)
 
@@ -2404,36 +2736,52 @@ class FortressApp:
             phase_table.add_column("", justify="right", min_width=18)
 
             phase_table.add_row(
-                "Period", f"{start_str} → {end_str}",
-                "Trading Days", str(len(eq_slice)),
+                "Period",
+                f"{start_str} → {end_str}",
+                "Trading Days",
+                str(len(eq_slice)),
             )
             phase_table.add_row(
-                "Strategy Return", _cpct(phase_return),
-                "NIFTY 50 Return", _cpct(nifty_ret),
+                "Strategy Return",
+                _cpct(phase_return),
+                "NIFTY 50 Return",
+                _cpct(nifty_ret),
             )
             phase_table.add_row(
-                "MIDCAP 100 Return", _cpct(midcap_ret),
-                "Alpha vs NIFTY", alpha_str,
+                "MIDCAP 100 Return",
+                _cpct(midcap_ret),
+                "Alpha vs NIFTY",
+                alpha_str,
             )
             phase_table.add_row(
-                "Alpha vs MIDCAP", alpha_mc_str,
-                "Sharpe Ratio", f"[{sharpe_c}]{sharpe:.2f}[/{sharpe_c}]",
+                "Alpha vs MIDCAP",
+                alpha_mc_str,
+                "Sharpe Ratio",
+                f"[{sharpe_c}]{sharpe:.2f}[/{sharpe_c}]",
             )
             phase_table.add_row(
-                "Max Drawdown", _cpct(max_dd, invert=True),
-                "CAGR", _cpct(cagr),
+                "Max Drawdown",
+                _cpct(max_dd, invert=True),
+                "CAGR",
+                _cpct(cagr),
             )
             phase_table.add_row(
-                "Buy Trades", str(buy_trades),
-                "Sell Trades", str(sell_trades),
+                "Buy Trades",
+                str(buy_trades),
+                "Sell Trades",
+                str(sell_trades),
             )
             phase_table.add_row(
-                "Start Value", f"₹{start_val:,.0f}",
-                "End Value", f"₹{end_val:,.0f}",
+                "Start Value",
+                f"₹{start_val:,.0f}",
+                "End Value",
+                f"₹{end_val:,.0f}",
             )
             phase_table.add_row(
-                "Cum. Return", _cpct(cum_return),
-                "", "",
+                "Cum. Return",
+                _cpct(cum_return),
+                "",
+                "",
             )
 
             console.print(phase_table)
@@ -2477,7 +2825,9 @@ class FortressApp:
 
         for i, pr in enumerate(phase_results, 1):
             row = [
-                str(i), pr["name"], pr["type"],
+                str(i),
+                pr["name"],
+                pr["type"],
                 _cpct(pr["return"]),
                 _cpct(pr["max_dd"], invert=True),
                 _cpct(pr["nifty_ret"]),
@@ -2494,15 +2844,15 @@ class FortressApp:
         # Overall stats — scoped to the phases period (excl. warmup)
         last_phase_end_val = phase_results[-1]["end_val"] if phase_results else result.final_value
         phases_return = last_phase_end_val / phase1_value - 1
-        phases_days = (
-            pd.Timestamp(active_phases[-1][2]) - pd.Timestamp(active_phases[0][1])
-        ).days
+        phases_days = (pd.Timestamp(active_phases[-1][2]) - pd.Timestamp(active_phases[0][1])).days
         phases_years = max(phases_days / 365.25, 1 / 365.25)
         phases_cagr = (last_phase_end_val / phase1_value) ** (1 / phases_years) - 1
 
         overall = Table(
             title=f"Overall ({self.active_strategy.upper()})  ·  {active_phases[0][1]} → {active_phases[-1][2]}",
-            show_header=False, show_lines=False, title_style="bold cyan",
+            show_header=False,
+            show_lines=False,
+            title_style="bold cyan",
         )
         overall.add_column("", style="cyan", min_width=25)
         overall.add_column("", justify="right", min_width=20)
@@ -2552,7 +2902,8 @@ class FortressApp:
         if total_pnl != 0:
             contrib = Table(
                 title="Return Contribution by Phase",
-                show_lines=False, title_style="bold cyan",
+                show_lines=False,
+                title_style="bold cyan",
             )
             contrib.add_column("#", style="dim", width=3, justify="right")
             contrib.add_column("Phase", style="bold", no_wrap=True)
@@ -2566,7 +2917,8 @@ class FortressApp:
                 pct = pnl / total_pnl
                 pc = "green" if pnl >= 0 else "red"
                 contrib.add_row(
-                    str(i), pr["name"],
+                    str(i),
+                    pr["name"],
                     _fmt_period(pr["start_str"], pr["end_str"]),
                     f"₹{pr['start_val']:,.0f}",
                     f"[{pc}]₹{pnl:+,.0f}[/{pc}]",
@@ -2588,7 +2940,10 @@ class FortressApp:
         bear = [p for p in phase_results if "Bear" in p["type"] or "Crash" in p["type"]]
 
         insights = Table(
-            title="Key Insights", show_header=False, show_lines=False, title_style="bold cyan",
+            title="Key Insights",
+            show_header=False,
+            show_lines=False,
+            title_style="bold cyan",
         )
         insights.add_column("", style="cyan", min_width=25)
         insights.add_column("", min_width=50)
@@ -2596,25 +2951,31 @@ class FortressApp:
         insights.add_row("Best Phase", f"{best['name']} ({best['return']:+.1%})")
         insights.add_row("Worst Phase", f"{worst['name']} ({worst['return']:+.1%})")
         if best_alpha:
-            insights.add_row("Highest Alpha (N50)", f"{best_alpha['name']} ({best_alpha['alpha']:+.1%})")
+            insights.add_row(
+                "Highest Alpha (N50)", f"{best_alpha['name']} ({best_alpha['alpha']:+.1%})"
+            )
         if worst_alpha:
-            insights.add_row("Lowest Alpha (N50)", f"{worst_alpha['name']} ({worst_alpha['alpha']:+.1%})")
+            insights.add_row(
+                "Lowest Alpha (N50)", f"{worst_alpha['name']} ({worst_alpha['alpha']:+.1%})"
+            )
         if alpha_mc_phases:
-            insights.add_row("Beats MIDCAP 100", f"{len(beats_midcap)}/{len(alpha_mc_phases)} phases")
+            insights.add_row(
+                "Beats MIDCAP 100", f"{len(beats_midcap)}/{len(alpha_mc_phases)} phases"
+            )
         if bull:
-            avg_bull = np.mean([p['return'] for p in bull])
+            avg_bull = np.mean([p["return"] for p in bull])
             bull_mc = [p for p in bull if p.get("midcap_ret") is not None]
             bull_str = f"{avg_bull:+.1%} ({len(bull)} phases)"
             if bull_mc:
-                avg_bull_mc = np.mean([p['midcap_ret'] for p in bull_mc])
+                avg_bull_mc = np.mean([p["midcap_ret"] for p in bull_mc])
                 bull_str += f" | MIDCAP avg {avg_bull_mc:+.1%}"
             insights.add_row("Avg Bull Return", bull_str)
         if bear:
-            avg_bear = np.mean([p['return'] for p in bear])
+            avg_bear = np.mean([p["return"] for p in bear])
             bear_mc = [p for p in bear if p.get("midcap_ret") is not None]
             bear_str = f"{avg_bear:+.1%} ({len(bear)} phases)"
             if bear_mc:
-                avg_bear_mc = np.mean([p['midcap_ret'] for p in bear_mc])
+                avg_bear_mc = np.mean([p["midcap_ret"] for p in bear_mc])
                 bear_str += f" | MIDCAP avg {avg_bear_mc:+.1%}"
             insights.add_row("Avg Bear/Crash Return", bear_str)
 
@@ -2662,9 +3023,7 @@ class FortressApp:
                 new_strategy_name = strategies[choice_idx][0]
                 self.active_strategy = new_strategy_name
                 self._init_strategy()
-                console.print(
-                    f"[green]✓ Strategy changed to: {self.active_strategy}[/green]"
-                )
+                console.print(f"[green]✓ Strategy changed to: {self.active_strategy}[/green]")
             else:
                 console.print("[red]Invalid selection[/red]")
         except ValueError:
@@ -2673,9 +3032,7 @@ class FortressApp:
                 if name.lower() == choice.lower():
                     self.active_strategy = name
                     self._init_strategy()
-                    console.print(
-                        f"[green]✓ Strategy changed to: {self.active_strategy}[/green]"
-                    )
+                    console.print(f"[green]✓ Strategy changed to: {self.active_strategy}[/green]")
                     return
             console.print("[red]Invalid selection[/red]")
 

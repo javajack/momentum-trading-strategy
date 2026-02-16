@@ -4,20 +4,20 @@ Test script for dynamic rebalancing implementation.
 Runs a 12-month backtest with the new features enabled.
 """
 
-import sys
 import os
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
+from fortress.backtest import BacktestConfig, BacktestEngine
 from fortress.config import load_config
 from fortress.universe import Universe
-from fortress.backtest import BacktestConfig, BacktestEngine
 
 
 def load_cached_data(cache_dir: str = ".cache") -> dict:
@@ -67,9 +67,13 @@ def load_cached_data(cache_dir: str = ".cache") -> dict:
 
     # Verify critical symbols
     if "NIFTY 50" in data:
-        print(f"  NIFTY 50: {data['NIFTY 50'].index.min().date()} to {data['NIFTY 50'].index.max().date()}")
+        print(
+            f"  NIFTY 50: {data['NIFTY 50'].index.min().date()} to {data['NIFTY 50'].index.max().date()}"
+        )
     if "INDIA VIX" in data:
-        print(f"  INDIA VIX: {data['INDIA VIX'].index.min().date()} to {data['INDIA VIX'].index.max().date()}")
+        print(
+            f"  INDIA VIX: {data['INDIA VIX'].index.min().date()} to {data['INDIA VIX'].index.max().date()}"
+        )
 
     return data
 
@@ -78,7 +82,9 @@ def run_backtest(months: int = 12, use_dynamic: bool = True):
     """Run backtest with specified parameters."""
 
     print("=" * 70)
-    print(f"BACKTEST: {months} months, Dynamic Rebalancing: {'ENABLED' if use_dynamic else 'DISABLED'}")
+    print(
+        f"BACKTEST: {months} months, Dynamic Rebalancing: {'ENABLED' if use_dynamic else 'DISABLED'}"
+    )
     print("=" * 70)
 
     # Load config
@@ -107,7 +113,9 @@ def run_backtest(months: int = 12, use_dynamic: bool = True):
     if config.dynamic_rebalance.enabled:
         print(f"  - Min days between: {config.dynamic_rebalance.min_days_between}")
         print(f"  - Max days between: {config.dynamic_rebalance.max_days_between}")
-        print(f"  - Regime transition trigger: {config.dynamic_rebalance.regime_transition_trigger}")
+        print(
+            f"  - Regime transition trigger: {config.dynamic_rebalance.regime_transition_trigger}"
+        )
         print(f"  - VIX recovery trigger: {config.dynamic_rebalance.vix_recovery_trigger}")
         print(f"  - Crash avoidance trigger: {config.dynamic_rebalance.crash_avoidance_trigger}")
         print(f"  - Breadth thrust trigger: {config.dynamic_rebalance.breadth_thrust_trigger}")
@@ -154,28 +162,31 @@ def run_backtest(months: int = 12, use_dynamic: bool = True):
         print(f"Total Trades:     {result.total_trades}")
 
         # Benchmark comparison
-        if result.nifty_50_return is not None:
-            alpha = result.total_return - result.nifty_50_return
-            print(f"\nNIFTY 50 Return:  {result.nifty_50_return:.2%}")
+        nifty_return = next(
+            (r for n, r in (result.benchmark_returns or []) if n.startswith("Nifty 50")), None
+        )
+        if nifty_return is not None:
+            alpha = result.total_return - nifty_return
+            print(f"\nNIFTY 50 Return:  {nifty_return:.2%}")
             print(f"Alpha:            {alpha:.2%}")
 
         # Regime analysis
         if result.regime_history is not None and len(result.regime_history) > 0:
             print("\nRegime Distribution:")
             regime_df = pd.DataFrame(result.regime_history)
-            if 'regime' in regime_df.columns:
-                regime_counts = regime_df['regime'].value_counts()
+            if "regime" in regime_df.columns:
+                regime_counts = regime_df["regime"].value_counts()
                 total_days = len(regime_df)
                 for regime, count in regime_counts.items():
                     pct = count / total_days * 100
                     print(f"  {regime}: {count} days ({pct:.1f}%)")
 
         # Dynamic rebalancing analysis
-        if hasattr(engine, '_rebalance_triggers_log') and engine._rebalance_triggers_log:
+        if hasattr(engine, "_rebalance_triggers_log") and engine._rebalance_triggers_log:
             print("\nDynamic Rebalance Triggers:")
             trigger_counts = {}
             for entry in engine._rebalance_triggers_log:
-                for trigger in entry.get('triggers_fired', []):
+                for trigger in entry.get("triggers_fired", []):
                     trigger_counts[trigger] = trigger_counts.get(trigger, 0) + 1
             for trigger, count in sorted(trigger_counts.items(), key=lambda x: -x[1]):
                 print(f"  {trigger}: {count} times")
@@ -185,6 +196,7 @@ def run_backtest(months: int = 12, use_dynamic: bool = True):
 
     except Exception as e:
         import traceback
+
         print(f"\nERROR during backtest: {e}")
         traceback.print_exc()
         return None
@@ -216,16 +228,35 @@ def main():
         print("=" * 70)
         print(f"{'Metric':<25} {'Dynamic':>15} {'Fixed':>15} {'Diff':>15}")
         print("-" * 70)
-        print(f"{'Total Return':<25} {result_dynamic.total_return:>14.2%} {result_fixed.total_return:>14.2%} {result_dynamic.total_return - result_fixed.total_return:>+14.2%}")
-        print(f"{'CAGR':<25} {result_dynamic.cagr:>14.2%} {result_fixed.cagr:>14.2%} {result_dynamic.cagr - result_fixed.cagr:>+14.2%}")
-        print(f"{'Max Drawdown':<25} {result_dynamic.max_drawdown:>14.2%} {result_fixed.max_drawdown:>14.2%} {result_dynamic.max_drawdown - result_fixed.max_drawdown:>+14.2%}")
-        print(f"{'Sharpe Ratio':<25} {result_dynamic.sharpe_ratio:>14.2f} {result_fixed.sharpe_ratio:>14.2f} {result_dynamic.sharpe_ratio - result_fixed.sharpe_ratio:>+14.2f}")
-        print(f"{'Total Trades':<25} {result_dynamic.total_trades:>15} {result_fixed.total_trades:>15} {result_dynamic.total_trades - result_fixed.total_trades:>+15}")
+        print(
+            f"{'Total Return':<25} {result_dynamic.total_return:>14.2%} {result_fixed.total_return:>14.2%} {result_dynamic.total_return - result_fixed.total_return:>+14.2%}"
+        )
+        print(
+            f"{'CAGR':<25} {result_dynamic.cagr:>14.2%} {result_fixed.cagr:>14.2%} {result_dynamic.cagr - result_fixed.cagr:>+14.2%}"
+        )
+        print(
+            f"{'Max Drawdown':<25} {result_dynamic.max_drawdown:>14.2%} {result_fixed.max_drawdown:>14.2%} {result_dynamic.max_drawdown - result_fixed.max_drawdown:>+14.2%}"
+        )
+        print(
+            f"{'Sharpe Ratio':<25} {result_dynamic.sharpe_ratio:>14.2f} {result_fixed.sharpe_ratio:>14.2f} {result_dynamic.sharpe_ratio - result_fixed.sharpe_ratio:>+14.2f}"
+        )
+        print(
+            f"{'Total Trades':<25} {result_dynamic.total_trades:>15} {result_fixed.total_trades:>15} {result_dynamic.total_trades - result_fixed.total_trades:>+15}"
+        )
 
-        if result_dynamic.nifty_50_return and result_fixed.nifty_50_return:
-            alpha_dynamic = result_dynamic.total_return - result_dynamic.nifty_50_return
-            alpha_fixed = result_fixed.total_return - result_fixed.nifty_50_return
-            print(f"{'Alpha vs NIFTY':<25} {alpha_dynamic:>14.2%} {alpha_fixed:>14.2%} {alpha_dynamic - alpha_fixed:>+14.2%}")
+        nifty_dyn = next(
+            (r for n, r in (result_dynamic.benchmark_returns or []) if n.startswith("Nifty 50")),
+            None,
+        )
+        nifty_fix = next(
+            (r for n, r in (result_fixed.benchmark_returns or []) if n.startswith("Nifty 50")), None
+        )
+        if nifty_dyn and nifty_fix:
+            alpha_dynamic = result_dynamic.total_return - nifty_dyn
+            alpha_fixed = result_fixed.total_return - nifty_fix
+            print(
+                f"{'Alpha vs NIFTY':<25} {alpha_dynamic:>14.2%} {alpha_fixed:>14.2%} {alpha_dynamic - alpha_fixed:>+14.2%}"
+            )
 
     print("\n" + "=" * 70)
     print("TEST COMPLETE")
