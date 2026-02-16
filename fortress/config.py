@@ -42,21 +42,41 @@ class PureMomentumConfig(BaseModel):
     # NMS calculation parameters
     lookback_6m: int = Field(default=126, ge=20, description="6-month lookback in trading days")
     lookback_12m: int = Field(default=252, ge=100, description="12-month lookback in trading days")
-    lookback_volatility: int = Field(default=126, ge=20, description="Volatility calculation lookback")
-    skip_recent_days: int = Field(default=5, ge=0, le=20, description="Skip recent days to avoid reversal")
+    lookback_volatility: int = Field(
+        default=126, ge=20, description="Volatility calculation lookback"
+    )
+    skip_recent_days: int = Field(
+        default=5, ge=0, le=20, description="Skip recent days to avoid reversal"
+    )
     weight_6m: float = Field(default=0.40, ge=0, le=1, description="Weight for 6M adjusted return")
-    weight_12m: float = Field(default=0.60, ge=0, le=1, description="Weight for 12M adjusted return")
+    weight_12m: float = Field(
+        default=0.60, ge=0, le=1, description="Weight for 12M adjusted return"
+    )
 
     # Entry filters
-    min_score_percentile: float = Field(default=95, ge=50, le=100, description="Min NMS percentile for entry")
-    min_52w_high_prox: float = Field(default=0.85, ge=0.5, le=1.0, description="Min proximity to 52-week high")
-    min_volume_ratio: float = Field(default=1.1, ge=0.5, le=5.0, description="Min 20d/50d volume ratio")
-    min_daily_turnover: float = Field(default=20_000_000, ge=0, description="Min avg daily turnover")
+    min_score_percentile: float = Field(
+        default=95, ge=50, le=100, description="Min NMS percentile for entry"
+    )
+    min_52w_high_prox: float = Field(
+        default=0.85, ge=0.5, le=1.0, description="Min proximity to 52-week high"
+    )
+    min_volume_ratio: float = Field(
+        default=1.1, ge=0.5, le=5.0, description="Min 20d/50d volume ratio"
+    )
+    min_daily_turnover: float = Field(
+        default=20_000_000, ge=0, description="Min avg daily turnover"
+    )
 
     # Exit triggers
-    min_hold_percentile: float = Field(default=50, ge=0, le=100, description="Exit if NMS falls below this")
-    max_days_without_gain: int = Field(default=60, ge=10, description="Max days to hold without target gain")
-    min_gain_threshold: float = Field(default=0.10, ge=0, le=1, description="Target gain for time-based exit")
+    min_hold_percentile: float = Field(
+        default=50, ge=0, le=100, description="Exit if NMS falls below this"
+    )
+    max_days_without_gain: int = Field(
+        default=60, ge=10, description="Max days to hold without target gain"
+    )
+    min_gain_threshold: float = Field(
+        default=0.10, ge=0, le=1, description="Target gain for time-based exit"
+    )
 
     @field_validator("weight_12m")
     @classmethod
@@ -119,14 +139,18 @@ class RiskConfig(BaseModel):
     # Stop loss settings
     initial_stop_loss: float = Field(default=0.18, gt=0, le=0.5, description="Initial stop loss")
     trailing_stop: float = Field(default=0.15, gt=0, le=0.5, description="Trailing stop")
-    trailing_activation: float = Field(default=0.08, gt=0, le=0.5, description="Gain to activate trailing")
+    trailing_activation: float = Field(
+        default=0.08, gt=0, le=0.5, description="Gain to activate trailing"
+    )
 
 
 class RebalancingConfig(BaseModel):
     """Rebalancing schedule configuration."""
 
     frequency: str = Field(default="monthly", description="Rebalance frequency")
-    rebalance_days: int = Field(default=21, ge=1, le=252, description="Trading days between rebalances (21 = monthly)")
+    rebalance_days: int = Field(
+        default=21, ge=1, le=252, description="Trading days between rebalances (21 = monthly)"
+    )
     day: str = Field(default="friday", description="Day of week for rebalancing")
     min_trade_value: float = Field(default=10000, ge=0, description="Minimum trade value")
 
@@ -313,6 +337,10 @@ class RegimeConfig(BaseModel):
         ge=0.05,
         le=0.20,
         description="Position must exceed threshold by this amount for strong signal",
+    )
+    use_fast_recovery_detection: bool = Field(
+        default=True,
+        description="Fast-track recovery when all signals strongly confirm (1-day confirmation)",
     )
 
     # Short-term return settings (NEW - faster early detection)
@@ -574,6 +602,12 @@ class RegimeConfig(BaseModel):
         le=0.50,
         description="Cap stress to this value during recovery override",
     )
+    recovery_override_confirmation_days: int = Field(
+        default=3,
+        ge=1,
+        le=10,
+        description="Consecutive days conditions must hold before activating/deactivating override",
+    )
 
     # Defensive instruments
     gold_symbol: str = Field(default="GOLDBEES", description="Gold ETF symbol")
@@ -641,105 +675,73 @@ class DynamicRebalanceConfig(BaseModel):
     - CME Momentum Research (improving-time-series-momentum)
     """
 
-    enabled: bool = Field(
-        default=True,
-        description="Enable dynamic rebalancing triggers"
-    )
+    enabled: bool = Field(default=True, description="Enable dynamic rebalancing triggers")
     min_days_between: int = Field(
-        default=7,
-        ge=1,
-        le=15,
-        description="Minimum trading days between rebalances (E8: tuned)"
+        default=7, ge=1, le=15, description="Minimum trading days between rebalances (E8: tuned)"
     )
     max_days_between: int = Field(
-        default=30,
-        ge=15,
-        le=63,
-        description="Force rebalance after this many days"
+        default=30, ge=15, le=63, description="Force rebalance after this many days"
     )
 
     # Regime transition trigger
     regime_transition_trigger: bool = Field(
-        default=True,
-        description="Trigger rebalance on regime change (e.g., NORMAL→CAUTION)"
+        default=True, description="Trigger rebalance on regime change (e.g., NORMAL→CAUTION)"
     )
 
     # VIX recovery trigger
     vix_recovery_trigger: bool = Field(
-        default=True,
-        description="Trigger rebalance when VIX recovers from spike"
+        default=True, description="Trigger rebalance when VIX recovers from spike"
     )
     vix_recovery_decline: float = Field(
         default=0.15,
         ge=0.10,
         le=0.30,
-        description="VIX decline percentage from peak to trigger (15%)"
+        description="VIX decline percentage from peak to trigger (15%)",
     )
     vix_spike_threshold: float = Field(
-        default=25.0,
-        ge=20.0,
-        le=40.0,
-        description="VIX level considered a spike"
+        default=25.0, ge=20.0, le=40.0, description="VIX level considered a spike"
     )
 
     # Portfolio drawdown trigger
     drawdown_trigger: bool = Field(
-        default=True,
-        description="Trigger defensive rebalance on portfolio drawdown"
+        default=True, description="Trigger defensive rebalance on portfolio drawdown"
     )
     drawdown_threshold: float = Field(
-        default=0.10,
-        ge=0.05,
-        le=0.20,
-        description="Portfolio drawdown threshold to trigger (10%)"
+        default=0.10, ge=0.05, le=0.20, description="Portfolio drawdown threshold to trigger (10%)"
     )
 
     # Crash avoidance trigger (momentum crash detection)
     crash_avoidance_trigger: bool = Field(
-        default=True,
-        description="Trigger contrarian mode on market crash"
+        default=True, description="Trigger contrarian mode on market crash"
     )
     crash_threshold: float = Field(
         default=-0.07,
         ge=-0.20,
         le=-0.05,
-        description="Market 1-month return threshold for crash (E6: -0.10→-0.07)"
+        description="Market 1-month return threshold for crash (E6: -0.10→-0.07)",
     )
     crash_avoidance_duration: int = Field(
-        default=60,
-        ge=30,
-        le=120,
-        description="Trading days to maintain crash avoidance mode"
+        default=60, ge=30, le=120, description="Trading days to maintain crash avoidance mode"
     )
     crash_position_scale: float = Field(
         default=0.6,
         ge=0.3,
         le=0.9,
-        description="Position size multiplier during crash avoidance (0.6 = 40% reduction)"
+        description="Position size multiplier during crash avoidance (0.6 = 40% reduction)",
     )
 
     # Breadth thrust trigger
     breadth_thrust_trigger: bool = Field(
-        default=True,
-        description="Trigger aggressive entry on breadth thrust"
+        default=True, description="Trigger aggressive entry on breadth thrust"
     )
     breadth_thrust_low: float = Field(
-        default=0.40,
-        ge=0.25,
-        le=0.50,
-        description="Breadth level to start measuring thrust (40%)"
+        default=0.40, ge=0.25, le=0.50, description="Breadth level to start measuring thrust (40%)"
     )
     breadth_thrust_high: float = Field(
-        default=0.615,
-        ge=0.55,
-        le=0.75,
-        description="Breadth level that confirms thrust (61.5%)"
+        default=0.615, ge=0.55, le=0.75, description="Breadth level that confirms thrust (61.5%)"
     )
     breadth_thrust_days: int = Field(
-        default=10,
-        ge=5,
-        le=15,
-        description="Max days for breadth to move from low to high"
+        default=10, ge=5, le=15, description="Max days for breadth to move from low to high"
     )
 
 
@@ -757,51 +759,30 @@ class AdaptiveLookbackConfig(BaseModel):
     - ReSolve Asset Management (half-life-of-optimal-lookback-horizon)
     """
 
-    enabled: bool = Field(
-        default=True,
-        description="Enable adaptive lookback periods"
-    )
+    enabled: bool = Field(default=True, description="Enable adaptive lookback periods")
 
     # Normal market lookbacks (standard)
     normal_6m: int = Field(
-        default=126,
-        ge=63,
-        le=189,
-        description="6-month lookback in normal conditions"
+        default=126, ge=63, le=189, description="6-month lookback in normal conditions"
     )
     normal_12m: int = Field(
-        default=252,
-        ge=126,
-        le=378,
-        description="12-month lookback in normal conditions"
+        default=252, ge=126, le=378, description="12-month lookback in normal conditions"
     )
 
     # Recovery mode lookbacks (shorter for faster signals)
     recovery_6m: int = Field(
-        default=63,
-        ge=42,
-        le=126,
-        description="6-month lookback in recovery mode (faster)"
+        default=63, ge=42, le=126, description="6-month lookback in recovery mode (faster)"
     )
     recovery_12m: int = Field(
-        default=126,
-        ge=63,
-        le=189,
-        description="12-month lookback in recovery mode (faster)"
+        default=126, ge=63, le=189, description="12-month lookback in recovery mode (faster)"
     )
 
     # High volatility lookbacks (longer to reduce whipsaws)
     volatile_6m: int = Field(
-        default=189,
-        ge=126,
-        le=252,
-        description="6-month lookback in high volatility (slower)"
+        default=189, ge=126, le=252, description="6-month lookback in high volatility (slower)"
     )
     volatile_12m: int = Field(
-        default=315,
-        ge=252,
-        le=378,
-        description="12-month lookback in high volatility (slower)"
+        default=315, ge=252, le=378, description="12-month lookback in high volatility (slower)"
     )
 
     # Thresholds for switching modes
@@ -809,31 +790,27 @@ class AdaptiveLookbackConfig(BaseModel):
         default=0.05,
         ge=0.03,
         le=0.10,
-        description="Drawdown level to switch to recovery lookbacks (5%)"
+        description="Drawdown level to switch to recovery lookbacks (5%)",
     )
     vix_volatile_threshold: float = Field(
-        default=30.0,
-        ge=25.0,
-        le=40.0,
-        description="VIX level to switch to volatile lookbacks"
+        default=30.0, ge=25.0, le=40.0, description="VIX level to switch to volatile lookbacks"
     )
 
     # Multiplier approach (alternative to fixed lookbacks)
     use_multipliers: bool = Field(
-        default=False,
-        description="Use multipliers instead of fixed values"
+        default=False, description="Use multipliers instead of fixed values"
     )
     recovery_multiplier: float = Field(
         default=0.5,
         ge=0.3,
         le=0.7,
-        description="Lookback multiplier in recovery (0.5 = 50% shorter)"
+        description="Lookback multiplier in recovery (0.5 = 50% shorter)",
     )
     volatile_multiplier: float = Field(
         default=1.5,
         ge=1.2,
         le=2.0,
-        description="Lookback multiplier in volatile (1.5 = 50% longer)"
+        description="Lookback multiplier in volatile (1.5 = 50% longer)",
     )
 
 
@@ -859,28 +836,19 @@ class AdaptiveDualMomentumConfig(BaseModel):
     # === Dual Momentum Settings ===
     # Entry requires: NMS > 0 (absolute) AND RS > threshold (relative)
     min_rs_threshold: float = Field(
-        default=1.05,
-        ge=0.8,
-        le=1.3,
-        description="Base RS for entry (1.05 = beat index by 5%)"
+        default=1.05, ge=0.8, le=1.3, description="Base RS for entry (1.05 = beat index by 5%)"
     )
     rs_weight: float = Field(
         default=0.25,
         ge=0.0,
         le=0.5,
-        description="RS weight for score boost (score = NMS * (1 + rs_weight * (RS - 1)))"
+        description="RS weight for score boost (score = NMS * (1 + rs_weight * (RS - 1)))",
     )
     min_nms_for_entry: float = Field(
-        default=0.0,
-        ge=-1.0,
-        le=1.0,
-        description="Minimum NMS for entry (0 = positive momentum)"
+        default=0.0, ge=-1.0, le=1.0, description="Minimum NMS for entry (0 = positive momentum)"
     )
     rs_exit_threshold: float = Field(
-        default=0.94,
-        ge=0.7,
-        le=1.2,
-        description="Exit if RS drops below this (E8: tuned)"
+        default=0.94, ge=0.7, le=1.2, description="Exit if RS drops below this (E8: tuned)"
     )
 
     # === Simple Regime Detection (VIX-based) ===
@@ -888,34 +856,25 @@ class AdaptiveDualMomentumConfig(BaseModel):
     # DEFENSIVE: VIX > defensive_threshold OR trend down
     # NEUTRAL: otherwise
     vix_bullish_threshold: float = Field(
-        default=18.0,
-        ge=10.0,
-        le=25.0,
-        description="VIX below this + uptrend = BULLISH"
+        default=18.0, ge=10.0, le=25.0, description="VIX below this + uptrend = BULLISH"
     )
     vix_defensive_threshold: float = Field(
-        default=25.0,
-        ge=18.0,
-        le=40.0,
-        description="VIX above this = DEFENSIVE"
+        default=25.0, ge=18.0, le=40.0, description="VIX above this = DEFENSIVE"
     )
 
     # === Feature Toggles ===
     use_adaptive_parameters: bool = Field(
-        default=True,
-        description="Enable regime-adaptive parameter scaling"
+        default=True, description="Enable regime-adaptive parameter scaling"
     )
     use_recovery_modes: bool = Field(
-        default=True,
-        description="Enable recovery modes (bull, general, crash)"
+        default=True, description="Enable recovery modes (bull, general, crash)"
     )
     use_tiered_stops: bool = Field(
-        default=True,
-        description="Enable tiered trailing stops based on gain level"
+        default=True, description="Enable tiered trailing stops based on gain level"
     )
     use_full_regime: bool = Field(
         default=True,
-        description="Use full RegimeResult instead of SimpleRegimeResult for adaptive params"
+        description="Use full RegimeResult instead of SimpleRegimeResult for adaptive params",
     )
 
     # === Recovery Mode Settings ===
@@ -924,151 +883,110 @@ class AdaptiveDualMomentumConfig(BaseModel):
         default=-0.07,
         ge=-0.30,
         le=-0.03,
-        description="Drawdown level that triggers recovery mode (-7%)"
+        description="Drawdown level that triggers recovery mode (-7%)",
     )
     recovery_duration_days: int = Field(
-        default=60,
-        ge=14,
-        le=120,
-        description="Duration of recovery mode in days"
+        default=60, ge=14, le=120, description="Duration of recovery mode in days"
     )
     recovery_filter_relaxation: float = Field(
-        default=0.25,
-        ge=0.0,
-        le=0.40,
-        description="Filter relaxation during recovery (25%)"
+        default=0.25, ge=0.0, le=0.40, description="Filter relaxation during recovery (25%)"
     )
 
     # Bull recovery: triggered by VIX decline + positive momentum
     use_bull_recovery_mode: bool = Field(
-        default=True,
-        description="Enable bull recovery mode for V-shaped rebounds"
+        default=True, description="Enable bull recovery mode for V-shaped rebounds"
     )
     bull_recovery_filter_relaxation: float = Field(
-        default=0.25,
-        ge=0.0,
-        le=0.50,
-        description="Filter relaxation during bull recovery (25%)"
+        default=0.25, ge=0.0, le=0.50, description="Filter relaxation during bull recovery (25%)"
     )
     bull_recovery_vix_threshold: float = Field(
         default=20.0,
         ge=15.0,
         le=35.0,
-        description="VIX must be declining from this level to trigger"
+        description="VIX must be declining from this level to trigger",
     )
     bull_recovery_momentum_threshold: float = Field(
         default=0.003,
         ge=0.0,
         le=0.01,
-        description="Min position momentum per day to confirm recovery"
+        description="Min position momentum per day to confirm recovery",
     )
     bull_recovery_duration_days: int = Field(
-        default=60,
-        ge=21,
-        le=120,
-        description="How long bull recovery mode lasts"
+        default=60, ge=21, le=120, description="How long bull recovery mode lasts"
     )
 
     # Crash recovery: triggered by extreme VIX spike (>50)
     use_crash_recovery_mode: bool = Field(
-        default=True,
-        description="Enable crash recovery mode after VIX spikes >50"
+        default=True, description="Enable crash recovery mode after VIX spikes >50"
     )
     crash_recovery_vix_trigger: float = Field(
-        default=50.0,
-        ge=35.0,
-        le=80.0,
-        description="VIX level that triggers crash recovery mode"
+        default=50.0, ge=35.0, le=80.0, description="VIX level that triggers crash recovery mode"
     )
     crash_recovery_duration_days: int = Field(
-        default=90,
-        ge=30,
-        le=180,
-        description="Duration of crash recovery mode"
+        default=90, ge=30, le=180, description="Duration of crash recovery mode"
     )
     crash_recovery_52w_mult: float = Field(
-        default=0.75,
+        default=0.90,
         ge=0.60,
-        le=0.90,
-        description="52W high multiplier during crash recovery (85% × 0.75 = 64%)"
+        le=1.0,
+        description="52W high multiplier during crash recovery (85% × 0.90 = 76.5%)",
     )
     crash_recovery_ema_buffer: float = Field(
-        default=0.15,
-        ge=0.05,
+        default=0.05,
+        ge=0.0,
         le=0.25,
-        description="Allow entries 15% below 50 EMA during crash recovery"
+        description="Allow entries 5% below 50 EMA during crash recovery",
     )
 
     # === Tiered Stops Settings ===
     # Let winners run with progressively wider stops
     tier1_threshold: float = Field(
-        default=0.08,
-        ge=0.0,
-        le=0.15,
-        description="Gain threshold for tier 1->2 transition (8%)"
+        default=0.08, ge=0.0, le=0.15, description="Gain threshold for tier 1->2 transition (8%)"
     )
     tier2_threshold: float = Field(
-        default=0.20,
-        ge=0.10,
-        le=0.35,
-        description="Gain threshold for tier 2->3 transition (20%)"
+        default=0.20, ge=0.10, le=0.35, description="Gain threshold for tier 2->3 transition (20%)"
     )
     tier3_threshold: float = Field(
-        default=0.50,
-        ge=0.30,
-        le=0.70,
-        description="Gain threshold for tier 3->4 transition (50%)"
+        default=0.50, ge=0.30, le=0.70, description="Gain threshold for tier 3->4 transition (50%)"
     )
     tier1_trailing: float = Field(
-        default=0.12,
-        ge=0.08,
-        le=0.20,
-        description="Trailing stop for tier 1 (<8% gain): 12%"
+        default=0.12, ge=0.08, le=0.20, description="Trailing stop for tier 1 (<8% gain): 12%"
     )
     tier2_trailing: float = Field(
-        default=0.14,
-        ge=0.08,
-        le=0.25,
-        description="Trailing stop for tier 2 (8-20% gain): 14%"
+        default=0.14, ge=0.08, le=0.25, description="Trailing stop for tier 2 (8-20% gain): 14%"
     )
     tier3_trailing: float = Field(
-        default=0.16,
-        ge=0.10,
-        le=0.30,
-        description="Trailing stop for tier 3 (20-50% gain): 16%"
+        default=0.16, ge=0.10, le=0.30, description="Trailing stop for tier 3 (20-50% gain): 16%"
     )
     tier4_trailing: float = Field(
-        default=0.22,
-        ge=0.15,
-        le=0.40,
-        description="Trailing stop for tier 4 (>50% gain): 22%"
+        default=0.22, ge=0.15, le=0.40, description="Trailing stop for tier 4 (>50% gain): 22%"
     )
 
     # === Regime Multipliers ===
     # Adjust thresholds based on regime (bullish relaxes, defensive tightens)
     rs_bullish_mult: float = Field(
-        default=0.85,
+        default=1.05,
         ge=0.75,
-        le=1.0,
-        description="RS threshold multiplier in bullish (1.05 × 0.85 = 0.89)"
+        le=1.20,
+        description="RS threshold multiplier in bullish (1.05 × 1.05 = 1.10 — pick leaders)",
     )
     rs_defensive_mult: float = Field(
-        default=1.05,
-        ge=1.0,
+        default=0.90,
+        ge=0.75,
         le=1.20,
-        description="RS threshold multiplier in defensive (1.05 × 1.05 = 1.10)"
+        description="RS threshold multiplier in defensive (1.05 × 0.90 = 0.95 — don't over-filter)",
     )
     stop_bullish_mult: float = Field(
         default=1.25,
         ge=1.0,
         le=1.5,
-        description="Stop loss width multiplier in bullish (wider stops)"
+        description="Stop loss width multiplier in bullish (wider stops)",
     )
     stop_defensive_mult: float = Field(
         default=0.85,
         ge=0.6,
         le=1.0,
-        description="Stop loss width multiplier in defensive (tighter stops)"
+        description="Stop loss width multiplier in defensive (tighter stops)",
     )
 
     # === Trend Break Protection ===
@@ -1076,90 +994,66 @@ class AdaptiveDualMomentumConfig(BaseModel):
         default=0.035,
         ge=0.0,
         le=0.10,
-        description="Base buffer below 50 EMA before trend break exit (E8: tuned)"
+        description="Base buffer below 50 EMA before trend break exit (E8: tuned)",
     )
     trend_break_days: int = Field(
-        default=2,
-        ge=1,
-        le=5,
-        description="Base days below 50-EMA to confirm trend break"
+        default=2, ge=1, le=5, description="Base days below 50-EMA to confirm trend break"
     )
     trend_break_buffer_bullish_mult: float = Field(
-        default=1.67,
-        ge=1.0,
-        le=3.0,
-        description="Buffer multiplier in bullish (3% × 1.67 = 5%)"
+        default=1.67, ge=1.0, le=3.0, description="Buffer multiplier in bullish (3% × 1.67 = 5%)"
     )
     trend_break_buffer_defensive_mult: float = Field(
-        default=0.0,
+        default=0.30,
         ge=0.0,
         le=1.0,
-        description="Buffer multiplier in defensive (0% = immediate)"
+        description="Buffer multiplier in defensive (3.5% × 0.30 = 1.05% buffer)",
     )
     trend_break_confirm_bullish_mult: float = Field(
         default=1.5,
         ge=1.0,
         le=3.0,
-        description="Confirm days multiplier in bullish (2 × 1.5 = 3 days)"
+        description="Confirm days multiplier in bullish (2 × 1.5 = 3 days)",
     )
     trend_break_confirm_defensive_mult: float = Field(
         default=0.5,
         ge=0.0,
         le=1.0,
-        description="Confirm days multiplier in defensive (2 × 0.5 = 1 day)"
+        description="Confirm days multiplier in defensive (2 × 0.5 = 1 day)",
     )
 
     # === Legacy Stop Loss Settings (fallback) ===
     hard_stop: float = Field(
-        default=0.15,
-        ge=0.10,
-        le=0.25,
-        description="Hard stop loss from entry (-15%)"
+        default=0.15, ge=0.10, le=0.25, description="Hard stop loss from entry (-15%)"
     )
     trailing_stop: float = Field(
         default=0.15,
         ge=0.10,
         le=0.25,
-        description="Trailing stop from peak (15%) - used when tiered disabled"
+        description="Trailing stop from peak (15%) - used when tiered disabled",
     )
     trailing_activation: float = Field(
-        default=0.08,
-        ge=0.05,
-        le=0.40,
-        description="Gain required to activate trailing (8%)"
+        default=0.08, ge=0.05, le=0.40, description="Gain required to activate trailing (8%)"
     )
     defensive_trailing_stop: float = Field(
         default=0.10,
         ge=0.05,
         le=0.20,
-        description="Tighter trailing stop in DEFENSIVE regime (10%)"
+        description="Tighter trailing stop in DEFENSIVE regime (10%)",
     )
 
     # === Volatility Targeting ===
     # Scale position size inversely to volatility
     target_volatility: float = Field(
-        default=0.15,
-        ge=0.05,
-        le=0.30,
-        description="Target annualized volatility (15%)"
+        default=0.15, ge=0.05, le=0.30, description="Target annualized volatility (15%)"
     )
     max_vol_scale: float = Field(
-        default=1.5,
-        ge=1.0,
-        le=2.0,
-        description="Maximum position size multiplier (1.5x)"
+        default=1.5, ge=1.0, le=2.0, description="Maximum position size multiplier (1.5x)"
     )
     high_vol_threshold: float = Field(
-        default=0.25,
-        ge=0.15,
-        le=0.40,
-        description="Volatility above this triggers reduction"
+        default=0.25, ge=0.15, le=0.40, description="Volatility above this triggers reduction"
     )
     high_vol_reduction: float = Field(
-        default=0.70,
-        ge=0.50,
-        le=0.90,
-        description="Position multiplier in high volatility (0.7x)"
+        default=0.70, ge=0.50, le=0.90, description="Position multiplier in high volatility (0.7x)"
     )
 
     # === Entry Filters ===
@@ -1167,57 +1061,44 @@ class AdaptiveDualMomentumConfig(BaseModel):
         default=10_000_000,
         ge=1_000_000,
         le=100_000_000,
-        description="Minimum daily turnover Rs 1 Cr"
+        description="Minimum daily turnover Rs 1 Cr",
     )
     defensive_rs_boost: float = Field(
-        default=0.10,
-        ge=0.0,
-        le=0.30,
-        description="Extra RS required in DEFENSIVE regime (+10%)"
+        default=0.10, ge=0.0, le=0.30, description="Extra RS required in DEFENSIVE regime (+10%)"
     )
     min_52w_high_prox: float = Field(
-        default=0.85,
-        ge=0.5,
-        le=1.0,
-        description="Minimum proximity to 52-week high (85%)"
+        default=0.85, ge=0.5, le=1.0, description="Minimum proximity to 52-week high (85%)"
     )
     high_52w_bullish_mult: float = Field(
         default=0.90,
         ge=0.80,
         le=1.0,
-        description="52W high multiplier in bullish (85% × 0.90 = 76.5%)"
+        description="52W high multiplier in bullish (85% × 0.90 = 76.5%)",
     )
     high_52w_defensive_mult: float = Field(
         default=1.05,
         ge=1.0,
         le=1.15,
-        description="52W high multiplier in defensive (85% × 1.05 = 89.3%)"
+        description="52W high multiplier in defensive (85% × 1.05 = 89.3%)",
     )
 
     # === Partial Filter Passing ===
     use_partial_filter_passing: bool = Field(
-        default=True,
-        description="Allow 2 of 3 entry filters to pass in bullish/recovery"
+        default=True, description="Allow 2 of 3 entry filters to pass in bullish/recovery"
     )
     partial_filter_min_passed: int = Field(
-        default=2,
-        ge=1,
-        le=3,
-        description="Minimum filters required (2 of 3)"
+        default=2, ge=1, le=3, description="Minimum filters required (2 of 3)"
     )
     partial_filter_score_penalty: float = Field(
         default=0.04,
         ge=0.0,
         le=0.20,
-        description="Score penalty when only partial filters pass (4%)"
+        description="Score penalty when only partial filters pass (4%)",
     )
 
     # === Rebalancing ===
     rebalance_days: int = Field(
-        default=21,
-        ge=7,
-        le=63,
-        description="Days between rebalances (21 = monthly)"
+        default=21, ge=7, le=63, description="Days between rebalances (21 = monthly)"
     )
 
     # === Sector Momentum Filter (E5) ===
@@ -1275,7 +1156,13 @@ class AdaptiveDualMomentumConfig(BaseModel):
         default=1.50,
         ge=1.0,
         le=2.0,
-        description="Trailing stop multiplier during recovery modes (1.5 = 50% wider)",
+        description="Trailing stop multiplier during bull recovery (1.5 = 50% wider)",
+    )
+    stop_recovery_mult_general: float = Field(
+        default=1.25,
+        ge=1.0,
+        le=2.0,
+        description="Trailing stop multiplier during general drawdown recovery (1.25 = 25% wider)",
     )
 
     @field_validator("vix_defensive_threshold")
@@ -1310,20 +1197,26 @@ class ProfileConfig(BaseModel):
         default_factory=lambda: ["NIFTY100", "MIDCAP100"],
         description="Universe keys to include (e.g. ['NIFTY100', 'MIDCAP100'])",
     )
-    initial_capital: float = Field(default=2000000, gt=0, description="Initial capital for this profile")
+    initial_capital: float = Field(
+        default=2000000, gt=0, description="Initial capital for this profile"
+    )
     target_positions: int = Field(default=12, ge=5, le=30)
     min_positions: int = Field(default=10, ge=5, le=20)
     max_positions: int = Field(default=15, ge=10, le=50)
     max_single_position: float = Field(default=0.10, gt=0, le=0.20)
     max_gold_allocation: Optional[float] = Field(
-        default=None, ge=0.0, le=0.35,
+        default=None,
+        ge=0.0,
+        le=0.35,
         description="Per-profile gold cap. None=use global. 0.0=no gold hedge.",
     )
     strategy_overrides: Optional[StrategyOverrides] = Field(
         default=None,
         description="Per-profile strategy parameter overrides",
     )
-    state_file: str = Field(default="strategy_state.json", description="State file name (inside .cache/)")
+    state_file: str = Field(
+        default="strategy_state.json", description="State file name (inside .cache/)"
+    )
 
 
 class Config(BaseModel):
@@ -1340,17 +1233,12 @@ class Config(BaseModel):
     regime: RegimeConfig = Field(default_factory=RegimeConfig)
 
     # Dynamic rebalancing and adaptive lookback configs (NEW)
-    dynamic_rebalance: DynamicRebalanceConfig = Field(
-        default_factory=DynamicRebalanceConfig
-    )
-    adaptive_lookback: AdaptiveLookbackConfig = Field(
-        default_factory=AdaptiveLookbackConfig
-    )
+    dynamic_rebalance: DynamicRebalanceConfig = Field(default_factory=DynamicRebalanceConfig)
+    adaptive_lookback: AdaptiveLookbackConfig = Field(default_factory=AdaptiveLookbackConfig)
 
     # Strategy selection
     active_strategy: str = Field(
-        default="dual_momentum",
-        description="Active strategy: 'dual_momentum'"
+        default="dual_momentum", description="Active strategy: 'dual_momentum'"
     )
 
     # Strategy-specific configs
@@ -1362,9 +1250,15 @@ class Config(BaseModel):
     # are excluded from momentum ranking but used for defensive allocation
     excluded_symbols: List[str] = Field(
         default_factory=lambda: [
-            "LIQUIDCASE", "LIQUIDBEES", "LIQUIDETF",
-            "NIFTYBEES", "JUNIORBEES", "MID150BEES",
-            "HDFCSML250", "GOLDBEES", "HANGSENGBEES",
+            "LIQUIDCASE",
+            "LIQUIDBEES",
+            "LIQUIDETF",
+            "NIFTYBEES",
+            "JUNIORBEES",
+            "MID150BEES",
+            "HDFCSML250",
+            "GOLDBEES",
+            "HANGSENGBEES",
         ]
     )
 
@@ -1429,9 +1323,15 @@ class Config(BaseModel):
                 tier4_trailing=round(sdm.tier4_trailing * m, 4),
                 hard_stop=round(sdm.hard_stop * m, 4),
             )
-        for attr in ("rs_exit_threshold", "min_52w_high_prox", "min_hold_days",
-                     "trend_break_buffer", "sector_exclude_bullish",
-                     "sector_exclude_caution", "sector_exclude_defensive"):
+        for attr in (
+            "rs_exit_threshold",
+            "min_52w_high_prox",
+            "min_hold_days",
+            "trend_break_buffer",
+            "sector_exclude_bullish",
+            "sector_exclude_caution",
+            "sector_exclude_defensive",
+        ):
             val = getattr(overrides, attr, None)
             if val is not None:
                 sdm_updates[attr] = val
@@ -1450,9 +1350,7 @@ class Config(BaseModel):
         if regime_updates:
             updates["regime"] = self.regime.model_copy(update=regime_updates)
         if dyn_updates:
-            updates["dynamic_rebalance"] = self.dynamic_rebalance.model_copy(
-                update=dyn_updates
-            )
+            updates["dynamic_rebalance"] = self.dynamic_rebalance.model_copy(update=dyn_updates)
 
         return self.model_copy(update=updates) if updates else self
 

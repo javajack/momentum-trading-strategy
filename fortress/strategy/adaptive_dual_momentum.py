@@ -26,25 +26,25 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
-from .base import BaseStrategy, ExitSignal, StockScore, StopLossConfig
-from .registry import StrategyRegistry
 from ..indicators import (
-    calculate_normalized_momentum_score,
-    calculate_relative_strength,
-    calculate_exhaustion_score,
-    calculate_position_momentum,
-    calculate_bull_recovery_signals,
-    calculate_adaptive_lookback,
-    detect_momentum_crash,
-    detect_breadth_thrust,
-    detect_vix_recovery,
-    detect_simple_regime,
+    BullRecoverySignals,
+    RegimeResult,
     SimpleRegime,
     SimpleRegimeResult,
-    RegimeResult,
-    BullRecoverySignals,
+    calculate_adaptive_lookback,
+    calculate_bull_recovery_signals,
+    calculate_exhaustion_score,
+    calculate_normalized_momentum_score,
+    calculate_position_momentum,
+    calculate_relative_strength,
+    detect_breadth_thrust,
+    detect_momentum_crash,
+    detect_simple_regime,
+    detect_vix_recovery,
 )
 from ..utils import renormalize_with_caps
+from .base import BaseStrategy, ExitSignal, StockScore, StopLossConfig
+from .registry import StrategyRegistry
 
 if TYPE_CHECKING:
     from ..config import Config
@@ -178,9 +178,15 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
     def __init__(self, config: Optional["Config"] = None):
         super().__init__(config)
         self._excluded_symbols: Set[str] = {
-            "LIQUIDCASE", "LIQUIDBEES", "LIQUIDETF",
-            "NIFTYBEES", "JUNIORBEES", "MID150BEES",
-            "HDFCSML250", "GOLDBEES", "HANGSENGBEES",
+            "LIQUIDCASE",
+            "LIQUIDBEES",
+            "LIQUIDETF",
+            "NIFTYBEES",
+            "JUNIORBEES",
+            "MID150BEES",
+            "HDFCSML250",
+            "GOLDBEES",
+            "HANGSENGBEES",
         }
 
         # Regime tracking
@@ -270,9 +276,7 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         if self._current_regime is not None:
             vix_level = self._current_regime.vix_level
 
-        self._crash_recovery_state = self._check_crash_recovery_mode(
-            as_of_date, vix_level
-        )
+        self._crash_recovery_state = self._check_crash_recovery_mode(as_of_date, vix_level)
 
     def _check_recovery_mode(self, as_of_date: datetime) -> RecoveryModeState:
         """
@@ -471,7 +475,10 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         if crash_signal.is_crash:
             # E6: Use lighter scale for early-warning slow grind vs full crash
             effective_scale = position_scale
-            if crash_signal.recommendation == "REDUCE_MOMENTUM" and not crash_signal.volatility_spike:
+            if (
+                crash_signal.recommendation == "REDUCE_MOMENTUM"
+                and not crash_signal.volatility_spike
+            ):
                 # Early warning (slow grind): lighter reduction
                 effective_scale = early_warning_scale
             logger.warning(
@@ -617,17 +624,14 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             "rs_weight": 0.25,
             "min_nms_for_entry": 0.0,
             "rs_exit_threshold": 0.94,
-
             # Simple Regime
             "vix_bullish_threshold": 18.0,
             "vix_defensive_threshold": 25.0,
-
             # Feature toggles
             "use_adaptive_parameters": True,
             "use_recovery_modes": True,
             "use_tiered_stops": True,
             "use_full_regime": True,
-
             # Recovery settings
             "recovery_drawdown_trigger": -0.07,
             "recovery_duration_days": 60,
@@ -642,7 +646,6 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             "crash_recovery_duration_days": 90,
             "crash_recovery_52w_mult": 0.75,
             "crash_recovery_ema_buffer": 0.15,
-
             # Tiered stops
             "tier1_threshold": 0.08,
             "tier2_threshold": 0.20,
@@ -651,13 +654,11 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             "tier2_trailing": 0.14,
             "tier3_trailing": 0.16,
             "tier4_trailing": 0.22,
-
             # Regime multipliers
             "rs_bullish_mult": 0.85,
             "rs_defensive_mult": 1.05,
             "stop_bullish_mult": 1.25,
             "stop_defensive_mult": 0.85,
-
             # Trend break
             "trend_break_buffer": 0.035,
             "trend_break_days": 2,
@@ -665,31 +666,26 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             "trend_break_buffer_defensive_mult": 0.0,
             "trend_break_confirm_bullish_mult": 1.5,
             "trend_break_confirm_defensive_mult": 0.5,
-
             # Stop Losses (legacy)
             "hard_stop": 0.15,
             "trailing_stop": 0.15,
             "trailing_activation": 0.08,
             "defensive_trailing_stop": 0.10,
-
             # Volatility Targeting
             "target_volatility": 0.15,
             "max_vol_scale": 1.5,
             "high_vol_threshold": 0.25,
             "high_vol_reduction": 0.70,
-
             # Entry Filters
             "min_daily_turnover": 10_000_000,
             "defensive_rs_boost": 0.10,
             "min_52w_high_prox": 0.85,
             "high_52w_bullish_mult": 0.90,
             "high_52w_defensive_mult": 1.05,
-
             # Partial filter passing
             "use_partial_filter_passing": True,
             "partial_filter_min_passed": 2,
             "partial_filter_score_penalty": 0.04,
-
             # NMS Parameters (from pure_momentum config)
             "lookback_6m": 126,
             "lookback_12m": 252,
@@ -697,12 +693,10 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             "skip_recent_days": 5,
             "weight_6m": 0.50,
             "weight_12m": 0.50,
-
             # Position sizing
             "max_single_position": 0.08,
             "min_single_position": 0.03,
             "max_sector_exposure": 0.30,
-
             # === NEW: Crash Avoidance Settings ===
             "use_crash_avoidance": True,
             "crash_avoidance_threshold": -0.07,  # Market 1M return threshold (E6: -0.10→-0.07)
@@ -713,24 +707,20 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             "crash_early_warning_threshold": -0.05,  # 1M return for early warning
             "crash_early_warning_3m_threshold": -0.08,  # 3M return confirmation
             "crash_early_warning_scale": 0.80,  # Reduce to 80% positions (not 60%)
-
             # === NEW: Adaptive Lookback Settings ===
             "use_adaptive_lookback": True,
             "adaptive_lookback_dd_threshold": 0.05,  # DD to trigger recovery mode
             "adaptive_lookback_vix_threshold": 30.0,  # VIX to trigger volatile mode
             "adaptive_lookback_recovery_mult": 0.5,  # 50% shorter lookbacks
             "adaptive_lookback_volatile_mult": 1.5,  # 50% longer lookbacks
-
             # === NEW: Breadth Thrust Settings ===
             "breadth_thrust_low": 0.40,  # Starting breadth level
             "breadth_thrust_high": 0.615,  # Thrust confirmation level
             "breadth_thrust_days": 10,  # Max days for thrust
-
             # === NEW: Sector Momentum Filter (E5) ===
             "use_sector_momentum": True,
             "sector_momentum_lookback": 126,  # 6 months
             "sector_exclude_bottom": 3,  # Exclude bottom 3 sectors
-
             # === E9: Minimum Hold Period ===
             "min_hold_days": 3,  # Only hard stop during first 3 days
         }
@@ -748,8 +738,12 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             if hasattr(self._config, "pure_momentum"):
                 pm = self._config.pure_momentum
                 for key in [
-                    "lookback_6m", "lookback_12m", "lookback_volatility",
-                    "skip_recent_days", "weight_6m", "weight_12m",
+                    "lookback_6m",
+                    "lookback_12m",
+                    "lookback_volatility",
+                    "skip_recent_days",
+                    "weight_6m",
+                    "weight_12m",
                 ]:
                     if hasattr(pm, key):
                         defaults[key] = getattr(pm, key)
@@ -829,7 +823,10 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
 
         # Bull recovery mode: even more aggressive relaxation
         if cfg.get("use_bull_recovery_mode", True) and self._bull_recovery_state.is_active:
-            relax = cfg.get("bull_recovery_filter_relaxation", 0.25) * self._bull_recovery_state.recovery_strength
+            relax = (
+                cfg.get("bull_recovery_filter_relaxation", 0.25)
+                * self._bull_recovery_state.recovery_strength
+            )
             if defensive_mult > bullish_mult:
                 adjustment -= relax * (defensive_mult - bullish_mult)
             else:
@@ -871,14 +868,18 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         tier3 = self._adaptive_param(cfg.get("tier3_trailing", 0.16), stop_bullish, stop_defensive)
         tier4 = self._adaptive_param(cfg.get("tier4_trailing", 0.22), stop_bullish, stop_defensive)
 
-        # Change 4: Widen stops during recovery modes
-        any_recovery = (
-            self._recovery_state.is_active
-            or self._bull_recovery_state.is_active
-            or self._crash_recovery_state.is_active
-        )
-        if any_recovery:
+        # Change 4: Widen stops during recovery modes (differentiated by type)
+        # Bull recovery: full widening (market recovering, give room)
+        # General recovery: moderate widening
+        # Crash recovery: no widening (crashes need tight stops)
+        if self._bull_recovery_state.is_active:
             recovery_mult = cfg.get("stop_recovery_mult", 1.50)
+        elif self._recovery_state.is_active:
+            recovery_mult = cfg.get("stop_recovery_mult_general", 1.25)
+        else:
+            recovery_mult = None  # No widening (crash or no recovery)
+
+        if recovery_mult is not None:
             tier1 = max(tier1, cfg.get("tier1_trailing", 0.12) * recovery_mult)
             tier2 = max(tier2, cfg.get("tier2_trailing", 0.14) * recovery_mult)
             tier3 = max(tier3, cfg.get("tier3_trailing", 0.16) * recovery_mult)
@@ -908,11 +909,16 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             tier4_trailing=tier4,
             # Trend break thresholds
             trend_break_buffer=ema_buffer,
-            trend_break_confirm_days=max(1, round(self._adaptive_param(
-                float(cfg.get("trend_break_days", 2)),
-                cfg.get("trend_break_confirm_bullish_mult", 1.5),
-                cfg.get("trend_break_confirm_defensive_mult", 0.5),
-            ))),
+            trend_break_confirm_days=max(
+                1,
+                round(
+                    self._adaptive_param(
+                        float(cfg.get("trend_break_days", 2)),
+                        cfg.get("trend_break_confirm_bullish_mult", 1.5),
+                        cfg.get("trend_break_confirm_defensive_mult", 0.5),
+                    )
+                ),
+            ),
             # Context info
             stress_score=stress,
             recovery_mode_active=self._recovery_state.is_active,
@@ -924,10 +930,10 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         """Check if conditions allow relaxed filters."""
         stress = self._get_stress_score()
         return (
-            stress < 0.35 or
-            self._recovery_state.is_active or
-            self._bull_recovery_state.is_active or
-            self._crash_recovery_state.is_active
+            stress < 0.35
+            or self._recovery_state.is_active
+            or self._bull_recovery_state.is_active
+            or self._crash_recovery_state.is_active
         )
 
     def _calculate_sector_momentum(
@@ -990,13 +996,9 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         if not cfg.get("use_sector_momentum", True):
             return set()
 
-        # During recovery: skip sector filter entirely
-        any_recovery = (
-            self._recovery_state.is_active
-            or self._bull_recovery_state.is_active
-            or self._crash_recovery_state.is_active
-        )
-        if any_recovery:
+        # During drawdown/crash recovery: skip sector filter
+        # Bull recovery keeps filter active (market is bullish, diversification helps)
+        if self._recovery_state.is_active or self._crash_recovery_state.is_active:
             return set()
 
         sector_momentum = self._calculate_sector_momentum(as_of_date, universe, market_data)
@@ -1130,7 +1132,14 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
 
             # --- Entry Filter Checks ---
             filter_reasons = []
-            filter_passes = {"nms": True, "rs": True, "ema": True, "high_52w": True, "turnover": True, "sma200": True}
+            filter_passes = {
+                "nms": True,
+                "rs": True,
+                "ema": True,
+                "high_52w": True,
+                "turnover": True,
+                "sma200": True,
+            }
 
             # 1. Absolute Momentum: NMS > threshold
             if nms_result.nms <= cfg["min_nms_for_entry"]:
@@ -1147,7 +1156,9 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             if distance_from_50ema < -adapted.ema_buffer:
                 filter_passes["ema"] = False
                 buffer_pct = adapted.ema_buffer * 100
-                filter_reasons.append(f"Below 50-EMA: {distance_from_50ema:.1%} (buffer: {buffer_pct:.0f}%)")
+                filter_reasons.append(
+                    f"Below 50-EMA: {distance_from_50ema:.1%} (buffer: {buffer_pct:.0f}%)"
+                )
             elif not nms_result.above_50ema and adapted.ema_buffer == 0:
                 filter_passes["ema"] = False
                 filter_reasons.append("Below 50-EMA")
@@ -1163,7 +1174,7 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             if nms_result.daily_turnover < cfg["min_daily_turnover"]:
                 filter_passes["turnover"] = False
                 filter_reasons.append(
-                    f"Turnover {nms_result.daily_turnover/1e6:.1f}M < {cfg['min_daily_turnover']/1e6:.1f}M"
+                    f"Turnover {nms_result.daily_turnover / 1e6:.1f}M < {cfg['min_daily_turnover'] / 1e6:.1f}M"
                 )
 
             # 6. 200-SMA trend filter (skipped during crash recovery)
@@ -1174,10 +1185,14 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             # 7. Sector momentum filter (E5): soft penalty instead of hard exclude
             in_bottom_sector = bool(bottom_sectors and stock.sector in bottom_sectors)
             if in_bottom_sector:
-                filter_reasons.append(f"Sector '{stock.sector}' in bottom {len(bottom_sectors)} (penalty)")
+                filter_reasons.append(
+                    f"Sector '{stock.sector}' in bottom {len(bottom_sectors)} (penalty)"
+                )
 
             # Count how many core filters pass (NMS, RS, EMA)
-            core_filters_passed = sum([filter_passes["nms"], filter_passes["rs"], filter_passes["ema"]])
+            core_filters_passed = sum(
+                [filter_passes["nms"], filter_passes["rs"], filter_passes["ema"]]
+            )
             all_filters_passed = all(filter_passes.values())
 
             # Apply partial filter passing logic
@@ -1201,11 +1216,11 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
 
             # Apply penalty for partial pass
             if passes and not all_filters_passed:
-                score *= (1.0 - cfg.get("partial_filter_score_penalty", 0.04))
+                score *= 1.0 - cfg.get("partial_filter_score_penalty", 0.04)
 
             # Apply sector momentum soft penalty (Change 2)
             if in_bottom_sector:
-                score *= (1.0 - cfg.get("sector_momentum_penalty", 0.15))
+                score *= 1.0 - cfg.get("sector_momentum_penalty", 0.15)
 
             # Create StockScore
             stock_score = StockScore(

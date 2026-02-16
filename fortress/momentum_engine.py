@@ -26,24 +26,24 @@ import pandas as pd
 
 from .config import (
     Config,
-    PureMomentumConfig,
     PositionSizingConfig,
-    RiskConfig,
+    PureMomentumConfig,
     RegimeConfig,
+    RiskConfig,
 )
-from .utils import renormalize_with_caps
 from .indicators import (
-    NMSResult,
-    calculate_normalized_momentum_score,
-    calculate_exit_triggers,
-    calculate_bull_recovery_signals,
-    detect_market_regime,
-    MarketRegime,
-    RegimeResult,
     BullRecoverySignals,
+    MarketRegime,
+    NMSResult,
+    RegimeResult,
+    calculate_bull_recovery_signals,
+    calculate_exit_triggers,
+    calculate_normalized_momentum_score,
+    detect_market_regime,
 )
 from .market_data import MarketDataProvider
-from .universe import Universe, Stock
+from .universe import Stock, Universe
+from .utils import renormalize_with_caps
 
 if TYPE_CHECKING:
     from .strategy import BaseStrategy, StockScore
@@ -75,23 +75,23 @@ class StockMomentum:
     zerodha_symbol: str
 
     # NMS components
-    nms: float                    # Normalized Momentum Score
-    return_6m: float              # 6-month simple return
-    return_12m: float             # 12-month simple return
-    volatility_6m: float          # 6-month annualized volatility
-    adj_return_6m: float          # Volatility-adjusted 6M return
-    adj_return_12m: float         # Volatility-adjusted 12M return
+    nms: float  # Normalized Momentum Score
+    return_6m: float  # 6-month simple return
+    return_12m: float  # 12-month simple return
+    volatility_6m: float  # 6-month annualized volatility
+    adj_return_6m: float  # Volatility-adjusted 6M return
+    adj_return_12m: float  # Volatility-adjusted 12M return
 
     # Entry filter results
-    high_52w_proximity: float     # Price / 52-week high
-    above_50ema: bool             # Price > 50-day EMA
-    above_200sma: bool            # Price > 200-day SMA
-    volume_surge: float           # 20d avg / 50d avg volume
-    daily_turnover: float         # Average daily turnover (₹)
+    high_52w_proximity: float  # Price / 52-week high
+    above_50ema: bool  # Price > 50-day EMA
+    above_200sma: bool  # Price > 200-day SMA
+    volume_surge: float  # 20d avg / 50d avg volume
+    daily_turnover: float  # Average daily turnover (₹)
 
     # Ranking
-    rank: int = 0                 # Overall rank by NMS
-    percentile: float = 0.0       # NMS percentile (0-100)
+    rank: int = 0  # Overall rank by NMS
+    percentile: float = 0.0  # NMS percentile (0-100)
 
     # Entry filter status
     passes_filters: bool = False
@@ -121,7 +121,7 @@ class StockMomentum:
             failures.append(f"Volume: {self.volume_surge:.2f}x < 1.1x")
 
         if self.daily_turnover < 20_000_000:
-            failures.append(f"Turnover: ₹{self.daily_turnover/1e7:.1f}Cr < ₹2Cr")
+            failures.append(f"Turnover: ₹{self.daily_turnover / 1e7:.1f}Cr < ₹2Cr")
 
         self.filter_failures = failures
         self.passes_filters = len(failures) == 0
@@ -135,12 +135,12 @@ class PositionTracker:
     sector: str
     entry_price: float
     entry_date: datetime
-    entry_nms: float              # NMS at entry
+    entry_nms: float  # NMS at entry
     quantity: int
     current_price: float = 0.0
-    peak_price: float = 0.0       # Highest price since entry
-    current_nms: float = 0.0      # Current NMS
-    nms_percentile: float = 0.0   # Current NMS percentile
+    peak_price: float = 0.0  # Highest price since entry
+    current_nms: float = 0.0  # Current NMS
+    nms_percentile: float = 0.0  # Current NMS percentile
     days_held: int = 0
 
     def update(
@@ -165,7 +165,9 @@ class PositionTracker:
     @property
     def gain_from_peak(self) -> float:
         """Current price vs peak price."""
-        return (self.current_price - self.peak_price) / self.peak_price if self.peak_price > 0 else 0.0
+        return (
+            (self.current_price - self.peak_price) / self.peak_price if self.peak_price > 0 else 0.0
+        )
 
     @property
     def current_value(self) -> float:
@@ -239,11 +241,24 @@ class MomentumEngine:
         self._current_drawdown: float = 0.0
         self._peak_portfolio_value: float = 0.0
 
+        # Recovery override hysteresis (FIX 6)
+        self._recovery_override_active: bool = False
+        self._recovery_override_confirm_days: int = 0
+
+        # Smoothed breadth for scaling (FIX 8)
+        self._breadth_ema: Optional[float] = None
+
         # Excluded symbols (ETFs, hedges) — config-based + hardcoded external ETFs
         self._excluded_symbols: Set[str] = {
-            "LIQUIDCASE", "LIQUIDBEES", "LIQUIDETF",
-            "NIFTYBEES", "JUNIORBEES", "MID150BEES",
-            "HDFCSML250", "GOLDBEES", "HANGSENGBEES",
+            "LIQUIDCASE",
+            "LIQUIDBEES",
+            "LIQUIDETF",
+            "NIFTYBEES",
+            "JUNIORBEES",
+            "MID150BEES",
+            "HDFCSML250",
+            "GOLDBEES",
+            "HANGSENGBEES",
             self.regime_config.gold_symbol,  # Parity with backtest._excluded_set
             self.regime_config.cash_symbol,
         }
@@ -293,7 +308,9 @@ class MomentumEngine:
 
             # Fallback to API if no cache or insufficient data
             if df is None or len(df) < self.momentum_config.lookback_6m:
-                lookback_days = self.momentum_config.lookback_12m + self.momentum_config.skip_recent_days + 30
+                lookback_days = (
+                    self.momentum_config.lookback_12m + self.momentum_config.skip_recent_days + 30
+                )
                 from_date = as_of_date - timedelta(days=int(lookback_days * 1.5))
                 df = self.market_data.get_historical(
                     symbol=stock.zerodha_symbol,
@@ -609,7 +626,11 @@ class MomentumEngine:
         """
         # Build ticker -> sector mapping
         ticker_to_sector = {s.ticker: s.sector for s in selected_stocks}
-        max_sector = max_sector_override if max_sector_override is not None else self.sizing_config.max_sector_exposure
+        max_sector = (
+            max_sector_override
+            if max_sector_override is not None
+            else self.sizing_config.max_sector_exposure
+        )
         adjusted_weights = dict(weights)
         capped_sectors: set = set()
 
@@ -641,11 +662,11 @@ class MomentumEngine:
 
             # Normalize only uncapped sectors to make weights sum to 1.0
             capped_total = sum(
-                w for t, w in adjusted_weights.items()
-                if ticker_to_sector.get(t) in capped_sectors
+                w for t, w in adjusted_weights.items() if ticker_to_sector.get(t) in capped_sectors
             )
             uncapped_total = sum(
-                w for t, w in adjusted_weights.items()
+                w
+                for t, w in adjusted_weights.items()
                 if ticker_to_sector.get(t) not in capped_sectors
             )
 
@@ -733,6 +754,7 @@ class MomentumEngine:
                     if self._strategy is not None:
                         # Convert NMS result to StockScore for strategy
                         from .strategy import StockScore
+
                         stock_score = StockScore(
                             ticker=ticker,
                             sector=pos.sector,
@@ -775,9 +797,7 @@ class MomentumEngine:
                                 "rs_floor": ExitReason.MOMENTUM_DECAY,
                                 "exhaustion": ExitReason.MOMENTUM_DECAY,
                             }
-                            exit_type = exit_type_map.get(
-                                exit_signal.exit_type, ExitReason.MANUAL
-                            )
+                            exit_type = exit_type_map.get(exit_signal.exit_type, ExitReason.MANUAL)
                             exits.append((ticker, exit_type, exit_signal.reason))
                     else:
                         # Original implementation (when no strategy is set)
@@ -1024,7 +1044,7 @@ class MomentumEngine:
         if len(self._portfolio_daily_returns) < lookback:
             return 1.0
         recent_returns = self._portfolio_daily_returns[-lookback:]
-        realized_vol = np.std(recent_returns) * (252 ** 0.5)
+        realized_vol = np.std(recent_returns) * (252**0.5)
         if realized_vol < 0.01:
             return 1.0
         raw_scale = self.regime_config.target_portfolio_vol / realized_vol
@@ -1035,10 +1055,17 @@ class MomentumEngine:
         if not self.regime_config.use_breadth_scaling:
             return 1.0
         try:
-            # Compute breadth from cached universe data
-            breadth = self._compute_live_breadth(as_of_date)
+            raw_breadth = self._compute_live_breadth(as_of_date)
         except Exception:
             return 1.0
+
+        # Smooth breadth with 5-day EMA to reduce oscillation in sideways markets (FIX 8)
+        alpha = 2.0 / (5 + 1)
+        if self._breadth_ema is None:
+            self._breadth_ema = raw_breadth
+        else:
+            self._breadth_ema = alpha * raw_breadth + (1 - alpha) * self._breadth_ema
+        breadth = self._breadth_ema
 
         cfg = self.regime_config
         if breadth >= cfg.breadth_full:
@@ -1142,10 +1169,13 @@ class MomentumEngine:
                 return (False, "")
             else:
                 returns = gold_df["close"].pct_change().dropna()
-                recent_vol = returns.iloc[-10:].std() * (252 ** 0.5)
-                avg_vol = returns.std() * (252 ** 0.5)
+                recent_vol = returns.iloc[-10:].std() * (252**0.5)
+                avg_vol = returns.std() * (252**0.5)
                 if recent_vol > avg_vol * 1.5 and recent_vol > 0.15:
-                    return (True, f"Gold volatile: recent_vol {recent_vol:.3f} > 1.5x avg {avg_vol:.3f}")
+                    return (
+                        True,
+                        f"Gold volatile: recent_vol {recent_vol:.3f} > 1.5x avg {avg_vol:.3f}",
+                    )
                 return (False, "")
         except Exception:
             return (False, "")
@@ -1203,9 +1233,8 @@ class MomentumEngine:
     ) -> None:
         """Redirect freed gold weight to equities pro-rata (uptrend) or cash (downtrend)."""
         cash_sym = self.regime_config.cash_symbol
-        if (
-            self.regime_config.redirect_freed_to_equity_in_uptrend
-            and self._is_market_uptrend(as_of_date)
+        if self.regime_config.redirect_freed_to_equity_in_uptrend and self._is_market_uptrend(
+            as_of_date
         ):
             defensive = {self.regime_config.gold_symbol, cash_sym}
             equity_weights = {t: w for t, w in weights.items() if t not in defensive and w > 0}
@@ -1241,7 +1270,9 @@ class MomentumEngine:
 
         # Calculate current drawdown
         if self._peak_portfolio_value > 0:
-            self._current_drawdown = (portfolio_value - self._peak_portfolio_value) / self._peak_portfolio_value
+            self._current_drawdown = (
+                portfolio_value - self._peak_portfolio_value
+            ) / self._peak_portfolio_value
         else:
             self._current_drawdown = 0.0
 
@@ -1312,7 +1343,9 @@ class MomentumEngine:
                 return_3m = (nifty_prices.iloc[-1] - price_3m_ago) / price_3m_ago
 
             # Use position momentum from regime if available
-            position_momentum = regime.position_momentum if hasattr(regime, "position_momentum") else 0.0
+            position_momentum = (
+                regime.position_momentum if hasattr(regime, "position_momentum") else 0.0
+            )
 
             # Calculate bull recovery signals
             return calculate_bull_recovery_signals(
@@ -1466,27 +1499,47 @@ class MomentumEngine:
             regime.equity_weight = min(1.0, regime.equity_weight + freed)
             regime.cash_weight = max(0.0, 1.0 - regime.equity_weight - regime.gold_weight)
 
-        # Change 5: Recovery equity override — cap stress when drawdown + improving breadth
+        # Change 5: Recovery equity override with hysteresis (FIX 6)
+        # Cap stress when drawdown + improving breadth, with confirmation period
         rcfg = self.regime_config
-        if (regime and rcfg.use_recovery_equity_override
-                and self._current_drawdown < rcfg.recovery_override_dd_threshold):
-            breadth_improving = False
-            lookback_days = 10
-            try:
-                current_b = self._compute_live_breadth(as_of_date)
-                past_date = as_of_date - timedelta(days=14)  # ~10 trading days
-                past_b = self._compute_live_breadth(past_date)
-                if current_b - past_b > rcfg.recovery_override_breadth_improvement:
-                    breadth_improving = True
-            except Exception:
-                pass  # breadth_improving stays False
-            if breadth_improving:
+        if regime and rcfg.use_recovery_equity_override:
+            conditions_met = False
+            if self._current_drawdown < rcfg.recovery_override_dd_threshold:
+                try:
+                    current_b = self._compute_live_breadth(as_of_date)
+                    past_date = as_of_date - timedelta(days=14)  # ~10 trading days
+                    past_b = self._compute_live_breadth(past_date)
+                    if current_b - past_b > rcfg.recovery_override_breadth_improvement:
+                        conditions_met = True
+                except Exception:
+                    pass
+
+            required_days = rcfg.recovery_override_confirmation_days
+            if conditions_met:
+                self._recovery_override_confirm_days = min(
+                    self._recovery_override_confirm_days + 1, required_days + 1
+                )
+                if self._recovery_override_confirm_days >= required_days:
+                    self._recovery_override_active = True
+            else:
+                self._recovery_override_confirm_days = max(
+                    self._recovery_override_confirm_days - 1, -(required_days + 1)
+                )
+                if self._recovery_override_confirm_days <= -required_days:
+                    self._recovery_override_active = False
+
+            if self._recovery_override_active:
                 import math
+
                 capped_stress = min(regime.stress_score, rcfg.recovery_override_max_stress)
                 steepness = rcfg.allocation_curve_steepness
-                stress_curve = math.pow(capped_stress, 1.0 / steepness) if steepness > 0 else capped_stress
+                stress_curve = (
+                    math.pow(capped_stress, 1.0 / steepness) if steepness > 0 else capped_stress
+                )
                 override_equity = 1.0 - stress_curve * (1.0 - rcfg.min_equity_allocation)
-                effective_max_gold = profile_max_gold if profile_max_gold is not None else rcfg.max_gold_allocation
+                effective_max_gold = (
+                    profile_max_gold if profile_max_gold is not None else rcfg.max_gold_allocation
+                )
                 override_gold = stress_curve * effective_max_gold
                 regime.equity_weight = max(regime.equity_weight, override_equity)
                 regime.gold_weight = min(regime.gold_weight, override_gold)
@@ -1517,7 +1570,9 @@ class MomentumEngine:
                     if freed_gold > 0.001:
                         self._redirect_freed_weight(weights, freed_gold, as_of_date)
             if regime.cash_weight > 0:
-                weights[self.regime_config.cash_symbol] = weights.get(self.regime_config.cash_symbol, 0.0) + regime.cash_weight
+                weights[self.regime_config.cash_symbol] = (
+                    weights.get(self.regime_config.cash_symbol, 0.0) + regime.cash_weight
+                )
 
         # Apply vol targeting (E2) and breadth scaling (E3)
         vol_scale = self._calculate_vol_scale()

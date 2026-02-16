@@ -16,38 +16,38 @@ portfolio:
 # OPTIMIZED: Balanced for all market conditions
 pure_momentum:
   # NMS calculation parameters
-  lookback_6m: 126           # 6-month lookback (trading days)
-  lookback_12m: 252          # 12-month lookback (trading days)
-  lookback_volatility: 126   # Volatility calculation window
-  skip_recent_days: 5        # Skip recent days to avoid reversal
-  weight_6m: 0.50            # 50% weight to 6M adjusted return
-  weight_12m: 0.50           # 50% weight to 12M adjusted return
+  lookback_6m: 126 # 6-month lookback (trading days)
+  lookback_12m: 252 # 12-month lookback (trading days)
+  lookback_volatility: 126 # Volatility calculation window
+  skip_recent_days: 5 # Skip recent days to avoid reversal
+  weight_6m: 0.50 # 50% weight to 6M adjusted return
+  weight_12m: 0.50 # 50% weight to 12M adjusted return
 
   # Entry filters (all must pass)
-  min_score_percentile: 85   # Top 15% by NMS for entry consideration
-  min_52w_high_prox: 0.85    # Price >= 85% of 52-week high
-  min_volume_ratio: 1.1      # 20-day volume > 50-day × 1.1
-  min_daily_turnover: 20000000  # Rs 2 Cr minimum daily turnover
+  min_score_percentile: 85 # Top 15% by NMS for entry consideration
+  min_52w_high_prox: 0.85 # Price >= 85% of 52-week high
+  min_volume_ratio: 1.1 # 20-day volume > 50-day × 1.1
+  min_daily_turnover: 20000000 # Rs 2 Cr minimum daily turnover
 
   # Exit triggers
-  min_hold_percentile: 50    # Exit if NMS falls below 50th percentile
-  max_days_without_gain: 60  # Exit after 60 days without +10% gain
-  min_gain_threshold: 0.10   # Target gain for time-based exit check
+  min_hold_percentile: 50 # Exit if NMS falls below 50th percentile
+  max_days_without_gain: 60 # Exit after 60 days without +10% gain
+  min_gain_threshold: 0.10 # Target gain for time-based exit check
 
 # Position sizing - OPTIMIZED for quality over quantity
 position_sizing:
-  method: "momentum_weighted"  # "equal", "momentum_weighted", or "inverse_volatility"
-  max_single_position: 0.10    # 10% max per position (allow conviction bets)
-  min_single_position: 0.04    # 4% min per position (meaningful positions)
-  max_sector_exposure: 0.30    # 30% max per sector
-  target_positions: 12         # Target 12 positions (quality focus)
-  min_positions: 10            # Maintain at least 10 positions
-  max_positions: 15            # Never exceed 15 positions
+  method: "momentum_weighted" # "equal", "momentum_weighted", or "inverse_volatility"
+  max_single_position: 0.10 # 10% max per position (allow conviction bets)
+  min_single_position: 0.04 # 4% min per position (meaningful positions)
+  max_sector_exposure: 0.30 # 30% max per sector
+  target_positions: 12 # Target 12 positions (quality focus)
+  min_positions: 10 # Maintain at least 10 positions
+  max_positions: 15 # Never exceed 15 positions
 
 # Rebalancing schedule (monthly proven optimal)
 rebalancing:
   frequency: "monthly"
-  rebalance_days: 15    # Trading days between rebalances
+  rebalance_days: 15 # Trading days between rebalances
   day: "friday"
   min_trade_value: 10000
 
@@ -65,9 +65,9 @@ risk:
   daily_loss_limit: 0.03
 
   # Stop losses - BALANCED (wider stops reduce whipsaws)
-  initial_stop_loss: 0.18      # 18% initial stop loss
-  trailing_stop: 0.15          # 15% trailing stop
-  trailing_activation: 0.08    # Activate trailing after +8% gain
+  initial_stop_loss: 0.18 # 18% initial stop loss
+  trailing_stop: 0.15 # 15% trailing stop
+  trailing_activation: 0.08 # Activate trailing after +8% gain
 
 # Transaction costs
 costs:
@@ -76,95 +76,95 @@ costs:
 # Market Regime Detection - AGILE (faster recovery without compromising safety)
 # Multi-timeframe detection with adaptive hysteresis, momentum, and VIX recovery
 regime:
-  enabled: true                   # Enable regime detection
+  enabled: true # Enable regime detection
 
   # Multi-timeframe lookbacks
-  lookback_short: 21              # 1 month fast signal
-  lookback_medium: 63             # 3 months intermediate
-  lookback_long: 126              # 6 months trend confirmation
+  lookback_short: 21 # 1 month fast signal
+  lookback_medium: 63 # 3 months intermediate
+  lookback_long: 126 # 6 months trend confirmation
 
   # REBALANCED weights (30/35/35 - increased short-term responsiveness)
-  weight_short: 0.30              # 30% weight to fast signal (was 20%)
-  weight_medium: 0.35             # 35% weight to medium
-  weight_long: 0.35               # 35% weight to slow (was 45%)
+  weight_short: 0.30 # 30% weight to fast signal (was 20%)
+  weight_medium: 0.35 # 35% weight to medium
+  weight_long: 0.35 # 35% weight to slow (was 45%)
 
   # Entry thresholds (unchanged - protection works well)
-  bullish_threshold: 0.65         # Above 65% = BULLISH
-  caution_threshold: 0.45         # 25-45% = CAUTION
-  defensive_threshold: 0.25       # Below 25% = DEFENSIVE
+  bullish_threshold: 0.65 # Above 65% = BULLISH
+  caution_threshold: 0.45 # 25-45% = CAUTION
+  defensive_threshold: 0.25 # Below 25% = DEFENSIVE
 
   # REDUCED recovery thresholds (faster recovery without compromising safety)
-  bullish_recovery_threshold: 0.70   # Recovery to BULLISH (was 0.75)
-  normal_recovery_threshold: 0.48    # Recovery to NORMAL (E7: 0.52→0.48)
-  caution_recovery_threshold: 0.32   # Recovery from DEFENSIVE (was 0.40)
+  bullish_recovery_threshold: 0.70 # Recovery to BULLISH (was 0.75)
+  normal_recovery_threshold: 0.48 # Recovery to NORMAL (E7: 0.52→0.48)
+  caution_recovery_threshold: 0.32 # Recovery from DEFENSIVE (was 0.40)
 
   # E7: 2-of-3 recovery gate (any 2 of: position, VIX, returns)
-  recovery_require_all_conditions: false  # false = 2-of-3, true = all 3
+  recovery_require_all_conditions: false # false = 2-of-3, true = all 3
 
   # E10: Stress score weights (reduces position dominance)
-  stress_weight_position: 0.40    # Position weight (was 0.50)
-  stress_weight_vix: 0.30         # VIX weight (was 0.25)
-  stress_weight_returns: 0.30     # Returns weight (was 0.25)
+  stress_weight_position: 0.40 # Position weight (was 0.50)
+  stress_weight_vix: 0.30 # VIX weight (was 0.25)
+  stress_weight_returns: 0.30 # Returns weight (was 0.25)
 
   # REDUCED hysteresis asymmetry
-  upgrade_confirmation_days: 3       # 3 days to confirm upgrade (more defensive)
-  downgrade_confirmation_days: 3     # 3 days to confirm downgrade (E7: 4→3)
+  upgrade_confirmation_days: 3 # 3 days to confirm upgrade (more defensive)
+  downgrade_confirmation_days: 3 # 3 days to confirm downgrade (E7: 4→3)
 
   # NEW: Position momentum settings (detect trend reversals faster)
-  use_position_momentum: true        # Enable position momentum signal
-  position_momentum_period: 5        # Days to measure rate-of-change
-  position_momentum_recovery_bonus: 0.10  # Threshold reduction when momentum > 0.005/day (E7: 0.05→0.10)
+  use_position_momentum: true # Enable position momentum signal
+  position_momentum_period: 5 # Days to measure rate-of-change
+  position_momentum_recovery_bonus: 0.10 # Threshold reduction when momentum > 0.005/day (E7: 0.05→0.10)
 
   # NEW: VIX recovery accelerator (detect VIX mean-reversion)
-  use_vix_recovery_accelerator: true  # Enable VIX mean-reversion detection
-  vix_recovery_spike_threshold: 25.0  # VIX level considered a spike
-  vix_recovery_decline_rate: 0.10     # Min decline from peak to trigger signal
-  vix_recovery_bonus: 0.03            # Threshold reduction during VIX recovery
+  use_vix_recovery_accelerator: true # Enable VIX mean-reversion detection
+  vix_recovery_spike_threshold: 25.0 # VIX level considered a spike
+  vix_recovery_decline_rate: 0.10 # Min decline from peak to trigger signal
+  vix_recovery_bonus: 0.03 # Threshold reduction during VIX recovery
 
   # NEW: Adaptive hysteresis (strong signals reduce confirmation)
-  adaptive_hysteresis: true           # Strong signals reduce confirmation by 1 day
-  strong_signal_bonus: 0.10           # Position must exceed threshold by this much
+  adaptive_hysteresis: true # Strong signals reduce confirmation by 1 day
+  strong_signal_bonus: 0.10 # Position must exceed threshold by this much
 
   # NEW: Short-term return settings (faster early detection)
-  use_return_10d: true                # Include 10-day return in stress calculation
-  return_10d_weight: 0.15             # Weight for 10-day return in stress score
+  use_return_10d: true # Include 10-day return in stress calculation
+  return_10d_weight: 0.15 # Weight for 10-day return in stress score
 
   # VIX thresholds (ADJUSTED - raised to avoid over-reaction)
-  vix_elevated: 18.0              # Early warning level (NEW)
-  vix_caution: 22.0               # VIX > 22 upgrades to CAUTION (was 20)
-  vix_defensive: 28.0             # VIX > 28 forces DEFENSIVE (was 25)
-  vix_normal: 19.0                # VIX < 19 allows recovery to NORMAL (E7: 16→19)
-  vix_calm: 14.0                  # VIX < 14 allows full recovery (NEW)
+  vix_elevated: 18.0 # Early warning level (NEW)
+  vix_caution: 22.0 # VIX > 22 upgrades to CAUTION (was 20)
+  vix_defensive: 28.0 # VIX > 28 forces DEFENSIVE (was 25)
+  vix_normal: 19.0 # VIX < 19 allows recovery to NORMAL (E7: 16→19)
+  vix_calm: 14.0 # VIX < 14 allows full recovery (NEW)
 
   # Return thresholds (ENHANCED - includes 1-month warning)
-  return_warning: -0.03           # 1M return < -3% early warning (NEW)
-  return_caution: -0.05           # 3M return < -5% upgrades to CAUTION
-  return_defensive: -0.10         # 3M return < -10% forces DEFENSIVE
-  return_recovery_normal: 0.01    # 3M return > 1% allows recovery to NORMAL (E7: 0.03→0.01)
-  return_recovery_bullish: 0.08   # 3M return > 8% allows recovery to BULLISH (NEW)
+  return_warning: -0.03 # 1M return < -3% early warning (NEW)
+  return_caution: -0.05 # 3M return < -5% upgrades to CAUTION
+  return_defensive: -0.10 # 3M return < -10% forces DEFENSIVE
+  return_recovery_normal: 0.01 # 3M return > 1% allows recovery to NORMAL (E7: 0.03→0.01)
+  return_recovery_bullish: 0.08 # 3M return > 8% allows recovery to BULLISH (NEW)
 
   # Graduated allocation settings (NEW - smooth transitions)
-  use_graduated_allocation: true  # Use smooth stress-based allocation (BULLISH=100% equity)
-  min_equity_allocation: 0.50     # Minimum equity at max stress
-  max_gold_allocation: 0.10       # Maximum gold allocation
-  max_cash_allocation: 0.25       # Maximum cash allocation
+  use_graduated_allocation: true # Use smooth stress-based allocation (BULLISH=100% equity)
+  min_equity_allocation: 0.50 # Minimum equity at max stress
+  max_gold_allocation: 0.10 # Maximum gold allocation
+  max_cash_allocation: 0.25 # Maximum cash allocation
 
   # Gold exhaustion scaling (GE1): reduce gold when overextended above 200-SMA
   use_gold_exhaustion_scaling: true
   gold_exhaustion_sma_period: 200
-  gold_exhaustion_threshold_low: 0.15   # Below 15% above SMA: full gold
-  gold_exhaustion_threshold_high: 0.40  # Above 40% above SMA: zero gold
+  gold_exhaustion_threshold_low: 0.15 # Below 15% above SMA: full gold
+  gold_exhaustion_threshold_high: 0.40 # Above 40% above SMA: zero gold
   allocation_curve_steepness: 2.0 # Higher = more aggressive at extremes
 
   # Fixed allocation - CAUTION regime (used when graduated is disabled)
-  caution_equity: 0.80            # 80% equity
-  caution_gold: 0.10              # 10% gold (GOLDBEES)
-  caution_cash: 0.10              # 10% cash (LIQUIDCASE)
+  caution_equity: 0.80 # 80% equity
+  caution_gold: 0.10 # 10% gold (GOLDBEES)
+  caution_cash: 0.10 # 10% cash (LIQUIDCASE)
 
   # Fixed allocation - DEFENSIVE regime (used when graduated is disabled)
-  defensive_equity: 0.60          # 60% equity
-  defensive_gold: 0.20            # 20% gold (GOLDBEES)
-  defensive_cash: 0.20            # 20% cash (LIQUIDCASE)
+  defensive_equity: 0.60 # 60% equity
+  defensive_gold: 0.20 # 20% gold (GOLDBEES)
+  defensive_cash: 0.20 # 20% cash (LIQUIDCASE)
 
   # Defensive instruments
   gold_symbol: "GOLDBEES"
@@ -184,9 +184,9 @@ paths:
 # Research shows dynamic triggers can improve short-term (3-12M) alpha by 3-5%.
 # Source: Regime-Switching Signals Research (arXiv:2402.05272)
 dynamic_rebalance:
-  enabled: true                      # Enable dynamic rebalancing triggers
-  min_days_between: 7                # Minimum days between rebalances (E8: tuned sweet spot)
-  max_days_between: 15               # Force rebalance after this many days
+  enabled: true # Enable dynamic rebalancing triggers
+  min_days_between: 7 # Minimum days between rebalances (E8: tuned sweet spot)
+  max_days_between: 15 # Force rebalance after this many days
 
   # Trigger 1: Regime Transition
   # Immediate rebalance when market regime changes (e.g., NORMAL→CAUTION)
@@ -195,30 +195,30 @@ dynamic_rebalance:
   # Trigger 2: VIX Recovery
   # Opportunity rebalance when VIX declines from spike (fear subsiding)
   vix_recovery_trigger: true
-  vix_recovery_decline: 0.15         # 15% decline from peak to trigger
-  vix_spike_threshold: 25.0          # VIX level considered a spike
+  vix_recovery_decline: 0.15 # 15% decline from peak to trigger
+  vix_spike_threshold: 25.0 # VIX level considered a spike
 
   # Trigger 3: Portfolio Drawdown
   # Defensive rebalance when portfolio drawdown exceeds threshold
   drawdown_trigger: true
-  drawdown_threshold: 0.10           # 10% portfolio drawdown
+  drawdown_threshold: 0.10 # 10% portfolio drawdown
 
   # Trigger 4: Crash Avoidance (Momentum Crash Detection)
   # Switch to contrarian mode when market crashes (momentum crash avoidance)
   # Research: Past losers outperform past winners for 1-3 months after crashes
   # Source: ScienceDirect - Momentum Crash Research
   crash_avoidance_trigger: true
-  crash_threshold: -0.07             # Market 1-month return threshold (E6: -0.10→-0.07)
-  crash_avoidance_duration: 60       # Days to maintain crash avoidance mode
-  crash_position_scale: 0.6          # Scale down positions 40% during crash
+  crash_threshold: -0.07 # Market 1-month return threshold (E6: -0.10→-0.07)
+  crash_avoidance_duration: 60 # Days to maintain crash avoidance mode
+  crash_position_scale: 0.6 # Scale down positions 40% during crash
 
   # Trigger 5: Breadth Thrust
   # Aggressive entry signal when breadth moves from oversold to overbought
   # Source: TheRobustTrader - Market Momentum Breadth Thrust
   breadth_thrust_trigger: true
-  breadth_thrust_low: 0.40           # Starting breadth level (40%)
-  breadth_thrust_high: 0.615         # Thrust confirmation level (61.5%)
-  breadth_thrust_days: 10            # Max days for breadth to move
+  breadth_thrust_low: 0.40 # Starting breadth level (40%)
+  breadth_thrust_high: 0.615 # Thrust confirmation level (61.5%)
+  breadth_thrust_days: 10 # Max days for breadth to move
 
 # ============================================================================
 # NEW: Adaptive Lookback Configuration
@@ -227,30 +227,30 @@ dynamic_rebalance:
 # Research shows optimal lookbacks vary with volatility and drawdown.
 # Source: Dynamic Momentum Learning (arXiv:2106.08420)
 adaptive_lookback:
-  enabled: true                      # Enable adaptive lookback periods
+  enabled: true # Enable adaptive lookback periods
 
   # Normal market lookbacks (standard)
-  normal_6m: 126                     # 6-month lookback in normal conditions
-  normal_12m: 252                    # 12-month lookback in normal conditions
+  normal_6m: 126 # 6-month lookback in normal conditions
+  normal_12m: 252 # 12-month lookback in normal conditions
 
   # Recovery mode lookbacks (shorter for faster signals)
   # Activated when portfolio drawdown exceeds threshold
-  recovery_6m: 63                    # 6-month lookback in recovery mode
-  recovery_12m: 126                  # 12-month lookback in recovery mode
+  recovery_6m: 63 # 6-month lookback in recovery mode
+  recovery_12m: 126 # 12-month lookback in recovery mode
 
   # High volatility lookbacks (longer to reduce whipsaws)
   # Activated when VIX exceeds threshold
-  volatile_6m: 189                   # 6-month lookback in high volatility
-  volatile_12m: 315                  # 12-month lookback in high volatility
+  volatile_6m: 189 # 6-month lookback in high volatility
+  volatile_12m: 315 # 12-month lookback in high volatility
 
   # Thresholds for switching modes
-  drawdown_threshold: 0.05           # Drawdown level to switch to recovery (5%)
-  vix_volatile_threshold: 30.0       # VIX level to switch to volatile mode
+  drawdown_threshold: 0.05 # Drawdown level to switch to recovery (5%)
+  vix_volatile_threshold: 30.0 # VIX level to switch to volatile mode
 
   # Alternative: Use multipliers instead of fixed values
   use_multipliers: false
-  recovery_multiplier: 0.5           # Lookback multiplier in recovery (50% shorter)
-  volatile_multiplier: 1.5           # Lookback multiplier in volatile (50% longer)
+  recovery_multiplier: 0.5 # Lookback multiplier in recovery (50% shorter)
+  volatile_multiplier: 1.5 # Lookback multiplier in volatile (50% longer)
 
 # Strategy selection
 # Options: "classic" (NMS-based), "allweather" (RS + adaptive stops)
@@ -260,86 +260,86 @@ active_strategy: "dual_momentum"
 # Used when active_strategy = "classic"
 strategy_classic:
   # Feature toggles
-  use_adaptive_parameters: true   # Enable regime-adaptive parameter scaling
+  use_adaptive_parameters: true # Enable regime-adaptive parameter scaling
 
   # Bull Recovery Mode (High Impact)
   # Detect V-shaped recoveries and relax filters to capture more upside
   use_bull_recovery_mode: true
-  bull_recovery_filter_relaxation: 0.25   # 25% extra filter relaxation
-  bull_recovery_vix_threshold: 20.0       # VIX must be declining from this level
+  bull_recovery_filter_relaxation: 0.25 # 25% extra filter relaxation
+  bull_recovery_vix_threshold: 20.0 # VIX must be declining from this level
   bull_recovery_momentum_threshold: 0.003 # Min position momentum per day
-  bull_recovery_duration_days: 60         # Duration of bull recovery mode
+  bull_recovery_duration_days: 60 # Duration of bull recovery mode
 
   # Recovery Mode After Drawdown (Medium Impact)
   # Re-enter aggressively after portfolio corrections
   use_recovery_mode: true
-  recovery_drawdown_trigger: -0.07        # 7% drawdown triggers recovery mode
-  recovery_duration_days: 60              # Duration of recovery mode
-  recovery_filter_relaxation: 0.25        # 25% extra filter relaxation
+  recovery_drawdown_trigger: -0.07 # 7% drawdown triggers recovery mode
+  recovery_duration_days: 60 # Duration of recovery mode
+  recovery_filter_relaxation: 0.25 # 25% extra filter relaxation
 
   # Tiered Adaptive Stops (High Impact)
   # Let winners run with progressively wider stops
   use_tiered_stops: true
-  tier1_threshold: 0.08                   # Gain level for tier 1->2
-  tier2_threshold: 0.20                   # Gain level for tier 2->3
-  tier3_threshold: 0.50                   # Gain level for tier 3->4
-  tier1_trailing: 0.15                    # Tier 1 (<8% gain): 15% trailing
-  tier2_trailing: 0.15                    # Tier 2 (8-20% gain): 15% trailing
-  tier3_trailing: 0.18                    # Tier 3 (20-50% gain): 18% trailing
-  tier4_trailing: 0.25                    # Tier 4 (>50% gain): 25% trailing
+  tier1_threshold: 0.08 # Gain level for tier 1->2
+  tier2_threshold: 0.20 # Gain level for tier 2->3
+  tier3_threshold: 0.50 # Gain level for tier 3->4
+  tier1_trailing: 0.15 # Tier 1 (<8% gain): 15% trailing
+  tier2_trailing: 0.15 # Tier 2 (8-20% gain): 15% trailing
+  tier3_trailing: 0.18 # Tier 3 (20-50% gain): 18% trailing
+  tier4_trailing: 0.25 # Tier 4 (>50% gain): 25% trailing
 
   # Adaptive Trend Break Buffer (Medium Impact)
   # Prevent whipsaw exits in choppy uptrends
-  trend_break_buffer: 0.03                # Base: 3% below 50 EMA before exit
-  trend_break_buffer_bullish_mult: 1.67   # Bullish: 3% × 1.67 = 5% buffer
-  trend_break_buffer_defensive_mult: 0.0  # Defensive: 0% buffer (immediate)
-  trend_break_confirm_days: 2             # Base: 2 days below to confirm
-  trend_break_confirm_bullish_mult: 1.5   # Bullish: 2 × 1.5 = 3 days
+  trend_break_buffer: 0.03 # Base: 3% below 50 EMA before exit
+  trend_break_buffer_bullish_mult: 1.67 # Bullish: 3% × 1.67 = 5% buffer
+  trend_break_buffer_defensive_mult: 0.30 # Defensive: 1.05% buffer (3.5% × 0.30)
+  trend_break_confirm_days: 2 # Base: 2 days below to confirm
+  trend_break_confirm_bullish_mult: 1.5 # Bullish: 2 × 1.5 = 3 days
   trend_break_confirm_defensive_mult: 0.5 # Defensive: 2 × 0.5 = 1 day
 
   # Regime-Adaptive Filter Relaxation (Medium Impact)
   # Adjust entry filters based on market conditions
   use_adaptive_filters: true
-  high_52w_bullish_mult: 0.90             # 52W high: 85% × 0.90 = 76.5%
-  high_52w_defensive_mult: 1.05           # 52W high: 85% × 1.05 = 89.3%
-  volume_bullish_mult: 0.90               # Volume: 1.1 × 0.90 = 0.99x
-  volume_defensive_mult: 1.10             # Volume: 1.1 × 1.10 = 1.21x
-  adaptation_curve: 2.0                   # Steepness of adaptation curve
+  high_52w_bullish_mult: 0.90 # 52W high: 85% × 0.90 = 76.5%
+  high_52w_defensive_mult: 1.05 # 52W high: 85% × 1.05 = 89.3%
+  volume_bullish_mult: 0.90 # Volume: 1.1 × 0.90 = 0.99x
+  volume_defensive_mult: 1.10 # Volume: 1.1 × 1.10 = 1.21x
+  adaptation_curve: 2.0 # Steepness of adaptation curve
 
   # Stop loss adaptation based on regime
-  stop_bullish_mult: 1.15                 # Wider stops in bullish (1.15x)
-  stop_defensive_mult: 0.90               # Tighter stops in defensive (0.90x)
+  stop_bullish_mult: 1.15 # Wider stops in bullish (1.15x)
+  stop_defensive_mult: 0.90 # Tighter stops in defensive (0.90x)
 
 # AllWeather Strategy Configuration
 # Used when active_strategy = "allweather"
 strategy_allweather:
   # Relative Strength settings (TUNED - lowered threshold for more opportunities)
   use_relative_strength: true
-  rs_weight: 0.25                   # How much RS affects score (0-0.5)
-  min_rs_threshold: 1.02            # Must beat index by 2% for entry (was 1.05)
-  rs_exit_threshold: 0.95           # Exit if RS drops below 0.95
+  rs_weight: 0.25 # How much RS affects score (0-0.5)
+  min_rs_threshold: 1.02 # Must beat index by 2% for entry (was 1.05)
+  rs_exit_threshold: 0.95 # Exit if RS drops below 0.95
 
   # Momentum acceleration
   use_momentum_acceleration: true
-  min_acceleration: 0.90            # Allow mild deceleration in sideways markets
+  min_acceleration: 0.90 # Allow mild deceleration in sideways markets
 
   # Exhaustion detection
   use_exhaustion_detection: true
-  exhaustion_exit_threshold: 60     # Exit if exhaustion score >= 60
+  exhaustion_exit_threshold: 60 # Exit if exhaustion score >= 60
 
   # Tiered adaptive stops (TUNED - tighter for unproven, wider for proven)
   use_adaptive_stops: true
-  tier1_trailing: 0.12              # <8% gain: 12% trailing (was 15% - tighter for unproven)
-  tier2_trailing: 0.14              # 8-20% gain: 14% trailing (was 15% - gradually loosen)
-  tier3_trailing: 0.16              # 20-50% gain: 16% trailing (was 18% - gradual widening)
-  tier4_trailing: 0.22              # >50% gain: 22% trailing (was 25% - slightly tighter)
+  tier1_trailing: 0.12 # <8% gain: 12% trailing (was 15% - tighter for unproven)
+  tier2_trailing: 0.14 # 8-20% gain: 14% trailing (was 15% - gradually loosen)
+  tier3_trailing: 0.16 # 20-50% gain: 16% trailing (was 18% - gradual widening)
+  tier4_trailing: 0.22 # >50% gain: 22% trailing (was 25% - slightly tighter)
 
   # Regime-adaptive parameter settings
   # Adjusts thresholds based on market stress (0=bullish, 1=defensive)
   adaptive:
-    use_adaptive_parameters: true   # Enable regime-adaptive parameter scaling
-    use_recovery_mode: true         # Enable recovery mode after drawdowns
-    adaptation_curve: 2.0           # Steepness of adaptation (higher = more aggressive)
+    use_adaptive_parameters: true # Enable regime-adaptive parameter scaling
+    use_recovery_mode: true # Enable recovery mode after drawdowns
+    adaptation_curve: 2.0 # Steepness of adaptation (higher = more aggressive)
 
     # RS threshold adaptation (base × multiplier)
     # Bullish: 1.05 × 0.95 = 1.00 (easier entry to catch rebounds)
@@ -375,10 +375,10 @@ strategy_allweather:
     # Bullish:    5% buffer + 3 days confirmation (very lenient)
     # Normal:     3% buffer + 2 days confirmation (moderate)
     # Defensive:  0% buffer + 1 day confirmation (quick exit)
-    trend_break_buffer: 0.03              # Base: 3% below 50 EMA before exit
-    trend_break_confirm_days: 2           # Base: 2 days below to confirm
+    trend_break_buffer: 0.03 # Base: 3% below 50 EMA before exit
+    trend_break_confirm_days: 2 # Base: 2 days below to confirm
     trend_break_buffer_bullish_mult: 1.67 # Bullish: 3% × 1.67 = 5% buffer
-    trend_break_buffer_defensive_mult: 0.0  # Defensive: 0% buffer (immediate)
+    trend_break_buffer_defensive_mult: 0.30 # Defensive: 1.05% buffer (3.5% × 0.30)
     trend_break_confirm_bullish_mult: 1.5 # Bullish: 2 × 1.5 = 3 days
     trend_break_confirm_defensive_mult: 0.5 # Defensive: 2 × 0.5 = 1 day
 
@@ -391,84 +391,82 @@ strategy_allweather:
     # NEW: Bullish momentum boost for scoring
     # Boosts scores for high-momentum stocks in bullish regime
     use_bullish_momentum_boost: true
-    bullish_momentum_boost: 0.15      # 15% score boost for strong momentum
-
-
+    bullish_momentum_boost: 0.15 # 15% score boost for strong momentum
 
     # Recovery mode settings (ENHANCED for better bull recovery capture)
     # Activates after significant drawdown to help re-enter positions
-    recovery_drawdown_trigger: -0.07  # 7% drawdown triggers recovery mode (was -0.10)
-    recovery_duration_days: 60        # ~3 months of recovery mode (was 42)
-    recovery_filter_relaxation: 0.25  # 25% extra filter relaxation (was 0.15)
+    recovery_drawdown_trigger: -0.07 # 7% drawdown triggers recovery mode (was -0.10)
+    recovery_duration_days: 60 # ~3 months of recovery mode (was 42)
+    recovery_filter_relaxation: 0.25 # 25% extra filter relaxation (was 0.15)
 
     # Bull Recovery Mode - detect strong market rebounds (NEW)
     # Activates when VIX declining from spike + positive momentum
     use_bull_recovery_mode: true
-    bull_recovery_filter_relaxation: 0.30  # 30% extra relaxation during bull recovery
-    bull_recovery_vix_threshold: 20.0      # VIX must be declining from this level
-    bull_recovery_momentum_threshold: 0.003  # Min position momentum per day
-    bull_recovery_duration_days: 60        # How long bull recovery mode lasts
+    bull_recovery_filter_relaxation: 0.30 # 30% extra relaxation during bull recovery
+    bull_recovery_vix_threshold: 20.0 # VIX must be declining from this level
+    bull_recovery_momentum_threshold: 0.003 # Min position momentum per day
+    bull_recovery_duration_days: 60 # How long bull recovery mode lasts
 
     # Partial Filter Passing (NEW)
     # Allow 2 of 3 AllWeather filters to pass in bullish/recovery conditions
     use_partial_filter_passing: true
-    partial_filter_min_passed: 2           # Minimum filters required (2 of 3)
-    partial_filter_score_penalty: 0.04     # 4% score penalty for partial pass
+    partial_filter_min_passed: 2 # Minimum filters required (2 of 3)
+    partial_filter_score_penalty: 0.04 # 4% score penalty for partial pass
 
     # Bullish Boost Thresholds (NEW - configurable, lower than before)
     # Determines which stocks get momentum boost in bullish regime
-    bullish_boost_rs_threshold: 1.05       # RS threshold for boost (was hardcoded 1.10)
-    bullish_boost_acceleration_threshold: 1.00  # Accel threshold (was 1.05)
-    bullish_boost_quality_threshold: 55    # Quality threshold (was 70)
+    bullish_boost_rs_threshold: 1.05 # RS threshold for boost (was hardcoded 1.10)
+    bullish_boost_acceleration_threshold: 1.00 # Accel threshold (was 1.05)
+    bullish_boost_quality_threshold: 55 # Quality threshold (was 70)
 
     # Recovery Score Boost (NEW)
     # Extra boost for improving stocks during recovery
     use_recovery_score_boost: true
-    recovery_score_boost: 0.10             # 10% boost for qualifying stocks
+    recovery_score_boost: 0.10 # 10% boost for qualifying stocks
 
     # === NEW ENHANCEMENTS (disabled by default until tuned) ===
 
     # ADX Trend Strength Filter (NEW)
     # Confirms trend strength before entry
-    use_adx_filter: false                  # DISABLED - too restrictive
-    adx_threshold_base: 20.0               # Base ADX threshold
-    adx_threshold_bullish: 18.0            # Relaxed in bullish regime
-    adx_threshold_defensive: 25.0          # Stricter in defensive regime
-    adx_require_bullish_di: true           # Require +DI > -DI
+    use_adx_filter: false # DISABLED - too restrictive
+    adx_threshold_base: 20.0 # Base ADX threshold
+    adx_threshold_bullish: 18.0 # Relaxed in bullish regime
+    adx_threshold_defensive: 25.0 # Stricter in defensive regime
+    adx_require_bullish_di: true # Require +DI > -DI
 
     # Profit Target Exits (NEW)
     # Tiered profit-taking to lock in gains
-    use_profit_targets: false              # DISABLED - may cause early exits
-    profit_target_tier1_gain: 0.40         # +40% gain
-    profit_target_tier1_days: 45           # After 45+ days
-    profit_target_tier2_gain: 0.60         # +60% gain
-    profit_target_tier2_days: 30           # After 30+ days
-    profit_target_tier3_gain: 0.80         # +80% gain (any time)
+    use_profit_targets: false # DISABLED - may cause early exits
+    profit_target_tier1_gain: 0.40 # +40% gain
+    profit_target_tier1_days: 45 # After 45+ days
+    profit_target_tier2_gain: 0.60 # +60% gain
+    profit_target_tier2_days: 30 # After 30+ days
+    profit_target_tier3_gain: 0.80 # +80% gain (any time)
 
     # MACD Histogram Integration (NEW)
     # Uses existing calculate_macd_histogram_slope() function
-    use_macd_histogram: false              # DISABLED - needs tuning
-    macd_positive_boost: 0.03              # +3% boost for positive slope
-    macd_negative_penalty: 0.02            # -2% penalty for negative slope
-    macd_negative_threshold: -0.01         # Threshold for penalty
+    use_macd_histogram: false # DISABLED - needs tuning
+    macd_positive_boost: 0.03 # +3% boost for positive slope
+    macd_negative_penalty: 0.02 # -2% penalty for negative slope
+    macd_negative_threshold: -0.01 # Threshold for penalty
 
     # RS Trend Filter (NEW)
     # Boost score when RS is improving (RS_21d > RS_63d)
-    use_rs_trend_boost: false              # DISABLED - needs tuning
-    rs_trend_boost: 0.05                   # +5% score boost
+    use_rs_trend_boost: false # DISABLED - needs tuning
+    rs_trend_boost: 0.05 # +5% score boost
 
     # Volatility-Adjusted Stops (NEW)
     # Widen stops in high volatility, tighten in low volatility
-    use_volatility_adjusted_stops: false   # DISABLED - needs tuning
-    volatility_stop_sensitivity: 0.4       # How much ATR affects stop width
-    volatility_stop_min_mult: 0.85         # Min stop multiplier (low vol)
-    volatility_stop_max_mult: 1.25         # Max stop multiplier (high vol)
+    use_volatility_adjusted_stops: false # DISABLED - needs tuning
+    volatility_stop_sensitivity: 0.4 # How much ATR affects stop width
+    volatility_stop_min_mult: 0.85 # Min stop multiplier (low vol)
+    volatility_stop_max_mult: 1.25 # Max stop multiplier (high vol)
 
     # Momentum Divergence Exit (NEW)
     # Exit when price at peak but momentum declining
-    use_momentum_divergence_exit: false    # DISABLED - needs tuning
+    use_momentum_divergence_exit: false # DISABLED - needs tuning
     divergence_nms_decline_threshold: 0.10 # NMS 10% below peak
-    divergence_price_threshold: 0.02       # Price within 2% of peak
+    divergence_price_threshold: 0.02 # Price within 2% of peak
 
 # Enhanced Simple Strategy Configuration
 # Used when active_strategy = "simple"
@@ -479,26 +477,26 @@ strategy_allweather:
 # - Adaptive trend break protection
 strategy_simple:
   # === Dual Momentum (Antonacci: +440 bps annually) ===
-  min_rs_threshold: 1.05          # Must beat index by 5% (RS > 1.05)
-  rs_weight: 0.25                 # Score = NMS * (1 + 0.25 * (RS - 1))
-  min_nms_for_entry: 0.0          # Positive momentum required
-  rs_exit_threshold: 0.94         # Exit if underperforming index (E8: tuning R2)
+  min_rs_threshold: 1.05 # Must beat index by 5% (RS > 1.05)
+  rs_weight: 0.25 # Score = NMS * (1 + 0.25 * (RS - 1))
+  min_nms_for_entry: 0.0 # Positive momentum required
+  rs_exit_threshold: 0.94 # Exit if underperforming index (E8: tuning R2)
 
   # === Simple Regime Detection (VIX-based) ===
-  vix_bullish_threshold: 18.0     # VIX < 18 + uptrend = BULLISH
-  vix_defensive_threshold: 25.0   # VIX > 25 = DEFENSIVE
+  vix_bullish_threshold: 18.0 # VIX < 18 + uptrend = BULLISH
+  vix_defensive_threshold: 25.0 # VIX > 25 = DEFENSIVE
 
   # === Feature Toggles ===
-  use_adaptive_parameters: true   # Enable regime-adaptive parameter scaling
-  use_recovery_modes: true        # Enable all recovery modes
-  use_tiered_stops: true          # Enable tiered trailing stops
-  use_full_regime: true           # Use full RegimeResult for adaptive params
+  use_adaptive_parameters: true # Enable regime-adaptive parameter scaling
+  use_recovery_modes: true # Enable all recovery modes
+  use_tiered_stops: true # Enable tiered trailing stops
+  use_full_regime: true # Use full RegimeResult for adaptive params
 
   # === Recovery Mode Settings ===
   # General recovery: triggered after portfolio drawdown
-  recovery_drawdown_trigger: -0.07    # -7% drawdown triggers recovery
-  recovery_duration_days: 60          # 60 days of recovery mode
-  recovery_filter_relaxation: 0.25    # 25% filter relaxation
+  recovery_drawdown_trigger: -0.07 # -7% drawdown triggers recovery
+  recovery_duration_days: 60 # 60 days of recovery mode
+  recovery_filter_relaxation: 0.25 # 25% filter relaxation
 
   # Bull recovery: triggered by VIX decline + positive momentum
   use_bull_recovery_mode: true
@@ -511,61 +509,61 @@ strategy_simple:
   use_crash_recovery_mode: true
   crash_recovery_vix_trigger: 50.0
   crash_recovery_duration_days: 90
-  crash_recovery_52w_mult: 0.75       # Allow 64% of 52W high
-  crash_recovery_ema_buffer: 0.15     # Allow 15% below 50 EMA
+  crash_recovery_52w_mult: 0.90 # Allow 76.5% of 52W high
+  crash_recovery_ema_buffer: 0.05 # Allow 5% below 50 EMA
 
   # === Tiered Stops (let winners run) ===
-  tier1_threshold: 0.08               # <8% gain
-  tier2_threshold: 0.20               # 8-20% gain
-  tier3_threshold: 0.50               # 20-50% gain
-  tier1_trailing: 0.12                # 12% trailing
-  tier2_trailing: 0.14                # 14% trailing
-  tier3_trailing: 0.16                # 16% trailing
-  tier4_trailing: 0.22                # 22% trailing (>50% gain)
+  tier1_threshold: 0.08 # <8% gain
+  tier2_threshold: 0.20 # 8-20% gain
+  tier3_threshold: 0.50 # 20-50% gain
+  tier1_trailing: 0.12 # 12% trailing
+  tier2_trailing: 0.14 # 14% trailing
+  tier3_trailing: 0.16 # 16% trailing
+  tier4_trailing: 0.22 # 22% trailing (>50% gain)
 
   # === Regime Multipliers (adapt to market conditions) ===
-  rs_bullish_mult: 0.85               # RS threshold × 0.85 in bullish
-  rs_defensive_mult: 1.05             # RS threshold × 1.05 in defensive
-  stop_bullish_mult: 1.25             # Wider stops in bullish (1.25×)
-  stop_defensive_mult: 0.85           # Tighter stops in defensive (0.85×)
+  rs_bullish_mult: 1.05 # RS threshold × 1.05 in bullish (pick leaders)
+  rs_defensive_mult: 0.90 # RS threshold × 0.90 in defensive (don't over-filter)
+  stop_bullish_mult: 1.25 # Wider stops in bullish (1.25×)
+  stop_defensive_mult: 0.85 # Tighter stops in defensive (0.85×)
 
   # === Trend Break Protection ===
-  trend_break_buffer: 0.035           # 3.5% base buffer below 50 EMA (E8: tuning)
-  trend_break_days: 2                 # 2 days base confirmation (E8: reverted)
-  trend_break_buffer_bullish_mult: 1.67    # 5% buffer in bullish
-  trend_break_buffer_defensive_mult: 0.0   # 0% buffer in defensive
-  trend_break_confirm_bullish_mult: 1.5    # 3 days in bullish
-  trend_break_confirm_defensive_mult: 0.5  # 1 day in defensive
+  trend_break_buffer: 0.035 # 3.5% base buffer below 50 EMA (E8: tuning)
+  trend_break_days: 2 # 2 days base confirmation (E8: reverted)
+  trend_break_buffer_bullish_mult: 1.67 # 5% buffer in bullish
+  trend_break_buffer_defensive_mult: 0.30 # 1.05% buffer in defensive
+  trend_break_confirm_bullish_mult: 1.5 # 3 days in bullish
+  trend_break_confirm_defensive_mult: 0.5 # 1 day in defensive
 
   # === Legacy Stop Loss (fallback when tiered disabled) ===
-  hard_stop: 0.15                 # -15% max loss from entry
-  trailing_stop: 0.15             # -15% trailing from peak
-  trailing_activation: 0.08       # Activate after +8% gain
-  defensive_trailing_stop: 0.10   # Tighter -10% trailing in DEFENSIVE
+  hard_stop: 0.15 # -15% max loss from entry
+  trailing_stop: 0.15 # -15% trailing from peak
+  trailing_activation: 0.08 # Activate after +8% gain
+  defensive_trailing_stop: 0.10 # Tighter -10% trailing in DEFENSIVE
 
   # === Volatility Targeting ===
-  target_volatility: 0.15         # 15% target annualized volatility
-  max_vol_scale: 1.5              # Max 1.5x position for low-vol stocks
-  high_vol_threshold: 0.25        # Vol > 25% triggers reduction
-  high_vol_reduction: 0.70        # 30% position reduction in high vol
+  target_volatility: 0.15 # 15% target annualized volatility
+  max_vol_scale: 1.5 # Max 1.5x position for low-vol stocks
+  high_vol_threshold: 0.25 # Vol > 25% triggers reduction
+  high_vol_reduction: 0.70 # 30% position reduction in high vol
 
   # === Entry Filters ===
-  min_daily_turnover: 10000000    # Rs 1 Cr minimum liquidity
-  defensive_rs_boost: 0.10        # Extra RS in DEFENSIVE (+10%)
-  min_52w_high_prox: 0.85         # Must be within 15% of 52W high
-  high_52w_bullish_mult: 0.90     # 76.5% threshold in bullish
-  high_52w_defensive_mult: 1.05   # 89.3% threshold in defensive
+  min_daily_turnover: 10000000 # Rs 1 Cr minimum liquidity
+  defensive_rs_boost: 0.10 # Extra RS in DEFENSIVE (+10%)
+  min_52w_high_prox: 0.85 # Must be within 15% of 52W high
+  high_52w_bullish_mult: 0.90 # 76.5% threshold in bullish
+  high_52w_defensive_mult: 1.05 # 89.3% threshold in defensive
 
   # === Partial Filter Passing ===
   use_partial_filter_passing: true
-  partial_filter_min_passed: 2     # Allow 2 of 3 filters in bullish/recovery
+  partial_filter_min_passed: 2 # Allow 2 of 3 filters in bullish/recovery
   partial_filter_score_penalty: 0.04
 
   # === E9: Minimum Hold Period ===
-  min_hold_days: 3                # Only hard stop during first 3 days (E9: tuning R2)
+  min_hold_days: 3 # Only hard stop during first 3 days (E9: tuning R2)
 
   # === Rebalancing ===
-  rebalance_days: 15              # 15 trading days between rebalances
+  rebalance_days: 15 # 15 trading days between rebalances
 
   # ========================================================================
   # NEW: Crash Avoidance Settings (Momentum Crash Protection)
@@ -574,14 +572,14 @@ strategy_simple:
   # drops >10% in 1 month. Past losers outperform past winners for 1-3 months.
   # Source: ScienceDirect - Momentum Crash Research
   use_crash_avoidance: true
-  crash_avoidance_threshold: -0.07     # Market 1M return threshold (E6: -0.10→-0.07)
-  crash_avoidance_vix_threshold: 30.0  # VIX spike threshold
-  crash_avoidance_duration: 60         # Days to maintain mode
-  crash_avoidance_position_scale: 0.6  # Scale down positions 40%
+  crash_avoidance_threshold: -0.07 # Market 1M return threshold (E6: -0.10→-0.07)
+  crash_avoidance_vix_threshold: 30.0 # VIX spike threshold
+  crash_avoidance_duration: 60 # Days to maintain mode
+  crash_avoidance_position_scale: 0.6 # Scale down positions 40%
   # E6: Early warning crash detection (slow grinding declines without VIX spike)
-  crash_early_warning_threshold: -0.05    # 1M return for early warning
+  crash_early_warning_threshold: -0.05 # 1M return for early warning
   crash_early_warning_3m_threshold: -0.08 # 3M return confirmation
-  crash_early_warning_scale: 0.80         # Lighter reduction (80% vs 60%)
+  crash_early_warning_scale: 0.80 # Lighter reduction (80% vs 60%)
 
   # ========================================================================
   # NEW: Adaptive Lookback Settings (Dynamic Momentum Lookbacks)
@@ -590,10 +588,10 @@ strategy_simple:
   # Shorter lookbacks capture V-shaped rebounds, longer reduce whipsaws.
   # Source: Dynamic Momentum Learning (arXiv:2106.08420)
   use_adaptive_lookback: true
-  adaptive_lookback_dd_threshold: 0.05   # DD to trigger recovery mode
-  adaptive_lookback_vix_threshold: 30.0  # VIX to trigger volatile mode
-  adaptive_lookback_recovery_mult: 0.5   # 50% shorter lookbacks
-  adaptive_lookback_volatile_mult: 1.5   # 50% longer lookbacks
+  adaptive_lookback_dd_threshold: 0.05 # DD to trigger recovery mode
+  adaptive_lookback_vix_threshold: 30.0 # VIX to trigger volatile mode
+  adaptive_lookback_recovery_mult: 0.5 # 50% shorter lookbacks
+  adaptive_lookback_volatile_mult: 1.5 # 50% longer lookbacks
 
   # ========================================================================
   # NEW: Breadth Thrust Settings (Aggressive Entry Signal)
@@ -601,9 +599,9 @@ strategy_simple:
   # Breadth thrust is a powerful bullish signal when breadth moves from
   # oversold (<40%) to overbought (>61.5%) within 10 days.
   # Source: TheRobustTrader - Market Momentum Breadth Thrust
-  breadth_thrust_low: 0.40             # Starting breadth level (40%)
-  breadth_thrust_high: 0.615           # Thrust confirmation level (61.5%)
-  breadth_thrust_days: 10              # Max days for breadth to move
+  breadth_thrust_low: 0.40 # Starting breadth level (40%)
+  breadth_thrust_high: 0.615 # Thrust confirmation level (61.5%)
+  breadth_thrust_days: 10 # Max days for breadth to move
 
 # Portfolio profiles
 profiles:

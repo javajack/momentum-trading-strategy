@@ -30,24 +30,24 @@ import pandas as pd
 
 from .config import Config, get_default_config
 from .indicators import (
-    calculate_drawdown,
-    calculate_normalized_momentum_score,
-    calculate_bull_recovery_signals,
-    calculate_market_breadth,
-    detect_market_regime,
-    detect_vix_recovery,
-    detect_breadth_thrust,
-    detect_momentum_crash,
-    should_trigger_rebalance,
+    BullRecoverySignals,
     MarketRegime,
     NMSResult,
-    RegimeResult,
-    BullRecoverySignals,
     RebalanceTrigger,
+    RegimeResult,
+    calculate_bull_recovery_signals,
+    calculate_drawdown,
+    calculate_market_breadth,
+    calculate_normalized_momentum_score,
+    detect_breadth_thrust,
+    detect_market_regime,
+    detect_momentum_crash,
+    detect_vix_recovery,
+    should_trigger_rebalance,
 )
 from .portfolio import BacktestPortfolio
 from .risk_governor import RiskGovernor
-from .strategy import StrategyRegistry, StockScore
+from .strategy import StockScore, StrategyRegistry
 from .universe import Universe
 from .utils import renormalize_with_caps
 
@@ -282,9 +282,7 @@ class BacktestEngine:
             )
         self.config = config
         self.app_config = app_config or get_default_config()
-        self.risk_governor = RiskGovernor(
-            self.app_config.risk, self.app_config.portfolio
-        )
+        self.risk_governor = RiskGovernor(self.app_config.risk, self.app_config.portfolio)
 
         # Initialize strategy
         effective_strategy = strategy_name or self.config.strategy_name
@@ -296,6 +294,13 @@ class BacktestEngine:
 
         # Drawdown tracking for AllWeather recovery mode
         self._current_drawdown: float = 0.0
+
+        # Recovery override hysteresis (FIX 6)
+        self._recovery_override_active: bool = False
+        self._recovery_override_confirm_days: int = 0
+
+        # Smoothed breadth for scaling (FIX 8)
+        self._breadth_ema: Optional[float] = None
 
         # Create market data adapter for strategy
         self._market_data_adapter = BacktestMarketDataAdapter(self.data)
@@ -336,7 +341,9 @@ class BacktestEngine:
 
         # Pre-filtered symbol lists for O(1) lookups
         self._excluded_set: set = set(self.app_config.excluded_symbols) | {
-            "NIFTY 50", "INDIA VIX", "NIFTY MIDCAP 100",
+            "NIFTY 50",
+            "INDIA VIX",
+            "NIFTY MIDCAP 100",
             self.app_config.regime.gold_symbol,
             self.app_config.regime.cash_symbol,
         }
@@ -350,7 +357,9 @@ class BacktestEngine:
 
         # E9: Minimum hold period (only hard stop during first N days)
         strategy_cfg = getattr(self.app_config, "strategy_dual_momentum", None)
-        self._min_hold_days: int = getattr(strategy_cfg, "min_hold_days", 10) if strategy_cfg else 10
+        self._min_hold_days: int = (
+            getattr(strategy_cfg, "min_hold_days", 10) if strategy_cfg else 10
+        )
 
     def _get_trading_days(self) -> pd.DatetimeIndex:
         """
@@ -393,10 +402,7 @@ class BacktestEngine:
             return
 
         # Get stock symbols (excluding indices and special symbols)
-        self._stock_symbols = [
-            s for s in self.data.keys()
-            if s not in self._excluded_set
-        ]
+        self._stock_symbols = [s for s in self.data.keys() if s not in self._excluded_set]
 
         # Pre-compute market breadth for all dates
         self._breadth_cache = self._precompute_breadth()
@@ -517,7 +523,7 @@ class BacktestEngine:
 
     def _get_cached_breadth(self, date: datetime) -> float:
         """O(1) breadth lookup from pre-computed cache."""
-        date_str = str(date.date()) if hasattr(date, 'date') else str(date)
+        date_str = str(date.date()) if hasattr(date, "date") else str(date)
         return self._breadth_cache.get(date_str, 0.5)
 
     def _get_past_trading_date(self, as_of_date: datetime, n_days: int) -> Optional[datetime]:
@@ -777,7 +783,9 @@ class BacktestEngine:
             return_3m = (nifty_prices.iloc[-1] - price_3m_ago) / price_3m_ago
 
         # Use position momentum from regime if available
-        position_momentum = regime.position_momentum if hasattr(regime, "position_momentum") else 0.0
+        position_momentum = (
+            regime.position_momentum if hasattr(regime, "position_momentum") else 0.0
+        )
 
         # Calculate bull recovery signals
         return calculate_bull_recovery_signals(
@@ -831,10 +839,10 @@ class BacktestEngine:
         else:
             # Legacy volatile check
             returns = available["close"].pct_change().dropna()
-            recent_vol = returns.iloc[-10:].std() * (252 ** 0.5)
-            avg_vol = returns.std() * (252 ** 0.5)
+            recent_vol = returns.iloc[-10:].std() * (252**0.5)
+            avg_vol = returns.std() * (252**0.5)
             if recent_vol > avg_vol * 1.5 and recent_vol > 0.15:
-                reason = f"Recent vol {recent_vol:.0%} vs normal {avg_vol:.0%} ({recent_vol/avg_vol:.1f}x)"
+                reason = f"Recent vol {recent_vol:.0%} vs normal {avg_vol:.0%} ({recent_vol / avg_vol:.1f}x)"
                 return (True, reason)
             return (False, "")
 
@@ -876,7 +884,10 @@ class BacktestEngine:
             return 0.0
         else:
             # Linear interpolation from 1.0 → 0.0
-            span = regime_config.gold_exhaustion_threshold_high - regime_config.gold_exhaustion_threshold_low
+            span = (
+                regime_config.gold_exhaustion_threshold_high
+                - regime_config.gold_exhaustion_threshold_low
+            )
             return 1.0 - (deviation - regime_config.gold_exhaustion_threshold_low) / span
 
     def _redirect_freed_weight(
@@ -885,9 +896,8 @@ class BacktestEngine:
         """Redirect freed gold weight to equities pro-rata (uptrend) or cash (downtrend)."""
         regime_config = self.app_config.regime
         cash_sym = regime_config.cash_symbol
-        if (
-            regime_config.redirect_freed_to_equity_in_uptrend
-            and self._is_market_uptrend(as_of_date)
+        if regime_config.redirect_freed_to_equity_in_uptrend and self._is_market_uptrend(
+            as_of_date
         ):
             defensive = {regime_config.gold_symbol, cash_sym}
             equity_weights = {t: w for t, w in weights.items() if t not in defensive and w > 0}
@@ -1049,7 +1059,11 @@ class BacktestEngine:
             return None
 
         prices = available["close"]
-        volumes = available["volume"] if "volume" in available.columns else pd.Series([1e6] * len(prices), index=prices.index)
+        volumes = (
+            available["volume"]
+            if "volume" in available.columns
+            else pd.Series([1e6] * len(prices), index=prices.index)
+        )
 
         # Get config values, with backtest config overrides taking precedence
         pm = self.app_config.pure_momentum
@@ -1226,13 +1240,9 @@ class BacktestEngine:
                 break  # No new sectors to cap
 
             # Normalize only uncapped sectors to make weights sum to 1.0
-            capped_total = sum(
-                w for t, w in weights.items()
-                if ticker_sectors[t] in capped_sectors
-            )
+            capped_total = sum(w for t, w in weights.items() if ticker_sectors[t] in capped_sectors)
             uncapped_total = sum(
-                w for t, w in weights.items()
-                if ticker_sectors[t] not in capped_sectors
+                w for t, w in weights.items() if ticker_sectors[t] not in capped_sectors
             )
 
             # Uncapped sectors should sum to (1.0 - capped_total)
@@ -1273,7 +1283,9 @@ class BacktestEngine:
                     if freed_gold > 0.001:
                         self._redirect_freed_weight(weights, freed_gold, as_of_date)
             if regime.cash_weight > 0:
-                weights[regime_config.cash_symbol] = weights.get(regime_config.cash_symbol, 0.0) + regime.cash_weight
+                weights[regime_config.cash_symbol] = (
+                    weights.get(regime_config.cash_symbol, 0.0) + regime.cash_weight
+                )
 
         return weights
 
@@ -1299,7 +1311,7 @@ class BacktestEngine:
             return 1.0  # Not enough history yet
 
         recent_returns = list(self._portfolio_daily_returns)[-lookback:]
-        realized_vol = np.std(recent_returns) * (252 ** 0.5)
+        realized_vol = np.std(recent_returns) * (252**0.5)
 
         if realized_vol < 0.01:
             return 1.0  # Avoid division by near-zero
@@ -1317,6 +1329,8 @@ class BacktestEngine:
         breadth <= low  → min_scale (narrow market)
         between → linear interpolation
 
+        Uses 5-day EMA smoothing to reduce oscillation in sideways markets (FIX 8).
+
         Returns:
             Float between breadth_min_scale and 1.0
         """
@@ -1324,7 +1338,15 @@ class BacktestEngine:
         if not regime_config.use_breadth_scaling:
             return 1.0
 
-        breadth = self._calculate_market_breadth(as_of_date)
+        raw_breadth = self._calculate_market_breadth(as_of_date)
+
+        # Smooth breadth with 5-day EMA to reduce oscillation in sideways markets (FIX 8)
+        alpha = 2.0 / (5 + 1)
+        if self._breadth_ema is None:
+            self._breadth_ema = raw_breadth
+        else:
+            self._breadth_ema = alpha * raw_breadth + (1 - alpha) * self._breadth_ema
+        breadth = self._breadth_ema
 
         if breadth >= regime_config.breadth_full:
             return 1.0
@@ -1332,7 +1354,9 @@ class BacktestEngine:
             return regime_config.breadth_min_scale
         else:
             # Linear interpolation
-            t = (breadth - regime_config.breadth_low) / (regime_config.breadth_full - regime_config.breadth_low)
+            t = (breadth - regime_config.breadth_low) / (
+                regime_config.breadth_full - regime_config.breadth_low
+            )
             return regime_config.breadth_min_scale + t * (1.0 - regime_config.breadth_min_scale)
 
     def _get_effective_sector_cap(self, regime: Optional[RegimeResult]) -> float:
@@ -1406,7 +1430,9 @@ class BacktestEngine:
         self._trail_ranked_stocks = ranked_stocks
 
         # Select portfolio using the strategy
-        effective_value = portfolio_value if portfolio_value is not None else self.config.initial_capital
+        effective_value = (
+            portfolio_value if portfolio_value is not None else self.config.initial_capital
+        )
         weights = self.strategy.select_portfolio(
             ranked_stocks=ranked_stocks,
             portfolio_value=effective_value,
@@ -1442,8 +1468,12 @@ class BacktestEngine:
             if not newly_capped:
                 break
             # Redistribute excess to uncapped tickers
-            capped_total = sum(w for t, w in weights.items() if ticker_to_sector.get(t) in capped_sectors)
-            uncapped_total = sum(w for t, w in weights.items() if ticker_to_sector.get(t) not in capped_sectors)
+            capped_total = sum(
+                w for t, w in weights.items() if ticker_to_sector.get(t) in capped_sectors
+            )
+            uncapped_total = sum(
+                w for t, w in weights.items() if ticker_to_sector.get(t) not in capped_sectors
+            )
             target_uncapped = 1.0 - capped_total
             if uncapped_total > 0 and target_uncapped > 0:
                 scale_up = target_uncapped / uncapped_total
@@ -1458,25 +1488,47 @@ class BacktestEngine:
             regime.equity_weight = min(1.0, regime.equity_weight + freed)
             regime.cash_weight = max(0.0, 1.0 - regime.equity_weight - regime.gold_weight)
 
-        # Change 5: Recovery equity override — cap stress when drawdown + improving breadth
+        # Change 5: Recovery equity override with hysteresis (FIX 6)
+        # Cap stress when drawdown + improving breadth, with confirmation period
         regime_cfg = self.app_config.regime
-        if (regime and regime_cfg.use_recovery_equity_override
-                and self._current_drawdown < regime_cfg.recovery_override_dd_threshold):
-            breadth_improving = False
-            lookback_days = 10
-            current_b = self._get_cached_breadth(as_of_date)
-            past_date = self._get_past_trading_date(as_of_date, lookback_days)
-            if past_date is not None:
-                past_b = self._get_cached_breadth(past_date)
-                if current_b - past_b > regime_cfg.recovery_override_breadth_improvement:
-                    breadth_improving = True
-            if breadth_improving:
+        if regime and regime_cfg.use_recovery_equity_override:
+            conditions_met = False
+            if self._current_drawdown < regime_cfg.recovery_override_dd_threshold:
+                current_b = self._get_cached_breadth(as_of_date)
+                past_date = self._get_past_trading_date(as_of_date, 10)
+                if past_date is not None:
+                    past_b = self._get_cached_breadth(past_date)
+                    if current_b - past_b > regime_cfg.recovery_override_breadth_improvement:
+                        conditions_met = True
+
+            required_days = regime_cfg.recovery_override_confirmation_days
+            if conditions_met:
+                self._recovery_override_confirm_days = min(
+                    self._recovery_override_confirm_days + 1, required_days + 1
+                )
+                if self._recovery_override_confirm_days >= required_days:
+                    self._recovery_override_active = True
+            else:
+                self._recovery_override_confirm_days = max(
+                    self._recovery_override_confirm_days - 1, -(required_days + 1)
+                )
+                if self._recovery_override_confirm_days <= -required_days:
+                    self._recovery_override_active = False
+
+            if self._recovery_override_active:
                 import math
+
                 capped_stress = min(regime.stress_score, regime_cfg.recovery_override_max_stress)
                 steepness = regime_cfg.allocation_curve_steepness
-                stress_curve = math.pow(capped_stress, 1.0 / steepness) if steepness > 0 else capped_stress
+                stress_curve = (
+                    math.pow(capped_stress, 1.0 / steepness) if steepness > 0 else capped_stress
+                )
                 override_equity = 1.0 - stress_curve * (1.0 - regime_cfg.min_equity_allocation)
-                effective_max_gold = profile_max_gold if profile_max_gold is not None else regime_cfg.max_gold_allocation
+                effective_max_gold = (
+                    profile_max_gold
+                    if profile_max_gold is not None
+                    else regime_cfg.max_gold_allocation
+                )
                 override_gold = stress_curve * effective_max_gold
                 regime.equity_weight = max(regime.equity_weight, override_equity)
                 regime.gold_weight = min(regime.gold_weight, override_gold)
@@ -1508,7 +1560,9 @@ class BacktestEngine:
                     if freed_gold > 0.001:
                         self._redirect_freed_weight(weights, freed_gold, as_of_date)
             if regime.cash_weight > 0:
-                weights[regime_config.cash_symbol] = weights.get(regime_config.cash_symbol, 0.0) + regime.cash_weight
+                weights[regime_config.cash_symbol] = (
+                    weights.get(regime_config.cash_symbol, 0.0) + regime.cash_weight
+                )
 
         # Apply portfolio-level vol targeting (E2) and breadth scaling (E3)
         # These scale equity weights down when vol is high or breadth is narrow
@@ -1651,7 +1705,9 @@ class BacktestEngine:
         # Check breadth thrust
         breadth_thrust = False
         if dynamic_config.breadth_thrust_trigger and len(self._breadth_history) >= 11:
-            breadth_series = pd.Series(list(self._breadth_history))  # Convert deque to list for Series
+            breadth_series = pd.Series(
+                list(self._breadth_history)
+            )  # Convert deque to list for Series
             thrust_result = detect_breadth_thrust(
                 breadth_history=breadth_series,
                 thrust_low=dynamic_config.breadth_thrust_low,
@@ -1735,7 +1791,9 @@ class BacktestEngine:
 
         # Stop loss tracking with strategy support
         # Stores entry trading day index for accurate days_held calculation
-        stop_loss_entries: Dict[str, Tuple[float, float, int]] = {}  # ticker -> (entry_price, peak_price, entry_day_idx)
+        stop_loss_entries: Dict[
+            str, Tuple[float, float, int]
+        ] = {}  # ticker -> (entry_price, peak_price, entry_day_idx)
 
         # Regime tracking
         regime_history: List[dict] = []
@@ -1747,6 +1805,13 @@ class BacktestEngine:
         # Drawdown tracking for AllWeather recovery mode
         peak_value = self.config.initial_capital
         self._current_drawdown = 0.0
+
+        # Reset recovery override hysteresis (FIX 6)
+        self._recovery_override_active = False
+        self._recovery_override_confirm_days = 0
+
+        # Reset smoothed breadth (FIX 8)
+        self._breadth_ema = None
 
         # Clear caches for fresh run
         self._nms_cache.clear()
@@ -1793,20 +1858,28 @@ class BacktestEngine:
 
             # Track daily returns for vol targeting (E2)
             if self._prev_portfolio_value > 0:
-                daily_ret = (current_value - self._prev_portfolio_value) / self._prev_portfolio_value
+                daily_ret = (
+                    current_value - self._prev_portfolio_value
+                ) / self._prev_portfolio_value
                 self._portfolio_daily_returns.append(daily_ret)
             self._prev_portfolio_value = current_value
 
             # Update drawdown tracking for AllWeather recovery mode
             if current_value > peak_value:
                 peak_value = current_value
-            self._current_drawdown = (current_value - peak_value) / peak_value if peak_value > 0 else 0.0
+            self._current_drawdown = (
+                (current_value - peak_value) / peak_value if peak_value > 0 else 0.0
+            )
 
             # Increment days since last rebalance (in trading days, not calendar days)
             if self._last_rebalance_date is not None:
-                self._days_since_rebalance = trading_day_index[date] - trading_day_index[self._last_rebalance_date]
+                self._days_since_rebalance = (
+                    trading_day_index[date] - trading_day_index[self._last_rebalance_date]
+                )
             else:
-                self._days_since_rebalance = self.app_config.dynamic_rebalance.max_days_between  # Force first rebalance
+                self._days_since_rebalance = (
+                    self.app_config.dynamic_rebalance.max_days_between
+                )  # Force first rebalance
 
             # Daily stop loss check: update peak prices and sell breached positions
             # This runs every trading day, independent of rebalancing schedule
@@ -1833,7 +1906,10 @@ class BacktestEngine:
                     if gain_from_entry <= -stop_config.initial_stop:
                         triggered = True
                     # E9: Skip trailing stop during minimum hold period
-                    elif days_held >= self._min_hold_days and gain_from_entry >= stop_config.trailing_activation:
+                    elif (
+                        days_held >= self._min_hold_days
+                        and gain_from_entry >= stop_config.trailing_activation
+                    ):
                         gain_from_peak = (current_price - peak_price) / peak_price
                         if gain_from_peak <= -stop_config.trailing_stop:
                             triggered = True
@@ -1862,7 +1938,9 @@ class BacktestEngine:
 
             # PERFORMANCE OPTIMIZATION: Fast O(1) check to skip ~85% of days early
             # This avoids expensive regime detection and trigger evaluation on most days
-            if use_dynamic and not self._should_check_rebalance_fast(date, self._days_since_rebalance):
+            if use_dynamic and not self._should_check_rebalance_fast(
+                date, self._days_since_rebalance
+            ):
                 # Update breadth history even on skipped days (O(1) from cache)
                 current_breadth = self._get_cached_breadth(date)
                 self._breadth_history.append(current_breadth)
@@ -1893,13 +1971,15 @@ class BacktestEngine:
                 rebalance_reason = trigger_result.reason
 
                 if should_rebalance:
-                    self._rebalance_triggers_log.append({
-                        "date": date,
-                        "reason": rebalance_reason,
-                        "triggers_fired": trigger_result.triggers_fired,
-                        "urgency": trigger_result.urgency,
-                        "days_since_last": self._days_since_rebalance,
-                    })
+                    self._rebalance_triggers_log.append(
+                        {
+                            "date": date,
+                            "reason": rebalance_reason,
+                            "triggers_fired": trigger_result.triggers_fired,
+                            "urgency": trigger_result.urgency,
+                            "days_since_last": self._days_since_rebalance,
+                        }
+                    )
             else:
                 # Fixed rebalancing - rebalance only on scheduled dates
                 if date in fixed_rebalance_set:
@@ -1923,26 +2003,30 @@ class BacktestEngine:
                     self.strategy.set_regime(regime)
 
                 # Enhanced regime history with new fields
-                regime_history.append({
-                    "date": date,
-                    "regime": regime.regime.value,
-                    "nifty_52w_position": regime.nifty_52w_position,
-                    "vix_level": regime.vix_level,
-                    "nifty_3m_return": regime.nifty_3m_return,
-                    "equity_weight": regime.equity_weight,
-                    "gold_weight": regime.gold_weight,
-                    "cash_weight": regime.cash_weight,
-                    # New multi-timeframe fields
-                    "position_short": regime.position_short,
-                    "position_medium": regime.position_medium,
-                    "position_long": regime.position_long,
-                    "return_1m": regime.return_1m,
-                    "stress_score": regime.stress_score,
-                    # Hysteresis tracking
-                    "pending_regime": regime.pending_regime.value if regime.pending_regime else None,
-                    "confirmation_days": regime.confirmation_days,
-                    "transition_blocked": regime.transition_blocked,
-                })
+                regime_history.append(
+                    {
+                        "date": date,
+                        "regime": regime.regime.value,
+                        "nifty_52w_position": regime.nifty_52w_position,
+                        "vix_level": regime.vix_level,
+                        "nifty_3m_return": regime.nifty_3m_return,
+                        "equity_weight": regime.equity_weight,
+                        "gold_weight": regime.gold_weight,
+                        "cash_weight": regime.cash_weight,
+                        # New multi-timeframe fields
+                        "position_short": regime.position_short,
+                        "position_medium": regime.position_medium,
+                        "position_long": regime.position_long,
+                        "return_1m": regime.return_1m,
+                        "stress_score": regime.stress_score,
+                        # Hysteresis tracking
+                        "pending_regime": regime.pending_regime.value
+                        if regime.pending_regime
+                        else None,
+                        "confirmation_days": regime.confirmation_days,
+                        "transition_blocked": regime.transition_blocked,
+                    }
+                )
                 prev_regime = regime.regime
 
                 # Calculate and pass bull recovery signals to strategy
@@ -1992,7 +2076,9 @@ class BacktestEngine:
 
             # Get target portfolio using strategy interface
             target_weights = self._select_portfolio_via_strategy(
-                date, regime, portfolio_value=portfolio.get_total_value(),
+                date,
+                regime,
+                portfolio_value=portfolio.get_total_value(),
                 profile_max_gold=self._profile_max_gold,
             )
 
@@ -2008,7 +2094,10 @@ class BacktestEngine:
                 position_scale = self.strategy.get_position_scale()
                 if position_scale < 1.0:
                     # Scale down all equity positions, keep defensive positions full
-                    defensive_syms = {self.app_config.regime.gold_symbol, self.app_config.regime.cash_symbol}
+                    defensive_syms = {
+                        self.app_config.regime.gold_symbol,
+                        self.app_config.regime.cash_symbol,
+                    }
                     eq_before = sum(w for t, w in target_weights.items() if t not in defensive_syms)
                     for ticker in list(target_weights.keys()):
                         if ticker not in defensive_syms:
@@ -2178,9 +2267,7 @@ class BacktestEngine:
 
             # Gate failures: stocks that were ranked but didn't pass entry filters
             gate_failures = [
-                (s.ticker, s.score)
-                for s in self._trail_ranked_stocks
-                if not s.passes_entry_filters
+                (s.ticker, s.score) for s in self._trail_ranked_stocks if not s.passes_entry_filters
             ][:8]  # Limit to top 8
 
             breadth_val = self._calculate_market_breadth(date)
@@ -2333,7 +2420,9 @@ class BacktestEngine:
             risk_free_per_period = 0.06 / periods_per_year
             excess_returns = returns - risk_free_per_period
 
-            sharpe = (excess_returns.mean() * periods_per_year) / (returns.std() * np.sqrt(periods_per_year))
+            sharpe = (excess_returns.mean() * periods_per_year) / (
+                returns.std() * np.sqrt(periods_per_year)
+            )
         else:
             sharpe = 0
 

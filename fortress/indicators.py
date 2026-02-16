@@ -7,7 +7,7 @@ Market regime detection for defensive allocation.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -23,9 +23,9 @@ class MarketRegime(Enum):
     Based on Nifty 52-week range position with VIX and return modifiers.
     """
 
-    BULLISH = "bullish"      # > 70% of 52W range, full equity
-    NORMAL = "normal"        # 50-70% of 52W range, full equity
-    CAUTION = "caution"      # 30-50% of 52W range, or VIX > 20, reduced equity
+    BULLISH = "bullish"  # > 70% of 52W range, full equity
+    NORMAL = "normal"  # 50-70% of 52W range, full equity
+    CAUTION = "caution"  # 30-50% of 52W range, or VIX > 20, reduced equity
     DEFENSIVE = "defensive"  # < 30% of 52W range, or VIX > 25, heavy defensive
 
 
@@ -44,39 +44,39 @@ class RegimeResult:
     """
 
     regime: MarketRegime
-    nifty_52w_position: float      # 0-1, composite weighted position
-    vix_level: float               # Current VIX value
-    nifty_3m_return: float         # 3-month return
-    equity_weight: float           # Target equity allocation (0-1)
-    gold_weight: float             # Target gold allocation (0-1)
-    cash_weight: float             # Target cash allocation (0-1)
+    nifty_52w_position: float  # 0-1, composite weighted position
+    vix_level: float  # Current VIX value
+    nifty_3m_return: float  # 3-month return
+    equity_weight: float  # Target equity allocation (0-1)
+    gold_weight: float  # Target gold allocation (0-1)
+    cash_weight: float  # Target cash allocation (0-1)
 
     # Signal details for debugging
-    primary_regime: MarketRegime   # Regime from position alone
-    vix_upgrade: bool              # Was regime upgraded due to VIX?
-    return_upgrade: bool           # Was regime upgraded due to returns?
+    primary_regime: MarketRegime  # Regime from position alone
+    vix_upgrade: bool  # Was regime upgraded due to VIX?
+    return_upgrade: bool  # Was regime upgraded due to returns?
 
     # Multi-timeframe position tracking (NEW)
-    position_short: float = 0.0    # 21-day position (fast signal)
-    position_medium: float = 0.0   # 63-day position (intermediate)
-    position_long: float = 0.0     # 126-day position (trend)
-    return_1m: float = 0.0         # 1-month return (faster warning)
+    position_short: float = 0.0  # 21-day position (fast signal)
+    position_medium: float = 0.0  # 63-day position (intermediate)
+    position_long: float = 0.0  # 126-day position (trend)
+    return_1m: float = 0.0  # 1-month return (faster warning)
 
     # Hysteresis tracking (NEW)
     pending_regime: Optional[MarketRegime] = None  # Regime awaiting confirmation
-    confirmation_days: int = 0     # Days signal has been consistent
+    confirmation_days: int = 0  # Days signal has been consistent
     transition_blocked: bool = False  # Was transition blocked by hysteresis?
 
     # Stress score for graduated allocation (NEW)
-    stress_score: float = 0.0      # 0-1 composite stress indicator
+    stress_score: float = 0.0  # 0-1 composite stress indicator
 
     # Agile regime detection signals (NEW)
-    position_momentum: float = 0.0      # Rate of change in position
-    return_10d: float = 0.0             # 10-day return for faster detection
-    vix_recovering: bool = False        # Is VIX mean-reverting from spike?
+    position_momentum: float = 0.0  # Rate of change in position
+    return_10d: float = 0.0  # 10-day return for faster detection
+    vix_recovering: bool = False  # Is VIX mean-reverting from spike?
     vix_recovery_strength: float = 0.0  # How strong is VIX recovery (0-1)?
     momentum_recovery_bonus: float = 0.0  # Applied momentum bonus to thresholds
-    vix_recovery_bonus: float = 0.0       # Applied VIX recovery bonus to thresholds
+    vix_recovery_bonus: float = 0.0  # Applied VIX recovery bonus to thresholds
 
     def __str__(self) -> str:
         modifiers = []
@@ -85,7 +85,9 @@ class RegimeResult:
         if self.return_upgrade:
             modifiers.append(f"3M={self.nifty_3m_return:.1%}")
         if self.transition_blocked:
-            modifiers.append(f"pending={self.pending_regime.value if self.pending_regime else 'none'}")
+            modifiers.append(
+                f"pending={self.pending_regime.value if self.pending_regime else 'none'}"
+            )
 
         modifier_str = f" [{', '.join(modifiers)}]" if modifiers else ""
         return (
@@ -107,17 +109,17 @@ class NMSResult:
     - Skips most recent 5 days to avoid short-term reversal
     """
 
-    nms: float                    # Composite normalized momentum score
-    return_6m: float              # 6-month simple return
-    return_12m: float             # 12-month simple return
-    volatility_6m: float          # 6-month annualized volatility
-    adj_return_6m: float          # Volatility-adjusted 6M return
-    adj_return_12m: float         # Volatility-adjusted 12M return
-    high_52w_proximity: float     # Current price / 52-week high (0-1)
-    above_50ema: bool             # Price > 50-day EMA
-    above_200sma: bool            # Price > 200-day SMA
-    volume_surge: float           # 20-day avg volume / 50-day avg volume
-    daily_turnover: float         # Average daily turnover (rupees)
+    nms: float  # Composite normalized momentum score
+    return_6m: float  # 6-month simple return
+    return_12m: float  # 12-month simple return
+    volatility_6m: float  # 6-month annualized volatility
+    adj_return_6m: float  # Volatility-adjusted 6M return
+    adj_return_12m: float  # Volatility-adjusted 12M return
+    high_52w_proximity: float  # Current price / 52-week high (0-1)
+    above_50ema: bool  # Price > 50-day EMA
+    above_200sma: bool  # Price > 200-day SMA
+    volume_surge: float  # 20-day avg volume / 50-day avg volume
+    daily_turnover: float  # Average daily turnover (rupees)
 
     def passes_entry_filters(
         self,
@@ -235,7 +237,9 @@ def calculate_normalized_momentum_score(
     # Skip most recent days (avoids short-term reversal)
     if skip_recent_days > 0:
         prices_calc = prices.iloc[:-skip_recent_days]
-        volumes_calc = volumes.iloc[:-skip_recent_days] if len(volumes) > skip_recent_days else volumes
+        volumes_calc = (
+            volumes.iloc[:-skip_recent_days] if len(volumes) > skip_recent_days else volumes
+        )
     else:
         prices_calc = prices
         volumes_calc = volumes
@@ -258,7 +262,9 @@ def calculate_normalized_momentum_score(
     if len(log_returns) >= lookback_volatility:
         volatility_6m = log_returns.iloc[-lookback_volatility:].std() * np.sqrt(trading_days_year)
     else:
-        volatility_6m = log_returns.std() * np.sqrt(trading_days_year) if len(log_returns) > 0 else 0.20
+        volatility_6m = (
+            log_returns.std() * np.sqrt(trading_days_year) if len(log_returns) > 0 else 0.20
+        )
 
     # Calculate separate 12M volatility for 12M adjusted return
     lookback_12m_vol = min(lookback_12m, len(log_returns))
@@ -453,9 +459,9 @@ def calculate_composite_position(
     position_long = calculate_range_position(prices, lookback_long)
 
     composite = (
-        weight_short * position_short +
-        weight_medium * position_medium +
-        weight_long * position_long
+        weight_short * position_short
+        + weight_medium * position_medium
+        + weight_long * position_long
     )
 
     return (composite, position_short, position_medium, position_long)
@@ -580,8 +586,12 @@ def calculate_rs_trend(
             current_rs = (1 + stock_return_now) / (1 + bench_return_now)
 
         # Calculate RS from lookback days ago
-        stock_return_then = (stock_aligned.iloc[-lookback-1] / stock_aligned.iloc[-lookback-21]) - 1
-        bench_return_then = (bench_aligned.iloc[-lookback-1] / bench_aligned.iloc[-lookback-21]) - 1
+        stock_return_then = (
+            stock_aligned.iloc[-lookback - 1] / stock_aligned.iloc[-lookback - 21]
+        ) - 1
+        bench_return_then = (
+            bench_aligned.iloc[-lookback - 1] / bench_aligned.iloc[-lookback - 21]
+        ) - 1
 
         if abs(bench_return_then) < 0.0001:
             previous_rs = 1.0
@@ -660,11 +670,7 @@ def calculate_stress_score(
     w_pos = getattr(config, "stress_weight_position", 0.40)
     w_vix = getattr(config, "stress_weight_vix", 0.30)
     w_ret = getattr(config, "stress_weight_returns", 0.30)
-    stress = (
-        w_pos * position_stress +
-        w_vix * vix_stress +
-        w_ret * return_stress
-    )
+    stress = w_pos * position_stress + w_vix * vix_stress + w_ret * return_stress
 
     # Apply momentum adjustment
     stress = max(0, stress - momentum_adjustment)
@@ -973,6 +979,21 @@ def evaluate_regime_transition(
             if composite_position <= threshold - config.strong_signal_bonus:
                 required_days = max(1, required_days - 1)
 
+    # Fast-track recovery: when all signals strongly confirm, require only 1 day (FIX 7)
+    if is_recovery and getattr(config, "use_fast_recovery_detection", True):
+        threshold_map = {
+            MarketRegime.CAUTION: config.caution_recovery_threshold,
+            MarketRegime.NORMAL: config.normal_recovery_threshold,
+            MarketRegime.BULLISH: config.bullish_recovery_threshold,
+        }
+        threshold = threshold_map.get(target_regime, 0.5)
+        if (
+            composite_position >= threshold + 2 * config.strong_signal_bonus
+            and vix_level <= config.vix_normal
+            and return_3m >= 0
+        ):
+            required_days = 1
+
     # Check if this is the same pending regime as before
     if previous_pending == target_regime:
         # Continuing to confirm the same transition
@@ -982,7 +1003,14 @@ def evaluate_regime_transition(
             return (target_regime, None, 0, False, momentum_bonus, vix_bonus)
         else:
             # Still pending
-            return (current_regime, target_regime, new_confirmation_days, True, momentum_bonus, vix_bonus)
+            return (
+                current_regime,
+                target_regime,
+                new_confirmation_days,
+                True,
+                momentum_bonus,
+                vix_bonus,
+            )
     else:
         # New pending regime - start counting
         return (current_regime, target_regime, 1, True, momentum_bonus, vix_bonus)
@@ -1042,14 +1070,16 @@ def detect_market_regime(
         RegimeResult with detected regime and allocation weights
     """
     # Calculate multi-timeframe composite position
-    composite_position, position_short, position_medium, position_long = calculate_composite_position(
-        prices=nifty_prices,
-        lookback_short=config.lookback_short,
-        lookback_medium=config.lookback_medium,
-        lookback_long=config.lookback_long,
-        weight_short=config.weight_short,
-        weight_medium=config.weight_medium,
-        weight_long=config.weight_long,
+    composite_position, position_short, position_medium, position_long = (
+        calculate_composite_position(
+            prices=nifty_prices,
+            lookback_short=config.lookback_short,
+            lookback_medium=config.lookback_medium,
+            lookback_long=config.lookback_long,
+            weight_short=config.weight_short,
+            weight_medium=config.weight_medium,
+            weight_long=config.weight_long,
+        )
     )
 
     # Calculate position momentum (NEW - rate of change for faster recovery)
@@ -1121,7 +1151,14 @@ def detect_market_regime(
             vix_recovering=vix_recovering,
             vix_recovery_strength=vix_recovery_strength,
         )
-        final_regime, pending_regime, confirmation_days, transition_blocked, momentum_bonus, vix_bonus = transition_result
+        (
+            final_regime,
+            pending_regime,
+            confirmation_days,
+            transition_blocked,
+            momentum_bonus,
+            vix_bonus,
+        ) = transition_result
     else:
         # No previous result - use signal regime directly
         final_regime = signal_regime
@@ -1159,12 +1196,12 @@ def detect_market_regime(
             cash_weight = 0.0
         elif final_regime == MarketRegime.CAUTION:
             equity_weight = config.caution_equity  # 0.90
-            gold_weight = config.caution_gold      # 0.10
-            cash_weight = 0.0                      # No cash - user manages manually
+            gold_weight = config.caution_gold  # 0.10
+            cash_weight = 0.0  # No cash - user manages manually
         else:  # DEFENSIVE
             equity_weight = config.defensive_equity  # 0.80
-            gold_weight = config.defensive_gold      # 0.20
-            cash_weight = 0.0                        # No cash - user manages manually
+            gold_weight = config.defensive_gold  # 0.20
+            cash_weight = 0.0  # No cash - user manages manually
 
     return RegimeResult(
         regime=final_regime,
@@ -1211,8 +1248,8 @@ class SimpleRegime(Enum):
     Much simpler than the full MarketRegime with hysteresis.
     """
 
-    BULLISH = "bullish"      # VIX < 18 AND trend up -> full equity
-    NEUTRAL = "neutral"      # Neither bullish nor defensive
+    BULLISH = "bullish"  # VIX < 18 AND trend up -> full equity
+    NEUTRAL = "neutral"  # Neither bullish nor defensive
     DEFENSIVE = "defensive"  # VIX > 25 OR trend down -> reduce exposure
 
 
@@ -1226,9 +1263,9 @@ class SimpleRegimeResult:
 
     regime: SimpleRegime
     vix_level: float
-    trend_up: bool           # Price > 200-day SMA
-    sma_200: float           # 200-day SMA value
-    current_price: float     # Current Nifty price
+    trend_up: bool  # Price > 200-day SMA
+    sma_200: float  # 200-day SMA value
+    current_price: float  # Current Nifty price
 
     def __str__(self) -> str:
         trend_str = "uptrend" if self.trend_up else "downtrend"
@@ -1303,10 +1340,10 @@ class RelativeStrengthResult:
     RS > 1.0 means outperforming, RS < 1.0 means underperforming.
     """
 
-    rs_21d: float         # 21-day (1-month) RS ratio
-    rs_63d: float         # 63-day (3-month) RS ratio
-    rs_126d: float        # 126-day (6-month) RS ratio
-    rs_composite: float   # Weighted composite RS
+    rs_21d: float  # 21-day (1-month) RS ratio
+    rs_63d: float  # 63-day (3-month) RS ratio
+    rs_126d: float  # 126-day (6-month) RS ratio
+    rs_composite: float  # Weighted composite RS
 
 
 def calculate_relative_strength(
@@ -1395,11 +1432,7 @@ def calculate_relative_strength(
     rs_63d = calc_rs(stock_prices, benchmark_prices, lookback_medium)
     rs_126d = calc_rs(stock_prices, benchmark_prices, lookback_long)
 
-    rs_composite = (
-        weight_short * rs_21d +
-        weight_medium * rs_63d +
-        weight_long * rs_126d
-    )
+    rs_composite = weight_short * rs_21d + weight_medium * rs_63d + weight_long * rs_126d
 
     return RelativeStrengthResult(
         rs_21d=rs_21d,
@@ -1468,7 +1501,7 @@ class ExhaustionResult:
     exhaustion_score: float  # 0-100, higher = more exhausted
     distance_from_20ema: float  # Percent above/below 20 EMA
     distance_from_50ema: float  # Percent above/below 50 EMA
-    rsi_14: float             # 14-day RSI
+    rsi_14: float  # 14-day RSI
     volume_exhaustion: float  # Volume spike indicator
 
 
@@ -1571,14 +1604,14 @@ class BullRecoverySignals:
     This helps AllWeather strategy capture more upside during V-shaped recoveries.
     """
 
-    is_bull_recovery: bool        # Are we in a bull recovery?
-    vix_declining: bool           # Is VIX declining from spike?
-    vix_decline_pct: float        # How much has VIX declined (0-1)?
-    momentum_positive: bool       # Is position momentum positive?
-    position_momentum: float      # Current position momentum
-    return_1m: float              # 1-month return
-    return_3m: float              # 3-month return
-    recovery_strength: float      # Composite recovery strength (0-1)
+    is_bull_recovery: bool  # Are we in a bull recovery?
+    vix_declining: bool  # Is VIX declining from spike?
+    vix_decline_pct: float  # How much has VIX declined (0-1)?
+    momentum_positive: bool  # Is position momentum positive?
+    position_momentum: float  # Current position momentum
+    return_1m: float  # 1-month return
+    return_3m: float  # 3-month return
+    recovery_strength: float  # Composite recovery strength (0-1)
 
 
 def calculate_bull_recovery_signals(
@@ -1656,8 +1689,8 @@ def calculate_bull_recovery_signals(
     # Is this a bull recovery?
     # Requires either: VIX declining + positive momentum, or very strong momentum
     is_bull_recovery = (
-        (vix_declining and momentum_positive) or
-        (position_momentum > 0.008)  # Very strong momentum alone
+        (vix_declining and momentum_positive)
+        or (position_momentum > 0.008)  # Very strong momentum alone
     )
 
     return BullRecoverySignals(
@@ -1676,6 +1709,7 @@ def calculate_bull_recovery_signals(
 # MARKET MODE DETECTION (for Hybrid Strategy)
 # =============================================================================
 
+
 class MarketMode(Enum):
     """
     Market mode classification for adaptive hybrid strategy.
@@ -1685,22 +1719,22 @@ class MarketMode(Enum):
     """
 
     STRONG_BULL = "strong_bull"  # Breadth > 70%, VIX < 15, strong momentum
-    BULL = "bull"                # Breadth > 55%, VIX < 20, positive momentum
-    NEUTRAL = "neutral"          # Breadth 40-55%, moderate conditions
-    CORRECTION = "correction"    # Breadth < 40%, declining trend, negative momentum
-    CRISIS = "crisis"            # VIX > 30 or severe drawdown
+    BULL = "bull"  # Breadth > 55%, VIX < 20, positive momentum
+    NEUTRAL = "neutral"  # Breadth 40-55%, moderate conditions
+    CORRECTION = "correction"  # Breadth < 40%, declining trend, negative momentum
+    CRISIS = "crisis"  # VIX > 30 or severe drawdown
 
 
 @dataclass
 class MarketBreadth:
     """Market breadth indicators calculated from universe data."""
 
-    pct_above_50ma: float       # % of stocks above 50-day MA (0-1)
-    pct_above_200ma: float      # % of stocks above 200-day MA (0-1)
+    pct_above_50ma: float  # % of stocks above 50-day MA (0-1)
+    pct_above_200ma: float  # % of stocks above 200-day MA (0-1)
     pct_positive_momentum: float  # % of stocks with positive 21-day momentum (0-1)
     avg_distance_from_high: float  # Average distance from 52W high (0-1)
-    breadth_momentum: float     # Change in breadth over last 10 days
-    sample_size: int            # Number of stocks used in calculation
+    breadth_momentum: float  # Change in breadth over last 10 days
+    sample_size: int  # Number of stocks used in calculation
 
 
 @dataclass
@@ -1717,20 +1751,20 @@ class MarketModeResult:
     vix_level: float
     index_return_1m: float
     index_return_3m: float
-    index_momentum: float       # Index position momentum
+    index_momentum: float  # Index position momentum
 
     # Adaptive scoring weights (should sum to 1.0)
-    wp_weight: float            # Weekly Persistence weight
-    rs_weight: float            # Relative Strength weight
-    dh_weight: float            # Daily Health weight
+    wp_weight: float  # Weekly Persistence weight
+    rs_weight: float  # Relative Strength weight
+    dh_weight: float  # Daily Health weight
 
     # Adaptive entry thresholds
-    min_score_mult: float       # Multiplier for min_hybrid_score
-    max_rank_mult: float        # Multiplier for max_entry_rank
-    position_size_mult: float   # Multiplier for position sizes
+    min_score_mult: float  # Multiplier for min_hybrid_score
+    max_rank_mult: float  # Multiplier for max_entry_rank
+    position_size_mult: float  # Multiplier for position sizes
 
     # Confidence and debug info
-    confidence: float           # How confident are we in this mode (0-1)
+    confidence: float  # How confident are we in this mode (0-1)
     signals: Dict[str, float] = field(default_factory=dict)
 
     def __str__(self) -> str:
@@ -1774,9 +1808,9 @@ def calculate_market_breadth(
                 if df.empty:
                     continue
 
-            close = df['close'].iloc[-1]
-            ma_50 = df['close'].rolling(50).mean().iloc[-1]
-            ma_200 = df['close'].rolling(200).mean().iloc[-1]
+            close = df["close"].iloc[-1]
+            ma_50 = df["close"].rolling(50).mean().iloc[-1]
+            ma_200 = df["close"].rolling(200).mean().iloc[-1]
 
             # Above 50 MA
             if close > ma_50:
@@ -1788,20 +1822,20 @@ def calculate_market_breadth(
 
             # Positive 21-day momentum
             if len(df) >= 21:
-                ret_21d = (close / df['close'].iloc[-21]) - 1
+                ret_21d = (close / df["close"].iloc[-21]) - 1
                 if ret_21d > 0:
                     positive_momentum += 1
 
             # Distance from 52W high
-            high_52w = df['close'].rolling(252).max().iloc[-1]
+            high_52w = df["close"].rolling(252).max().iloc[-1]
             if high_52w > 0:
                 dist = (high_52w - close) / high_52w
                 distances_from_high.append(dist)
 
             # Breadth 10 days ago (for momentum)
             if len(df) >= 60:
-                ma_50_10d_ago = df['close'].rolling(50).mean().iloc[-10]
-                close_10d_ago = df['close'].iloc[-10]
+                ma_50_10d_ago = df["close"].rolling(50).mean().iloc[-10]
+                close_10d_ago = df["close"].iloc[-10]
                 if close_10d_ago > ma_50_10d_ago:
                     breadth_10d_ago += 1
 
@@ -1864,14 +1898,14 @@ def detect_market_mode(
         MarketModeResult with mode and adaptive parameters
     """
     signals = {
-        'breadth_50ma': breadth.pct_above_50ma,
-        'breadth_200ma': breadth.pct_above_200ma,
-        'breadth_momentum': breadth.breadth_momentum,
-        'vix': vix_level,
-        'return_1m': index_return_1m,
-        'return_3m': index_return_3m,
-        'index_momentum': index_momentum,
-        'stress': stress_score,
+        "breadth_50ma": breadth.pct_above_50ma,
+        "breadth_200ma": breadth.pct_above_200ma,
+        "breadth_momentum": breadth.breadth_momentum,
+        "vix": vix_level,
+        "return_1m": index_return_1m,
+        "return_3m": index_return_3m,
+        "index_momentum": index_momentum,
+        "stress": stress_score,
     }
 
     # Determine market mode based on multiple signals
@@ -1885,24 +1919,25 @@ def detect_market_mode(
 
     # STRONG_BULL: Relaxed thresholds - focus on broad participation and low fear
     # Changed: breadth 70%->60%, VIX 15->18, return 8%->5%, momentum optional
-    elif (breadth.pct_above_50ma >= 0.60 and
-          vix_level <= 18 and
-          index_return_3m >= 0.05):
+    elif breadth.pct_above_50ma >= 0.60 and vix_level <= 18 and index_return_3m >= 0.05:
         mode = MarketMode.STRONG_BULL
         confidence = 0.85 if breadth.breadth_momentum >= 0 else 0.70
 
     # BULL: More achievable conditions for normal bull markets
     # Changed: breadth 55%->45%, added positive 3M return as alternative
-    elif ((breadth.pct_above_50ma >= 0.45 and vix_level <= 22 and index_return_1m >= 0) or
-          (breadth.pct_above_200ma >= 0.55 and index_return_3m >= 0.03 and vix_level <= 22)):
+    elif (breadth.pct_above_50ma >= 0.45 and vix_level <= 22 and index_return_1m >= 0) or (
+        breadth.pct_above_200ma >= 0.55 and index_return_3m >= 0.03 and vix_level <= 22
+    ):
         mode = MarketMode.BULL
         confidence = 0.75
 
     # CORRECTION: Tighter triggers - need multiple confirming signals
     # Changed: breadth alone 40%->30%, require stress OR momentum decline
-    elif ((breadth.pct_above_50ma <= 0.30 and stress_score >= 0.5) or
-          (breadth.breadth_momentum <= -0.08 and index_return_1m <= -0.05) or
-          (index_return_3m <= -0.10 and stress_score >= 0.65)):
+    elif (
+        (breadth.pct_above_50ma <= 0.30 and stress_score >= 0.5)
+        or (breadth.breadth_momentum <= -0.08 and index_return_1m <= -0.05)
+        or (index_return_3m <= -0.10 and stress_score >= 0.65)
+    ):
         mode = MarketMode.CORRECTION
         confidence = 0.80 if breadth.pct_above_50ma <= 0.25 else 0.65
 
@@ -1915,36 +1950,36 @@ def detect_market_mode(
     if mode == MarketMode.STRONG_BULL:
         # Very aggressive: Heavy RS focus, significantly relaxed filters
         wp_weight, rs_weight, dh_weight = 0.25, 0.50, 0.25
-        min_score_mult = 0.80      # 75 * 0.80 = 60 (more entries)
-        max_rank_mult = 1.80       # 15 * 1.80 = 27 (wider net)
-        position_mult = 1.15       # Larger positions
+        min_score_mult = 0.80  # 75 * 0.80 = 60 (more entries)
+        max_rank_mult = 1.80  # 15 * 1.80 = 27 (wider net)
+        position_mult = 1.15  # Larger positions
 
     elif mode == MarketMode.BULL:
         # Aggressive: RS emphasis, relaxed filters
         wp_weight, rs_weight, dh_weight = 0.30, 0.45, 0.25
-        min_score_mult = 0.85      # 75 * 0.85 = 63.75
-        max_rank_mult = 1.50       # 15 * 1.50 = 22.5
+        min_score_mult = 0.85  # 75 * 0.85 = 63.75
+        max_rank_mult = 1.50  # 15 * 1.50 = 22.5
         position_mult = 1.10
 
     elif mode == MarketMode.NEUTRAL:
         # Normal: Match classic strategy behavior
         wp_weight, rs_weight, dh_weight = 0.35, 0.40, 0.25
-        min_score_mult = 0.95      # 75 * 0.95 = 71.25 (slightly relaxed)
-        max_rank_mult = 1.20       # 15 * 1.20 = 18
+        min_score_mult = 0.95  # 75 * 0.95 = 71.25 (slightly relaxed)
+        max_rank_mult = 1.20  # 15 * 1.20 = 18
         position_mult = 1.00
 
     elif mode == MarketMode.CORRECTION:
         # Defensive: Focus on quality, tighter but not extreme
         wp_weight, rs_weight, dh_weight = 0.45, 0.30, 0.25
-        min_score_mult = 1.05      # 75 * 1.05 = 78.75 (slightly tighter)
-        max_rank_mult = 0.80       # 15 * 0.80 = 12
+        min_score_mult = 1.05  # 75 * 1.05 = 78.75 (slightly tighter)
+        max_rank_mult = 0.80  # 15 * 0.80 = 12
         position_mult = 0.85
 
     else:  # CRISIS
         # Very defensive: Highest quality only
         wp_weight, rs_weight, dh_weight = 0.50, 0.25, 0.25
-        min_score_mult = 1.15      # 75 * 1.15 = 86.25
-        max_rank_mult = 0.60       # 15 * 0.60 = 9
+        min_score_mult = 1.15  # 75 * 1.15 = 86.25
+        max_rank_mult = 0.60  # 15 * 0.60 = 9
         position_mult = 0.60
 
     return MarketModeResult(
@@ -2116,11 +2151,11 @@ def calculate_atr_ratio(
 class ADXResult:
     """Result of ADX calculation for trend strength measurement."""
 
-    adx: float           # Average Directional Index (0-100)
-    plus_di: float       # Positive Directional Indicator
-    minus_di: float      # Negative Directional Indicator
-    is_trending: bool    # ADX >= threshold indicates trending market
-    is_bullish: bool     # +DI > -DI indicates bullish trend
+    adx: float  # Average Directional Index (0-100)
+    plus_di: float  # Positive Directional Indicator
+    minus_di: float  # Negative Directional Indicator
+    is_trending: bool  # ADX >= threshold indicates trending market
+    is_bullish: bool  # +DI > -DI indicates bullish trend
 
 
 def calculate_adx(
@@ -2364,7 +2399,7 @@ def calculate_higher_highs_score(
     hh_pct = hh_count / max_possible
     hl_pct = hl_count / max_possible
 
-    score = (hh_pct * 50 + hl_pct * 50)
+    score = hh_pct * 50 + hl_pct * 50
     return float(np.clip(score, 0, 100))
 
 
@@ -2404,10 +2439,10 @@ class MomentumTypeClassification:
     """Result of momentum type classification."""
 
     momentum_type: str  # TREND, ROTATION, MEAN_REVERSION, REVERSAL
-    confidence: float   # 0-1 confidence in classification
+    confidence: float  # 0-1 confidence in classification
     position_size_mult: float  # Position size multiplier
     max_hold_weeks: int  # Maximum hold period in weeks
-    stop_width: float   # Stop loss width (decimal)
+    stop_width: float  # Stop loss width (decimal)
 
 
 def classify_momentum_type(
@@ -2526,12 +2561,12 @@ class BreadthThrustResult:
     Source: TheRobustTrader - Market Momentum Breadth Thrust
     """
 
-    is_thrust: bool                    # True if breadth thrust detected
-    current_breadth: float             # Current % stocks above 50-day MA
-    breadth_10d_ago: float            # Breadth 10 days ago
-    breadth_change: float              # Change in breadth over 10 days
-    days_to_thrust: int               # Days it took to reach thrust level
-    thrust_strength: float            # 0-1 strength score
+    is_thrust: bool  # True if breadth thrust detected
+    current_breadth: float  # Current % stocks above 50-day MA
+    breadth_10d_ago: float  # Breadth 10 days ago
+    breadth_change: float  # Change in breadth over 10 days
+    days_to_thrust: int  # Days it took to reach thrust level
+    thrust_strength: float  # 0-1 strength score
 
 
 def detect_breadth_thrust(
@@ -2629,13 +2664,13 @@ class VIXTermStructureResult:
     Source: VIX Regime Detection (Medium - The VIX Code Cracked)
     """
 
-    is_backwardation: bool             # True if VIX > VIX3M (panic)
-    is_contango: bool                  # True if VIX < VIX3M (normal)
-    vix_level: float                   # Current VIX level
-    vix_3m_level: float               # VIX 3-month level (or estimate)
-    term_spread: float                 # VIX - VIX3M (negative = contango)
-    term_spread_pct: float            # Spread as % of VIX
-    signal: str                        # "PANIC", "CAUTION", "NORMAL", "CALM"
+    is_backwardation: bool  # True if VIX > VIX3M (panic)
+    is_contango: bool  # True if VIX < VIX3M (normal)
+    vix_level: float  # Current VIX level
+    vix_3m_level: float  # VIX 3-month level (or estimate)
+    term_spread: float  # VIX - VIX3M (negative = contango)
+    term_spread_pct: float  # Spread as % of VIX
+    signal: str  # "PANIC", "CAUTION", "NORMAL", "CALM"
 
 
 def detect_vix_term_structure(
@@ -2712,12 +2747,12 @@ class VIXRecoveryResult:
     precedes market recovery opportunities.
     """
 
-    is_recovering: bool                # True if VIX declining from spike
-    vix_current: float                 # Current VIX level
-    vix_peak_20d: float               # 20-day peak VIX
-    decline_from_peak: float          # Percentage decline from peak
-    days_since_peak: int              # Days since the peak
-    recovery_strength: float          # 0-1 strength of recovery signal
+    is_recovering: bool  # True if VIX declining from spike
+    vix_current: float  # Current VIX level
+    vix_peak_20d: float  # 20-day peak VIX
+    decline_from_peak: float  # Percentage decline from peak
+    days_since_peak: int  # Days since the peak
+    recovery_strength: float  # 0-1 strength of recovery signal
 
 
 def detect_vix_recovery(
@@ -2767,9 +2802,9 @@ def detect_vix_recovery(
 
     # Check if this qualifies as recovery
     is_recovering = (
-        vix_peak >= spike_threshold and
-        decline_from_peak >= min_decline and
-        days_since_peak >= 1  # Peak was at least 1 day ago
+        vix_peak >= spike_threshold
+        and decline_from_peak >= min_decline
+        and days_since_peak >= 1  # Peak was at least 1 day ago
     )
 
     # Calculate recovery strength
@@ -2777,7 +2812,7 @@ def detect_vix_recovery(
         # Stronger signal if decline is larger and VIX still elevated
         decline_strength = min(1.0, decline_from_peak / 0.30)  # Max at 30% decline
         elevation_strength = min(1.0, (vix_current - 15) / 15) if vix_current > 15 else 0.0
-        recovery_strength = (decline_strength * 0.7 + elevation_strength * 0.3)
+        recovery_strength = decline_strength * 0.7 + elevation_strength * 0.3
     else:
         recovery_strength = 0.0
 
@@ -2803,11 +2838,11 @@ class MomentumCrashSignal:
     Source: ScienceDirect - Momentum Crash Research
     """
 
-    is_crash: bool                     # True if momentum crash conditions met
-    market_1m_return: float           # Market 1-month return
-    market_3m_return: float           # Market 3-month return
-    volatility_spike: bool            # True if VIX spiked significantly
-    recommendation: str               # "NORMAL", "REDUCE_MOMENTUM", "CONTRARIAN"
+    is_crash: bool  # True if momentum crash conditions met
+    market_1m_return: float  # Market 1-month return
+    market_3m_return: float  # Market 3-month return
+    volatility_spike: bool  # True if VIX spiked significantly
+    recommendation: str  # "NORMAL", "REDUCE_MOMENTUM", "CONTRARIAN"
 
 
 def detect_momentum_crash(
@@ -2863,7 +2898,9 @@ def detect_momentum_crash(
         volatility_spike = volatility_spike or vix_increase > 0.50  # 50% VIX increase
 
     # Tier 1: Full crash conditions (E6: lowered from -0.10 to -0.07)
-    is_crash = market_1m_return <= crash_threshold and (volatility_spike or market_3m_return <= -0.15)
+    is_crash = market_1m_return <= crash_threshold and (
+        volatility_spike or market_3m_return <= -0.15
+    )
 
     # Determine recommendation
     if is_crash:
@@ -2873,8 +2910,10 @@ def detect_momentum_crash(
             recommendation = "REDUCE_MOMENTUM"  # Moderate crash - reduce momentum exposure
     elif market_1m_return <= early_warning_threshold and volatility_spike:
         recommendation = "REDUCE_MOMENTUM"  # Early warning with VIX spike
-    elif (market_1m_return <= early_warning_threshold and
-          market_3m_return <= early_warning_3m_threshold):
+    elif (
+        market_1m_return <= early_warning_threshold
+        and market_3m_return <= early_warning_3m_threshold
+    ):
         # E6: Tier 2 — slow grinding decline without VIX spike (catches NBFC-type crises)
         is_crash = True
         recommendation = "REDUCE_MOMENTUM"
@@ -2898,11 +2937,11 @@ class RebalanceTrigger:
     Determines whether to rebalance based on multiple event-driven triggers.
     """
 
-    should_rebalance: bool             # True if any trigger fired
-    reason: str                        # Primary reason for rebalance
-    days_since_last: int              # Days since last rebalance
-    triggers_fired: list               # List of all triggers that fired
-    urgency: str                       # "HIGH", "MEDIUM", "LOW"
+    should_rebalance: bool  # True if any trigger fired
+    reason: str  # Primary reason for rebalance
+    days_since_last: int  # Days since last rebalance
+    triggers_fired: list  # List of all triggers that fired
+    urgency: str  # "HIGH", "MEDIUM", "LOW"
 
 
 def should_trigger_rebalance(
