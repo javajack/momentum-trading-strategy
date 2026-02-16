@@ -75,6 +75,7 @@ class RebalancePlan:
     trades: List[PlannedTrade] = field(default_factory=list)
     total_sell_value: float = 0.0
     total_buy_value: float = 0.0
+    demat_cash_deployed: float = 0.0  # External capital injection (demat cash → LIQUIDBEES)
     net_cash_needed: float = 0.0
     available_cash: float = 0.0
     margin_sufficient: bool = True
@@ -497,6 +498,8 @@ class RebalanceExecutor:
                         surplus -= cost
 
         # Phase 4: Sweep idle demat cash into cash_symbol (LIQUIDBEES)
+        # This is a capital injection (external cash → strategy), tracked separately
+        # from the self-funded rebalance cycle (sells → buys).
         if cash_symbol and plan.available_cash > 0:
             cash_price = current_prices.get(cash_symbol)
             if cash_price and cash_price > 0:
@@ -505,40 +508,31 @@ class RebalanceExecutor:
                 if qty > 0:
                     cost = qty * cash_price
                     rounded_price = self.mapper.round_to_tick(cash_price, cash_symbol)
-                    # Merge with existing cash_symbol trade if one exists from Phase 3
-                    existing = next(
-                        (t for t in plan.trades if t.symbol == cash_symbol and t.is_buy), None
-                    )
-                    if existing:
-                        existing.quantity += qty
-                        existing.value += cost
-                        existing.reason = "Cash sweep + demat cash"
+                    if cash_symbol in current_holdings:
+                        pos = current_holdings[cash_symbol]
+                        sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
                     else:
-                        if cash_symbol in current_holdings:
-                            pos = current_holdings[cash_symbol]
-                            sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
-                        else:
-                            sector, cq, cw = "Cash", 0, 0.0
-                        action = (
-                            TradeAction.BUY_INCREASE
-                            if cash_symbol in current_holdings
-                            else TradeAction.BUY_NEW
+                        sector, cq, cw = "Cash", 0, 0.0
+                    action = (
+                        TradeAction.BUY_INCREASE
+                        if cash_symbol in current_holdings
+                        else TradeAction.BUY_NEW
+                    )
+                    plan.trades.append(
+                        PlannedTrade(
+                            symbol=cash_symbol,
+                            action=action,
+                            quantity=qty,
+                            price=rounded_price,
+                            value=cost,
+                            sector=sector,
+                            current_qty=cq,
+                            current_weight=cw,
+                            target_weight=0.0,
+                            reason="Capital injection (demat cash)",
                         )
-                        plan.trades.append(
-                            PlannedTrade(
-                                symbol=cash_symbol,
-                                action=action,
-                                quantity=qty,
-                                price=rounded_price,
-                                value=cost,
-                                sector=sector,
-                                current_qty=cq,
-                                current_weight=cw,
-                                target_weight=0.0,
-                                reason="Demat cash sweep",
-                            )
-                        )
-                    plan.total_buy_value += cost
+                    )
+                    plan.demat_cash_deployed += cost
 
         # Calculate net cash impact
         plan.net_cash_needed = plan.total_buy_value - plan.total_sell_value

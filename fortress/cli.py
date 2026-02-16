@@ -1372,16 +1372,15 @@ class FortressApp:
         console.print(
             f"  [dim]Buy cost:[/dim]         [bright_red]-{format_currency(plan.total_buy_value)}[/bright_red]"
         )
-        console.print(
-            f"  [dim]Demat cash:[/dim]       [white]{format_currency(plan.available_cash)}[/white] [dim](swept to LIQUIDBEES)[/dim]"
-        )
         if plan.net_cash_needed > 0:
             console.print(
                 f"  [bold bright_yellow]► Net cash needed: {format_currency(plan.net_cash_needed)}[/bold bright_yellow]"
             )
         else:
+            console.print(f"  [bold bright_green]► Fully self-funded[/bold bright_green]")
+        if plan.demat_cash_deployed > 0:
             console.print(
-                f"  [bold bright_cyan]► Net cash freed: {format_currency(-plan.net_cash_needed)}[/bold bright_cyan]"
+                f"  [dim]Capital injection:[/dim] [bright_cyan]{format_currency(plan.demat_cash_deployed)}[/bright_cyan] [dim](demat cash → LIQUIDBEES)[/dim]"
             )
 
     def _execute_with_confirmation(
