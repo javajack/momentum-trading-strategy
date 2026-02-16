@@ -215,6 +215,89 @@ A typical rebalance involves 3-8 trades:
 
 Average annual turnover is ~1700-1800 trades across both directions. Transaction costs are modeled at 0.3% in backtests.
 
+## Day-to-Day Operations Manual
+
+Once you've funded the system and run your first rebalance, here's the routine.
+
+### Daily (2 minutes)
+
+Nothing. Seriously. The system is designed to run every 1-3 weeks, not daily. You don't need to watch it.
+
+If you want to check in:
+
+```
+./start.sh
+1  → Login
+7  → Triggers
+```
+
+If Triggers says "No triggers" -- close it and come back tomorrow. If it says a trigger fired (regime change, drawdown, etc.) -- proceed to rebalance.
+
+### When a Rebalance Is Triggered (10-15 minutes)
+
+```
+./start.sh
+1  → Login (authenticate with Zerodha)
+7  → Triggers (confirm rebalance is needed)
+4  → Rebalance
+     → Mode 1: DRY RUN (always do this first)
+```
+
+**Review the dry-run output carefully:**
+
+- Check the SELL orders -- do the exits make sense? (stops hit, trend broke, RS fell)
+- Check the BUY orders -- are these high-momentum stocks you're comfortable holding?
+- Check "Cash Flow" -- it should say "Fully self-funded"
+- If anything looks wrong, just close. No harm done.
+
+**If the plan looks good:**
+
+```
+4  → Rebalance
+     → Mode 2: LIVE
+     → Confirm twice (the system double-checks before placing orders)
+```
+
+Sells execute first (R9 invariant), then buys. You'll see order-by-order progress. Failed orders are handled gracefully -- failed buys are removed from tracking, failed sells are kept.
+
+### Weekly Routine (Recommended)
+
+Even if no triggers fire, glance at the system once a week:
+
+| Day | Action | Menu Option |
+|-----|--------|-------------|
+| Any weekday | Login + check triggers | 1 → 7 |
+| If triggered | Dry-run → review → live | 1 → 4 (mode 1, then 2) |
+| Monthly (optional) | Run 3-month backtest to verify system health | 1 → 5 → duration: 3 |
+| Quarterly (optional) | Run full market phases backtest | 1 → 8 |
+
+### Adding or Withdrawing Capital
+
+| Action | How | When It Takes Effect |
+|--------|-----|---------------------|
+| **Add capital** | Buy LIQUIDBEES through your broker (normal order, outside this system) | Next rebalance auto-deploys it |
+| **Withdraw** | Sell some LIQUIDBEES through your broker | Capital leaves the strategy immediately |
+| **Check status** | Menu option 2 (Status) | Shows managed vs external holdings |
+
+You never need to edit config files or tell the system about capital changes. It discovers LIQUIDBEES in your broker positions automatically.
+
+### What NOT to Do
+
+- **Don't manually buy/sell stocks** that the system manages. It tracks positions and will get confused if holdings change outside its knowledge.
+- **Don't rebalance more than once per week** unless a HIGH urgency trigger fires. The 7-day minimum exists for a reason.
+- **Don't panic-sell during drawdowns**. The system has 5 independent defense layers and will reduce exposure automatically if conditions warrant it.
+- **Don't override the dry-run**. If the plan looks wrong, don't execute. Investigate first (run a backtest, check regime, review triggers).
+
+### Troubleshooting
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| "Not authenticated" | Zerodha session expired | Login again (option 1). Sessions last one trading day. |
+| Stale regime warning | Haven't rebalanced in 30+ days | Run a rebalance. Regime detection needs recent data. |
+| Few/no stocks in scan | Market in DEFENSIVE regime | Normal. System is protecting capital. Check regime in Triggers (option 7). |
+| Managed capital = 0 | No LIQUIDBEES or managed positions | Buy LIQUIDBEES to seed the system. |
+| "Scaling buys to X%" | Sells didn't generate enough proceeds | Normal. Buys are scaled down to fit. No action needed. |
+
 ## Key Features
 
 ### Adaptive Regime Detection
