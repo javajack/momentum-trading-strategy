@@ -100,8 +100,12 @@ install_deps() {
     if [ "$NEEDS_INSTALL" = true ]; then
         echo -e "${YELLOW}Installing dependencies...${NC}"
 
-        "$VENV_DIR/bin/pip" install --upgrade pip --quiet
-        "$VENV_DIR/bin/pip" install -e "$SCRIPT_DIR[dev]" --quiet
+        if command_exists uv; then
+            uv pip install -e "$SCRIPT_DIR[dev]" --python "$VENV_DIR/bin/python" --quiet
+        else
+            "$VENV_DIR/bin/python" -m ensurepip --default-pip --upgrade 2>/dev/null
+            "$VENV_DIR/bin/python" -m pip install -e "$SCRIPT_DIR[dev]" --quiet
+        fi
 
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✓ Dependencies installed${NC}"
