@@ -643,7 +643,7 @@ profiles:
     max_positions: 20
     max_single_position: 0.08
     max_gold_allocation: 0.0
-    cash_symbol: "ICICILIQ"
+    cash_symbol: "LIQUIDETF"
     position_sizing_method: "equal"
     state_file: "strategy_state_microcap.json"
     strategy_overrides:
@@ -669,4 +669,4 @@ excluded_symbols:
   - HDFCSML250
   - GOLDBEES
   - HANGSENGBEES
-  - ICICILIQ
+  - LIQUIDETF

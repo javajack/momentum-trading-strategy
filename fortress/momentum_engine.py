@@ -259,7 +259,7 @@ class MomentumEngine:
             "HDFCSML250",
             "GOLDBEES",
             "HANGSENGBEES",
-            "ICICILIQ",
+            "LIQUIDETF",
             self.regime_config.gold_symbol,  # Parity with backtest._excluded_set
             self.regime_config.cash_symbol,
         }

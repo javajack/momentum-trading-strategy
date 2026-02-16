@@ -76,7 +76,7 @@ class CacheManager:
             ["NIFTY 50", "NIFTY MIDCAP 100", "NIFTY SMLCAP 100", "NIFTY SMLCAP 250", "INDIA VIX"]
         )
         self._symbols.extend([config.regime.gold_symbol, config.regime.cash_symbol])
-        # Add per-profile cash symbols (e.g. ICICILIQ for microcap)
+        # Add per-profile cash symbols (e.g. LIQUIDETF for microcap)
         for pname in config.get_profile_names():
             p = config.get_profile(pname)
             if p.cash_symbol and p.cash_symbol not in self._symbols:

@@ -275,9 +275,7 @@
       "api_format": "NSE:MON100",
       "fund_house": "Motilal Oswal",
       "description": "NASDAQ 100 ETF - US tech exposure",
-      "alternate_symbols": [
-        "N100"
-      ]
+      "alternate_symbols": ["N100"]
     },
     "cash": {
       "symbol": "LIQUIDBEES",
@@ -310,14 +308,14 @@
       "description": "Silver ETF"
     },
     "cash_microcap": {
-      "symbol": "ICICILIQ",
-      "zerodha_symbol": "ICICILIQ",
+      "symbol": "LIQUIDETF",
+      "zerodha_symbol": "LIQUIDETF",
       "exchange": "NSE",
       "instrument_type": "EQ",
       "segment": "EQ",
-      "api_format": "NSE:ICICILIQ",
-      "fund_house": "ICICI Prudential",
-      "description": "Liquid Rate ETF - cash equivalent for microcap profile"
+      "api_format": "NSE:LIQUIDETF",
+      "fund_house": "DSP",
+      "description": "DSP Nifty 1D Rate Liquid ETF - cash equivalent for microcap profile"
     }
   },
   "sectoral_etfs": {
@@ -730,12 +728,7 @@
       "description": "Ports, Airports, Logistics, Aviation",
       "index": "NIFTY SERV SECTOR",
       "index_api_format": "NSE:NIFTY SERV SECTOR",
-      "sub_sectors": [
-        "PORTS",
-        "AIRPORTS",
-        "RAIL_LOGISTICS",
-        "AIRLINES"
-      ]
+      "sub_sectors": ["PORTS", "AIRPORTS", "RAIL_LOGISTICS", "AIRLINES"]
     },
     "TELECOM": {
       "description": "Telecom Services, Towers, Enterprise",

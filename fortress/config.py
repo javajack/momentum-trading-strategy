@@ -1267,7 +1267,7 @@ class Config(BaseModel):
             "HDFCSML250",
             "GOLDBEES",
             "HANGSENGBEES",
-            "ICICILIQ",
+            "LIQUIDETF",
         ]
     )
 
@@ -1319,7 +1319,7 @@ class Config(BaseModel):
         dyn_updates: Dict = {}
         ps_updates: Dict = {}
 
-        # Per-profile cash symbol (e.g. ICICILIQ for microcap)
+        # Per-profile cash symbol (e.g. LIQUIDETF for microcap)
         if profile.cash_symbol is not None:
             regime_updates["cash_symbol"] = profile.cash_symbol
         # Per-profile position sizing method (e.g. "equal" for microcap)

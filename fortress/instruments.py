@@ -44,6 +44,10 @@ class InstrumentMapper:
         "NIFTY COMMODITIES": 257289,
         "NIFTY SERV SECTOR": 263177,
         "NIFTY PSE": 262665,
+        # Smallcap indices
+        "NIFTY SMLCAP 50": 266761,
+        "NIFTY SMLCAP 100": 267017,
+        "NIFTY SMLCAP 250": 267273,
     }
 
     def __init__(self, kite, universe: Universe):
@@ -77,9 +81,7 @@ class InstrumentMapper:
                 & (self._instrument_df["segment"] == "NSE")
             ]
             if not match.empty:
-                self._token_cache[stock.zerodha_symbol] = int(
-                    match.iloc[0]["instrument_token"]
-                )
+                self._token_cache[stock.zerodha_symbol] = int(match.iloc[0]["instrument_token"])
 
     def get_token(self, symbol: str) -> Optional[int]:
         """
@@ -101,9 +103,7 @@ class InstrumentMapper:
 
         # Fallback lookup
         if self._instrument_df is not None:
-            match = self._instrument_df[
-                self._instrument_df["tradingsymbol"] == symbol
-            ]
+            match = self._instrument_df[self._instrument_df["tradingsymbol"] == symbol]
             if not match.empty:
                 token = int(match.iloc[0]["instrument_token"])
                 self._token_cache[symbol] = token
@@ -238,9 +238,7 @@ class InstrumentMapper:
 
         # Check loaded instruments
         if self._instrument_df is not None:
-            match = self._instrument_df[
-                self._instrument_df["tradingsymbol"] == symbol
-            ]
+            match = self._instrument_df[self._instrument_df["tradingsymbol"] == symbol]
             return not match.empty
 
         return False
