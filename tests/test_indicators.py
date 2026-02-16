@@ -2,7 +2,7 @@
 Tests for indicators module.
 
 Tests for Normalized Momentum Score (NMS) calculation
-and enhanced indicators for AllWeather strategy.
+and enhanced indicators for adaptive strategy.
 """
 
 import numpy as np
@@ -10,15 +10,15 @@ import pandas as pd
 import pytest
 
 from fortress.indicators import (
-    calculate_drawdown,
-    calculate_normalized_momentum_score,
-    calculate_relative_strength,
-    calculate_momentum_acceleration,
-    calculate_exhaustion_score,
-    calculate_breakout_quality,
+    ExhaustionResult,
     NMSResult,
     RelativeStrengthResult,
-    ExhaustionResult,
+    calculate_breakout_quality,
+    calculate_drawdown,
+    calculate_exhaustion_score,
+    calculate_momentum_acceleration,
+    calculate_normalized_momentum_score,
+    calculate_relative_strength,
 )
 
 
@@ -57,17 +57,17 @@ class TestNMSCalculation:
         """NMS has all expected components."""
         result = calculate_normalized_momentum_score(sample_prices, sample_volumes)
 
-        assert hasattr(result, 'nms')
-        assert hasattr(result, 'return_6m')
-        assert hasattr(result, 'return_12m')
-        assert hasattr(result, 'volatility_6m')
-        assert hasattr(result, 'adj_return_6m')
-        assert hasattr(result, 'adj_return_12m')
-        assert hasattr(result, 'high_52w_proximity')
-        assert hasattr(result, 'above_50ema')
-        assert hasattr(result, 'above_200sma')
-        assert hasattr(result, 'volume_surge')
-        assert hasattr(result, 'daily_turnover')
+        assert hasattr(result, "nms")
+        assert hasattr(result, "return_6m")
+        assert hasattr(result, "return_12m")
+        assert hasattr(result, "volatility_6m")
+        assert hasattr(result, "adj_return_6m")
+        assert hasattr(result, "adj_return_12m")
+        assert hasattr(result, "high_52w_proximity")
+        assert hasattr(result, "above_50ema")
+        assert hasattr(result, "above_200sma")
+        assert hasattr(result, "volume_surge")
+        assert hasattr(result, "daily_turnover")
 
     def test_nms_weights_sum_to_one(self, sample_prices, sample_volumes):
         """NMS weights must sum to 1.0."""
@@ -187,10 +187,10 @@ class TestRelativeStrength:
     def test_rs_has_all_timeframes(self, stock_prices, benchmark_prices):
         """RS result has all timeframe components."""
         result = calculate_relative_strength(stock_prices, benchmark_prices)
-        assert hasattr(result, 'rs_21d')
-        assert hasattr(result, 'rs_63d')
-        assert hasattr(result, 'rs_126d')
-        assert hasattr(result, 'rs_composite')
+        assert hasattr(result, "rs_21d")
+        assert hasattr(result, "rs_63d")
+        assert hasattr(result, "rs_126d")
+        assert hasattr(result, "rs_composite")
 
     def test_rs_outperformer_above_one(self, stock_prices, benchmark_prices):
         """Outperforming stock should have RS > 1."""
@@ -215,10 +215,12 @@ class TestMomentumAcceleration:
         np.random.seed(42)
         dates = pd.date_range(start="2024-01-01", periods=100, freq="D")
         # Accelerating: recent returns higher than earlier
-        returns = np.concatenate([
-            np.random.normal(0.001, 0.01, 70),  # Earlier: 0.1% daily
-            np.random.normal(0.003, 0.01, 30),  # Recent: 0.3% daily
-        ])
+        returns = np.concatenate(
+            [
+                np.random.normal(0.001, 0.01, 70),  # Earlier: 0.1% daily
+                np.random.normal(0.003, 0.01, 30),  # Recent: 0.3% daily
+            ]
+        )
         prices = 100 * np.exp(np.cumsum(returns))
         return pd.Series(prices, index=dates)
 
@@ -228,10 +230,12 @@ class TestMomentumAcceleration:
         np.random.seed(44)
         dates = pd.date_range(start="2024-01-01", periods=100, freq="D")
         # Decelerating: recent returns lower than earlier
-        returns = np.concatenate([
-            np.random.normal(0.003, 0.01, 70),  # Earlier: 0.3% daily
-            np.random.normal(0.001, 0.01, 30),  # Recent: 0.1% daily
-        ])
+        returns = np.concatenate(
+            [
+                np.random.normal(0.003, 0.01, 70),  # Earlier: 0.3% daily
+                np.random.normal(0.001, 0.01, 30),  # Recent: 0.1% daily
+            ]
+        )
         prices = 100 * np.exp(np.cumsum(returns))
         return pd.Series(prices, index=dates)
 
@@ -282,11 +286,11 @@ class TestExhaustionScore:
     def test_exhaustion_has_components(self, normal_prices, normal_volumes):
         """Exhaustion result has expected components."""
         result = calculate_exhaustion_score(normal_prices, normal_volumes)
-        assert hasattr(result, 'exhaustion_score')
-        assert hasattr(result, 'distance_from_20ema')
-        assert hasattr(result, 'distance_from_50ema')
-        assert hasattr(result, 'rsi_14')
-        assert hasattr(result, 'volume_exhaustion')
+        assert hasattr(result, "exhaustion_score")
+        assert hasattr(result, "distance_from_20ema")
+        assert hasattr(result, "distance_from_50ema")
+        assert hasattr(result, "rsi_14")
+        assert hasattr(result, "volume_exhaustion")
 
     def test_exhaustion_score_bounded(self, normal_prices, normal_volumes):
         """Exhaustion score should be 0-100."""
@@ -315,10 +319,12 @@ class TestBreakoutQuality:
         np.random.seed(42)
         dates = pd.date_range(start="2024-01-01", periods=280, freq="D")
         # Consolidation followed by breakout
-        returns = np.concatenate([
-            np.random.normal(0.0005, 0.01, 250),  # Consolidation
-            np.random.normal(0.005, 0.015, 30),   # Breakout
-        ])
+        returns = np.concatenate(
+            [
+                np.random.normal(0.0005, 0.01, 250),  # Consolidation
+                np.random.normal(0.005, 0.015, 30),  # Breakout
+            ]
+        )
         prices = 100 * np.exp(np.cumsum(returns))
         return pd.Series(prices, index=dates)
 
@@ -327,10 +333,12 @@ class TestBreakoutQuality:
         """Volumes with surge on breakout."""
         np.random.seed(43)
         dates = pd.date_range(start="2024-01-01", periods=280, freq="D")
-        volumes = np.concatenate([
-            np.random.uniform(1e6, 2e6, 275),  # Normal volume
-            np.random.uniform(3e6, 5e6, 5),   # Volume surge
-        ])
+        volumes = np.concatenate(
+            [
+                np.random.uniform(1e6, 2e6, 275),  # Normal volume
+                np.random.uniform(3e6, 5e6, 5),  # Volume surge
+            ]
+        )
         return pd.Series(volumes, index=dates)
 
     def test_breakout_quality_returns_float(self, breakout_prices, breakout_volumes):

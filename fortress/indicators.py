@@ -1327,7 +1327,7 @@ def detect_simple_regime(
 
 
 # =============================================================================
-# Enhanced Indicators for AllWeather Strategy
+# Enhanced Indicators for Adaptive Strategy
 # =============================================================================
 
 
@@ -1601,7 +1601,7 @@ class BullRecoverySignals:
     2. Position momentum is positive (market improving)
     3. Recent returns show upward trend
 
-    This helps AllWeather strategy capture more upside during V-shaped recoveries.
+    This helps capture more upside during V-shaped recoveries.
     """
 
     is_bull_recovery: bool  # Are we in a bull recovery?
@@ -1627,7 +1627,7 @@ def calculate_bull_recovery_signals(
     """
     Detect if market is recovering from a crash/correction (bull recovery).
 
-    Bull recovery signals help AllWeather capture more upside during V-shaped
+    Bull recovery signals help capture more upside during V-shaped
     recoveries by providing extra filter relaxation when:
     1. VIX is declining from elevated levels (fear subsiding)
     2. Position momentum is positive and strong (market improving)
@@ -1962,7 +1962,7 @@ def detect_market_mode(
         position_mult = 1.10
 
     elif mode == MarketMode.NEUTRAL:
-        # Normal: Match classic strategy behavior
+        # Normal: Standard behavior
         wp_weight, rs_weight, dh_weight = 0.35, 0.40, 0.25
         min_score_mult = 0.95  # 75 * 0.95 = 71.25 (slightly relaxed)
         max_rank_mult = 1.20  # 15 * 1.20 = 18

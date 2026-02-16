@@ -32,9 +32,9 @@ class StockScore:
     name: str
 
     # Primary ranking
-    score: float                    # Primary ranking score (strategy-specific)
-    rank: int = 0                   # Overall rank (1 = best)
-    percentile: float = 0.0         # Score percentile (0-100)
+    score: float  # Primary ranking score (strategy-specific)
+    rank: int = 0  # Overall rank (1 = best)
+    percentile: float = 0.0  # Score percentile (0-100)
 
     # Entry filter status
     passes_entry_filters: bool = False
@@ -65,8 +65,8 @@ class ExitSignal:
 
     should_exit: bool
     reason: str
-    exit_type: str                  # "stop_loss", "trailing", "momentum_decay", etc.
-    urgency: str = "normal"         # "immediate", "next_rebalance", "warning"
+    exit_type: str  # "stop_loss", "trailing", "momentum_decay", etc.
+    urgency: str = "normal"  # "immediate", "next_rebalance", "warning"
 
 
 @dataclass
@@ -78,9 +78,9 @@ class StopLossConfig:
     current position gain (tiered stops) or other factors.
     """
 
-    initial_stop: float             # Initial stop loss from entry (e.g., 0.18 = 18%)
-    trailing_stop: float            # Trailing stop from peak (e.g., 0.15 = 15%)
-    trailing_activation: float      # Gain needed to activate trailing (e.g., 0.08)
+    initial_stop: float  # Initial stop loss from entry (e.g., 0.18 = 18%)
+    trailing_stop: float  # Trailing stop from peak (e.g., 0.15 = 15%)
+    trailing_activation: float  # Gain needed to activate trailing (e.g., 0.08)
 
     # Strategy-specific extensions for tiered stops
     use_tiered: bool = False
@@ -100,7 +100,7 @@ class BaseStrategy(ABC):
     But all produce standard outputs that backtest/CLI can consume.
 
     Strategies receive a Config object with strategy-specific sections
-    (e.g., strategy_simple) that they can read.
+    (e.g., strategy_dual_momentum) that they can read.
     """
 
     def __init__(self, config: Optional["Config"] = None):
@@ -115,7 +115,7 @@ class BaseStrategy(ABC):
     @property
     @abstractmethod
     def name(self) -> str:
-        """Strategy identifier (e.g., 'classic', 'allweather')."""
+        """Strategy identifier (e.g., 'dual_momentum')."""
         pass
 
     @property

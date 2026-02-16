@@ -293,7 +293,7 @@ class BacktestEngine:
         # Regime tracking for hysteresis (track previous result for state)
         self._previous_regime_result: Optional[RegimeResult] = None
 
-        # Drawdown tracking for AllWeather recovery mode
+        # Drawdown tracking for recovery mode
         self._current_drawdown: float = 0.0
 
         # Recovery override hysteresis (FIX 6)
@@ -1270,11 +1270,11 @@ class BacktestEngine:
         # Set the as_of_date for the market data adapter
         self._market_data_adapter.set_as_of_date(as_of_date)
 
-        # Pass regime to strategy for adaptive parameters (AllWeather only)
+        # Pass regime to strategy for adaptive parameters
         if hasattr(self.strategy, "set_regime") and regime is not None:
             self.strategy.set_regime(regime)
 
-        # Pass drawdown to strategy for recovery mode detection (AllWeather only)
+        # Pass drawdown to strategy for recovery mode detection
         if hasattr(self.strategy, "set_drawdown"):
             self.strategy.set_drawdown(self._current_drawdown, as_of_date)
 
@@ -1639,7 +1639,7 @@ class BacktestEngine:
         # Reset previous regime result for hysteresis tracking
         self._previous_regime_result = None
 
-        # Drawdown tracking for AllWeather recovery mode
+        # Drawdown tracking for recovery mode
         peak_value = self.config.initial_capital
         self._current_drawdown = 0.0
 
@@ -1705,7 +1705,7 @@ class BacktestEngine:
                 self._portfolio_daily_returns.append(daily_ret)
             self._prev_portfolio_value = current_value
 
-            # Update drawdown tracking for AllWeather recovery mode
+            # Update drawdown tracking for recovery mode
             if current_value > peak_value:
                 peak_value = current_value
             self._current_drawdown = (
