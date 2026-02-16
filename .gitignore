@@ -1,4 +1,5 @@
-# config.example.yaml is the template; config.yaml is tracked (credentials via env vars)
+# User-specific config (copy config.example.yaml to config.yaml)
+config.yaml
 
 # Virtual environments
 venv/
@@ -53,6 +54,9 @@ logs/
 
 # Kite/Zerodha token cache
 .kite_token_cache.json
+
+# Backtest output
+*.csv
 
 # Claude Code local settings
 .claude/

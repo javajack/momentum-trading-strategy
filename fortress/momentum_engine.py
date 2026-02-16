@@ -252,14 +252,12 @@ class MomentumEngine:
         self._excluded_symbols: Set[str] = {
             "LIQUIDCASE",
             "LIQUIDBEES",
-            "LIQUIDETF",
             "NIFTYBEES",
             "JUNIORBEES",
             "MID150BEES",
             "HDFCSML250",
             "GOLDBEES",
             "HANGSENGBEES",
-            "LIQUIDETF",
             self.regime_config.gold_symbol,  # Parity with backtest._excluded_set
             self.regime_config.cash_symbol,
         }

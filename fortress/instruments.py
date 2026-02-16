@@ -44,10 +44,9 @@ class InstrumentMapper:
         "NIFTY COMMODITIES": 257289,
         "NIFTY SERV SECTOR": 263177,
         "NIFTY PSE": 262665,
-        # Smallcap indices
+        # Smallcap indices (used for breadth calculations)
         "NIFTY SMLCAP 50": 266761,
         "NIFTY SMLCAP 100": 267017,
-        "NIFTY SMLCAP 250": 267273,
     }
 
     def __init__(self, kite, universe: Universe):

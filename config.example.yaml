@@ -17,38 +17,38 @@ portfolio:
 # OPTIMIZED: Balanced for all market conditions
 pure_momentum:
   # NMS calculation parameters
-  lookback_6m: 126           # 6-month lookback (trading days)
-  lookback_12m: 252          # 12-month lookback (trading days)
-  lookback_volatility: 126   # Volatility calculation window
-  skip_recent_days: 5        # Skip recent days to avoid reversal
-  weight_6m: 0.50            # 50% weight to 6M adjusted return
-  weight_12m: 0.50           # 50% weight to 12M adjusted return
+  lookback_6m: 126 # 6-month lookback (trading days)
+  lookback_12m: 252 # 12-month lookback (trading days)
+  lookback_volatility: 126 # Volatility calculation window
+  skip_recent_days: 5 # Skip recent days to avoid reversal
+  weight_6m: 0.50 # 50% weight to 6M adjusted return
+  weight_12m: 0.50 # 50% weight to 12M adjusted return
 
   # Entry filters (all must pass)
-  min_score_percentile: 95   # Top 5% by NMS for entry consideration
-  min_52w_high_prox: 0.85    # Price >= 85% of 52-week high
-  min_volume_ratio: 1.1      # 20-day volume > 50-day x 1.1
-  min_daily_turnover: 20000000  # Rs 2 Cr minimum daily turnover
+  min_score_percentile: 95 # Top 5% by NMS for entry consideration
+  min_52w_high_prox: 0.85 # Price >= 85% of 52-week high
+  min_volume_ratio: 1.1 # 20-day volume > 50-day x 1.1
+  min_daily_turnover: 20000000 # Rs 2 Cr minimum daily turnover
 
   # Exit triggers
-  min_hold_percentile: 50    # Exit if NMS falls below 50th percentile
-  max_days_without_gain: 60  # Exit after 60 days without +10% gain
-  min_gain_threshold: 0.10   # Target gain for time-based exit check
+  min_hold_percentile: 50 # Exit if NMS falls below 50th percentile
+  max_days_without_gain: 60 # Exit after 60 days without +10% gain
+  min_gain_threshold: 0.10 # Target gain for time-based exit check
 
 # Position sizing - OPTIMIZED for quality over quantity
 position_sizing:
-  method: "momentum_weighted"  # "equal", "momentum_weighted", or "inverse_volatility"
-  max_single_position: 0.10    # 10% max per position (allow conviction bets)
-  min_single_position: 0.04    # 4% min per position (meaningful positions)
-  max_sector_exposure: 0.30    # 30% max per sector
-  target_positions: 12         # Target 12 positions (quality focus)
-  min_positions: 10            # Maintain at least 10 positions
-  max_positions: 15            # Never exceed 15 positions
+  method: "momentum_weighted" # "equal", "momentum_weighted", or "inverse_volatility"
+  max_single_position: 0.10 # 10% max per position (allow conviction bets)
+  min_single_position: 0.04 # 4% min per position (meaningful positions)
+  max_sector_exposure: 0.30 # 30% max per sector
+  target_positions: 12 # Target 12 positions (quality focus)
+  min_positions: 10 # Maintain at least 10 positions
+  max_positions: 15 # Never exceed 15 positions
 
 # Rebalancing schedule (monthly proven optimal)
 rebalancing:
   frequency: "monthly"
-  rebalance_days: 21    # Trading days between rebalances (21 = monthly)
+  rebalance_days: 21 # Trading days between rebalances (21 = monthly)
   day: "friday"
   min_trade_value: 10000
 
@@ -66,9 +66,9 @@ risk:
   daily_loss_limit: 0.03
 
   # Stop losses - BALANCED (wider stops reduce whipsaws)
-  initial_stop_loss: 0.18      # 18% initial stop loss
-  trailing_stop: 0.15          # 15% trailing stop
-  trailing_activation: 0.08    # Activate trailing after +8% gain
+  initial_stop_loss: 0.18 # 18% initial stop loss
+  trailing_stop: 0.15 # 15% trailing stop
+  trailing_activation: 0.08 # Activate trailing after +8% gain
 
 # Transaction costs
 costs:
@@ -260,7 +260,6 @@ strategy_allweather:
 excluded_symbols:
   - LIQUIDCASE
   - LIQUIDBEES
-  - LIQUIDETF
   - NIFTYBEES
   - JUNIORBEES
   - MID150BEES

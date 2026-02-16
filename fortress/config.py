@@ -5,7 +5,7 @@ Pure momentum strategy configuration only.
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -1174,59 +1174,6 @@ class AdaptiveDualMomentumConfig(BaseModel):
         return v
 
 
-class StrategyOverrides(BaseModel):
-    """Per-profile strategy parameter overrides. None = use global defaults."""
-
-    target_portfolio_vol: Optional[float] = Field(default=None, ge=0.10, le=0.30)
-    stop_loss_multiplier: Optional[float] = Field(default=None, ge=0.5, le=2.0)
-    rs_exit_threshold: Optional[float] = Field(default=None, ge=0.7, le=1.2)
-    min_52w_high_prox: Optional[float] = Field(default=None, ge=0.5, le=1.0)
-    min_hold_days: Optional[int] = Field(default=None, ge=0, le=30)
-    trend_break_buffer: Optional[float] = Field(default=None, ge=0.0, le=0.10)
-    min_days_between: Optional[int] = Field(default=None, ge=1, le=30)
-    sector_exclude_bullish: Optional[int] = Field(default=None, ge=0, le=5)
-    sector_exclude_caution: Optional[int] = Field(default=None, ge=0, le=5)
-    sector_exclude_defensive: Optional[int] = Field(default=None, ge=0, le=5)
-
-
-class ProfileConfig(BaseModel):
-    """Per-portfolio profile overrides."""
-
-    name: str = Field(default="primary", description="Human-readable profile name")
-    universe_filter: List[str] = Field(
-        default_factory=lambda: ["NIFTY100", "MIDCAP100"],
-        description="Universe keys to include (e.g. ['NIFTY100', 'MIDCAP100'])",
-    )
-    initial_capital: float = Field(
-        default=2000000, gt=0, description="Initial capital for this profile"
-    )
-    target_positions: int = Field(default=12, ge=5, le=30)
-    min_positions: int = Field(default=10, ge=5, le=20)
-    max_positions: int = Field(default=15, ge=10, le=50)
-    max_single_position: float = Field(default=0.10, gt=0, le=0.20)
-    max_gold_allocation: Optional[float] = Field(
-        default=None,
-        ge=0.0,
-        le=0.35,
-        description="Per-profile gold cap. None=use global. 0.0=no gold hedge.",
-    )
-    cash_symbol: Optional[str] = Field(
-        default=None,
-        description="Per-profile cash ETF symbol. None=use global (LIQUIDBEES).",
-    )
-    position_sizing_method: Optional[str] = Field(
-        default=None,
-        description="Per-profile sizing: 'equal' or 'momentum_weighted'. None=use global.",
-    )
-    strategy_overrides: Optional[StrategyOverrides] = Field(
-        default=None,
-        description="Per-profile strategy parameter overrides",
-    )
-    state_file: str = Field(
-        default="strategy_state.json", description="State file name (inside .cache/)"
-    )
-
-
 class Config(BaseModel):
     """Main configuration model for FORTRESS MOMENTUM."""
 
@@ -1260,121 +1207,16 @@ class Config(BaseModel):
         default_factory=lambda: [
             "LIQUIDCASE",
             "LIQUIDBEES",
-            "LIQUIDETF",
             "NIFTYBEES",
             "JUNIORBEES",
             "MID150BEES",
             "HDFCSML250",
             "GOLDBEES",
             "HANGSENGBEES",
-            "LIQUIDETF",
         ]
     )
 
-    # Portfolio profiles (optional — backward-compatible)
-    profiles: Dict[str, ProfileConfig] = Field(default_factory=dict)
-    active_profile: str = Field(default="primary", description="Currently selected profile name")
-
     model_config = {"frozen": True}
-
-    def get_profile(self, name: Optional[str] = None) -> ProfileConfig:
-        """Get a profile by name, falling back to defaults from portfolio/position_sizing.
-
-        If no profiles are configured, returns a default profile built from
-        existing portfolio and position_sizing config values (backward-compatible).
-        """
-        profile_name = name or self.active_profile
-        if self.profiles and profile_name in self.profiles:
-            return self.profiles[profile_name]
-        # Backward-compatible: build default profile from existing config sections
-        return ProfileConfig(
-            name="primary",
-            universe_filter=["NIFTY100", "MIDCAP100"],
-            initial_capital=self.portfolio.initial_capital,
-            target_positions=self.position_sizing.target_positions,
-            min_positions=self.position_sizing.min_positions,
-            max_positions=self.position_sizing.max_positions,
-            max_single_position=self.position_sizing.max_single_position,
-            state_file="strategy_state.json",
-        )
-
-    def get_profile_names(self) -> List[str]:
-        """Get list of available profile names."""
-        if self.profiles:
-            return list(self.profiles.keys())
-        return ["primary"]
-
-    def with_profile_overrides(self, profile_name: Optional[str] = None) -> "Config":
-        """Return a Config copy with profile strategy overrides applied.
-
-        Processes profile-level fields (cash_symbol, position_sizing_method)
-        and then strategy overrides. Returns self (identity) if nothing to override.
-        """
-        profile = self.get_profile(profile_name)
-
-        updates: Dict = {}
-        sdm_updates: Dict = {}
-        pm_updates: Dict = {}
-        regime_updates: Dict = {}
-        dyn_updates: Dict = {}
-        ps_updates: Dict = {}
-
-        # Per-profile cash symbol (e.g. LIQUIDETF for microcap)
-        if profile.cash_symbol is not None:
-            regime_updates["cash_symbol"] = profile.cash_symbol
-        # Per-profile position sizing method (e.g. "equal" for microcap)
-        if profile.position_sizing_method is not None:
-            ps_updates["method"] = profile.position_sizing_method
-
-        overrides = profile.strategy_overrides
-        if overrides is None and not regime_updates and not ps_updates:
-            return self
-
-        if overrides is not None:
-            if overrides.target_portfolio_vol is not None:
-                regime_updates["target_portfolio_vol"] = overrides.target_portfolio_vol
-            if overrides.stop_loss_multiplier is not None:
-                m = overrides.stop_loss_multiplier
-                sdm = self.strategy_dual_momentum
-                sdm_updates.update(
-                    tier1_trailing=round(sdm.tier1_trailing * m, 4),
-                    tier2_trailing=round(sdm.tier2_trailing * m, 4),
-                    tier3_trailing=round(sdm.tier3_trailing * m, 4),
-                    tier4_trailing=round(sdm.tier4_trailing * m, 4),
-                    hard_stop=round(sdm.hard_stop * m, 4),
-                )
-            for attr in (
-                "rs_exit_threshold",
-                "min_52w_high_prox",
-                "min_hold_days",
-                "trend_break_buffer",
-                "sector_exclude_bullish",
-                "sector_exclude_caution",
-                "sector_exclude_defensive",
-            ):
-                val = getattr(overrides, attr, None)
-                if val is not None:
-                    sdm_updates[attr] = val
-            # min_52w_high_prox also lives in pure_momentum (used by backtest config)
-            if overrides.min_52w_high_prox is not None:
-                pm_updates["min_52w_high_prox"] = overrides.min_52w_high_prox
-            if overrides.min_days_between is not None:
-                dyn_updates["min_days_between"] = overrides.min_days_between
-
-        if sdm_updates:
-            updates["strategy_dual_momentum"] = self.strategy_dual_momentum.model_copy(
-                update=sdm_updates
-            )
-        if pm_updates:
-            updates["pure_momentum"] = self.pure_momentum.model_copy(update=pm_updates)
-        if regime_updates:
-            updates["regime"] = self.regime.model_copy(update=regime_updates)
-        if dyn_updates:
-            updates["dynamic_rebalance"] = self.dynamic_rebalance.model_copy(update=dyn_updates)
-        if ps_updates:
-            updates["position_sizing"] = self.position_sizing.model_copy(update=ps_updates)
-
-        return self.model_copy(update=updates) if updates else self
 
 
 def load_config(config_path: str = "config.yaml") -> Config:
@@ -1403,13 +1245,9 @@ def load_config(config_path: str = "config.yaml") -> Config:
             data["zerodha"] = {}
         data["zerodha"]["api_secret"] = os.environ["ZERODHA_API_SECRET"]
 
-    # Parse profiles section into ProfileConfig objects
-    if "profiles" in data and isinstance(data["profiles"], dict):
-        parsed_profiles = {}
-        for pname, pdata in data["profiles"].items():
-            if isinstance(pdata, dict):
-                parsed_profiles[pname] = ProfileConfig(name=pname, **pdata)
-        data["profiles"] = parsed_profiles
+    # Strip out any profiles section from YAML (no longer used)
+    data.pop("profiles", None)
+    data.pop("active_profile", None)
 
     return Config(**data)
 

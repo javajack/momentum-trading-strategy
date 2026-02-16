@@ -12,19 +12,19 @@ from enum import Enum
 from typing import Callable, Dict, List, Optional
 
 from .config import RiskConfig
+from .instruments import InstrumentMapper
 from .order_manager import OrderManager, OrderResult, OrderType
 from .portfolio import Portfolio, Position
-from .instruments import InstrumentMapper
 from .utils import calculate_order_quantity, format_currency
 
 
 class TradeAction(Enum):
     """Type of trade action in rebalance plan."""
 
-    SELL_EXIT = "sell_exit"       # Full position exit
-    SELL_REDUCE = "sell_reduce"   # Partial reduction
-    BUY_NEW = "buy_new"           # New position
-    BUY_INCREASE = "buy_increase" # Increase existing
+    SELL_EXIT = "sell_exit"  # Full position exit
+    SELL_REDUCE = "sell_reduce"  # Partial reduction
+    BUY_NEW = "buy_new"  # New position
+    BUY_INCREASE = "buy_increase"  # Increase existing
 
 
 @dataclass
@@ -392,13 +392,25 @@ class RebalanceExecutor:
                             sector = stock.sector if stock else "UNKNOWN"
                             cq = 0
                             cw = 0.0
-                        action = TradeAction.BUY_INCREASE if symbol in current_holdings else TradeAction.BUY_NEW
-                        plan.trades.append(PlannedTrade(
-                            symbol=symbol, action=action, quantity=qty,
-                            price=rounded_price, value=cost, sector=sector,
-                            current_qty=cq, current_weight=cw,
-                            target_weight=tw, reason="Surplus deploy",
-                        ))
+                        action = (
+                            TradeAction.BUY_INCREASE
+                            if symbol in current_holdings
+                            else TradeAction.BUY_NEW
+                        )
+                        plan.trades.append(
+                            PlannedTrade(
+                                symbol=symbol,
+                                action=action,
+                                quantity=qty,
+                                price=rounded_price,
+                                value=cost,
+                                sector=sector,
+                                current_qty=cq,
+                                current_weight=cw,
+                                target_weight=tw,
+                                reason="Surplus deploy",
+                            )
+                        )
                         plan.total_buy_value += cost
                         surplus -= cost
 
@@ -419,17 +431,32 @@ class RebalanceExecutor:
                                 rounded_price = self.mapper.round_to_tick(gold_price, gold_symbol)
                                 if gold_symbol in current_holdings:
                                     pos = current_holdings[gold_symbol]
-                                    sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
+                                    sector, cq, cw = (
+                                        pos.sector,
+                                        pos.quantity,
+                                        pos.value / managed_capital,
+                                    )
                                 else:
                                     sector, cq, cw = "Hedge", 0, 0.0
-                                action = TradeAction.BUY_INCREASE if gold_symbol in current_holdings else TradeAction.BUY_NEW
-                                plan.trades.append(PlannedTrade(
-                                    symbol=gold_symbol, action=action, quantity=qty,
-                                    price=rounded_price, value=cost, sector=sector,
-                                    current_qty=cq, current_weight=cw,
-                                    target_weight=target_weights[gold_symbol],
-                                    reason="Surplus deploy",
-                                ))
+                                action = (
+                                    TradeAction.BUY_INCREASE
+                                    if gold_symbol in current_holdings
+                                    else TradeAction.BUY_NEW
+                                )
+                                plan.trades.append(
+                                    PlannedTrade(
+                                        symbol=gold_symbol,
+                                        action=action,
+                                        quantity=qty,
+                                        price=rounded_price,
+                                        value=cost,
+                                        sector=sector,
+                                        current_qty=cq,
+                                        current_weight=cw,
+                                        target_weight=target_weights[gold_symbol],
+                                        reason="Surplus deploy",
+                                    )
+                                )
                                 plan.total_buy_value += cost
                                 surplus -= cost
 
@@ -447,13 +474,25 @@ class RebalanceExecutor:
                             sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
                         else:
                             sector, cq, cw = "Cash", 0, 0.0
-                        action = TradeAction.BUY_INCREASE if cash_symbol in current_holdings else TradeAction.BUY_NEW
-                        plan.trades.append(PlannedTrade(
-                            symbol=cash_symbol, action=action, quantity=qty,
-                            price=rounded_price, value=cost, sector=sector,
-                            current_qty=cq, current_weight=cw,
-                            target_weight=0.0, reason="Cash sweep",
-                        ))
+                        action = (
+                            TradeAction.BUY_INCREASE
+                            if cash_symbol in current_holdings
+                            else TradeAction.BUY_NEW
+                        )
+                        plan.trades.append(
+                            PlannedTrade(
+                                symbol=cash_symbol,
+                                action=action,
+                                quantity=qty,
+                                price=rounded_price,
+                                value=cost,
+                                sector=sector,
+                                current_qty=cq,
+                                current_weight=cw,
+                                target_weight=0.0,
+                                reason="Cash sweep",
+                            )
+                        )
                         plan.total_buy_value += cost
                         surplus -= cost
 
@@ -495,8 +534,13 @@ class RebalanceExecutor:
 
         # External ETFs not managed by strategy - exclude from position count
         external_etfs = {
-            "NIFTYBEES", "JUNIORBEES", "MID150BEES", "HDFCSML250",
-            "HANGSENGBEES", "HNGSNGBEES", "LIQUIDCASE", "LIQUIDETF",
+            "NIFTYBEES",
+            "JUNIORBEES",
+            "MID150BEES",
+            "HDFCSML250",
+            "HANGSENGBEES",
+            "HNGSNGBEES",
+            "LIQUIDCASE",
         }
 
         # Track managed position count (excluding external ETFs)

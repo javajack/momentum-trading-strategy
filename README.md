@@ -52,29 +52,6 @@ Key takeaways:
 - **Post-COVID rally**: +294.8% with only -5.6% max DD -- recovery mode captured the rebound
 - Capital grew from ~31L to ~2.63 Cr over the full period (20L initial + 12-month warmup)
 
-### Smallcap Profile (NIFTY Smallcap 100)
-
-Separate portfolio with wider stops, higher volatility target, and no gold allocation. Initial capital: 5L.
-
-| Period | Return | CAGR | Sharpe | Max DD | vs NIFTY 50 |
-|--------|--------|------|--------|--------|-------------|
-| 3 months | -1.67% | -6.54% | -0.70 | -7.28% | -2.6% |
-| 6 months | +6.64% | +13.69% | 0.57 | -6.84% | +1.1% |
-| 12 months | +1.83% | +1.84% | -0.19 | -14.82% | -10.6% |
-| 18 months | +1.63% | +1.08% | -0.19 | -21.79% | -4.9% |
-| 2023-2024 (bull) | +191.70% | +70.98% | 2.38 | -19.43% | +161.8% |
-
-The smallcap universe data begins mid-2022, so the market phases backtest only covers 2 phases:
-
-| # | Phase | Type | Return | NIFTY | Alpha | Max DD |
-|---|-------|------|--------|-------|-------|--------|
-| 1 | 2023-24 Bull Run | Bullish | +166.8% | +70.5% | +96.3% | -18.9% |
-| 2 | Late 2024-25 Correction | Bear/Sideways | -8.3% | -1.9% | -6.4% | -21.5% |
-
-**Overall: +143.2% | 27.8% CAGR | -21.5% Max DD | +78.2% alpha vs NIFTY 50** (5L grew to ~12.2L)
-
-Smallcaps show higher beta -- explosive in bull markets (+191.7% in 2023-2024) but deeper drawdowns during corrections (-21.8% vs -18.4% primary in the 18M period).
-
 ## Architecture
 
 ```
@@ -98,7 +75,7 @@ fortress/
   universe.py             Stock universe loader with sub-universe filtering
   auth.py                 Zerodha authentication (TOTP + request token)
   utils.py                Weight renormalization, rate limiting
-tests/                    160 tests covering indicators, backtest, strategies, risk
+tests/                    159 tests covering indicators, backtest, strategies, risk
 ```
 
 **Parity guarantee**: `backtest.py` and `momentum_engine.py` implement the same strategy logic in parallel. Backtests use pre-computed caches for speed; live mode fetches from the API. Both produce equivalent results.
@@ -106,13 +83,6 @@ tests/                    160 tests covering indicators, backtest, strategies, r
 ~18,100 lines of Python. ~2,400 lines of tests.
 
 ## Key Features
-
-### Multi-Profile Support
-Run separate portfolios with different universes and parameters:
-- **Primary**: NIFTY 100 + MIDCAP 100 (200 stocks, 12 target positions)
-- **Smallcap**: NIFTY Smallcap 100 (100 stocks, 13 targets, wider stops)
-
-Each profile has its own state file, initial capital, position sizing, and optional strategy overrides (volatility target, stop multipliers, exit thresholds).
 
 ### Defensive Enhancements
 All toggleable via config:
@@ -178,9 +148,17 @@ EOF
 
 `start.sh` sources this file on every launch, and `config.py` picks up the env vars automatically. The `.env` file is gitignored so credentials never end up in the repo.
 
-`config.yaml` is tracked in git and contains all strategy/portfolio configuration but **no credentials**. You should not need to edit it unless you want to tune strategy parameters.
+`config.yaml` is gitignored -- copy `config.example.yaml` to `config.yaml` on first setup. It contains all strategy/portfolio configuration but **no credentials**. You should not need to edit it unless you want to tune strategy parameters.
 
-### Step 3: Run
+### Step 3: Configure
+
+```bash
+cp config.example.yaml config.yaml
+```
+
+Review `config.yaml` and adjust portfolio settings (initial capital, target positions, etc.) to match your setup. The defaults are sensible for a ~20L portfolio.
+
+### Step 4: Run
 
 ```bash
 ./start.sh
@@ -241,7 +219,6 @@ The system is highly configurable. Key sections in `config.yaml`:
 | `regime` | Stress thresholds, VIX levels, allocation curve, defensive scaling |
 | `strategy_simple` | Adaptive dual momentum: stops, recovery, crash avoidance, breadth |
 | `dynamic_rebalance` | Trigger conditions, min/max days between rebalances |
-| `profiles` | Per-profile universes, capital, overrides |
 
 See `config.example.yaml` for all available options with documentation.
 

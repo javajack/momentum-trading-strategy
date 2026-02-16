@@ -18,21 +18,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 except ImportError:
     pass  # env vars set externally or in config
 
 from kiteconnect import KiteConnect
+
 from fortress.config import load_config
 from fortress.universe import Universe
 
 
 def main():
     config = load_config()
-    profile_name = sys.argv[1] if len(sys.argv) > 1 else "primary"
-    profile = config.get_profile(profile_name)
-    print(f"Profile: {profile_name.upper()}")
-    print(f"Universe filter: {profile.universe_filter}")
 
     # Authenticate using cached token
     token_cache = Path(".kite_token_cache.json")
@@ -57,24 +55,23 @@ def main():
         sys.exit(1)
 
     # Load universe
-    universe = Universe(
-        config.paths.universe_file,
-        filter_universes=profile.universe_filter,
-    )
+    universe = Universe(config.paths.universe_file)
     universe_symbols = {s.zerodha_symbol for s in universe.get_all_stocks()}
     print(f"Universe stocks: {len(universe_symbols)}")
 
     # Defensive symbols
     gold_symbol = config.regime.gold_symbol
     cash_symbol = config.regime.cash_symbol
-    defensive_symbols = set()
-    if profile.max_gold_allocation is None or profile.max_gold_allocation > 0.0:
-        defensive_symbols.add(gold_symbol)
-    defensive_symbols.add(cash_symbol)
+    defensive_symbols = {gold_symbol, cash_symbol}
 
     external_etfs = {
-        "NIFTYBEES", "JUNIORBEES", "MID150BEES", "HDFCSML250",
-        "HANGSENGBEES", "HNGSNGBEES", "LIQUIDCASE", "LIQUIDETF",
+        "NIFTYBEES",
+        "JUNIORBEES",
+        "MID150BEES",
+        "HDFCSML250",
+        "HANGSENGBEES",
+        "HNGSNGBEES",
+        "LIQUIDCASE",
     }
 
     # Fetch holdings
@@ -141,28 +138,32 @@ def main():
     managed_value = sum(p["value"] for p in managed.values())
     external_value = sum(p["value"] for p in external.values())
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"MANAGED POSITIONS ({len(managed)} symbols)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     for symbol in sorted(managed.keys()):
         pos = managed[symbol]
-        print(f"  {symbol:20s}  qty={pos['qty']:>5d}  LTP=₹{pos['last_price']:>10,.2f}  value=₹{pos['value']:>12,.0f}")
+        print(
+            f"  {symbol:20s}  qty={pos['qty']:>5d}  LTP=₹{pos['last_price']:>10,.2f}  value=₹{pos['value']:>12,.0f}"
+        )
     print(f"  {'':20s}  {'':>5s}  {'Total':>14s}  value=₹{managed_value:>12,.0f}")
 
     if external:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"EXTERNAL POSITIONS ({len(external)} symbols)")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         for symbol in sorted(external.keys()):
             pos = external[symbol]
-            print(f"  {symbol:20s}  qty={pos['qty']:>5d}  LTP=₹{pos['last_price']:>10,.2f}  value=₹{pos['value']:>12,.0f}")
+            print(
+                f"  {symbol:20s}  qty={pos['qty']:>5d}  LTP=₹{pos['last_price']:>10,.2f}  value=₹{pos['value']:>12,.0f}"
+            )
         print(f"  {'':20s}  {'':>5s}  {'Total':>14s}  value=₹{external_value:>12,.0f}")
 
     print(f"\nDemat cash: ₹{cash:,.0f}")
     print(f"Total portfolio: ₹{managed_value + external_value + cash:,.0f}")
 
     # Load existing state
-    state_file = Path(config.paths.data_cache) / profile.state_file
+    state_file = Path(config.paths.data_cache) / "strategy_state.json"
     existing = {}
     if state_file.exists():
         existing = json.loads(state_file.read_text())
@@ -189,9 +190,9 @@ def main():
     added = new_managed - old_managed
     removed = old_managed - new_managed
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("STATE CHANGES")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     if added:
         print(f"  + ADDED to managed:   {sorted(added)}")
     if removed:
@@ -214,9 +215,9 @@ def main():
         "last_regime": existing.get("last_regime"),
     }
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("NEW STATE")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(json.dumps(new_state, indent=2))
 
     # Confirm

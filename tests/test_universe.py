@@ -51,9 +51,9 @@ class TestStockIntegrity:
             assert stock.api_format.startswith("NSE:"), f"{stock.ticker} bad api_format"
 
     def test_stock_count(self, universe):
-        """Verify expected stock count (NIFTY100 + MIDCAP100 + NIFTYSC100 + MICROCAP150)."""
+        """Verify expected stock count (NIFTY100 + MIDCAP100)."""
         stocks = universe.get_all_stocks()
-        assert len(stocks) == 450, f"Expected 450 stocks, got {len(stocks)}"
+        assert len(stocks) == 200, f"Expected 200 stocks, got {len(stocks)}"
 
     def test_no_duplicate_tickers(self, universe):
         """D4: No duplicate tickers in universe."""
@@ -72,19 +72,11 @@ class TestUniverseFiltering:
         stocks = u.get_all_stocks()
         assert len(stocks) == 200, f"Expected 200 stocks, got {len(stocks)}"
 
-    def test_filter_smallcap(self):
-        """Filter to NIFTYSC100 returns 100 stocks."""
-        project_root = Path(__file__).parent.parent
-        universe_path = project_root / "stock-universe.json"
-        u = Universe(str(universe_path), filter_universes=["NIFTYSC100"])
-        stocks = u.get_all_stocks()
-        assert len(stocks) == 100, f"Expected 100 stocks, got {len(stocks)}"
-
     def test_filter_preserves_hedges(self):
         """Hedges are always included regardless of filter."""
         project_root = Path(__file__).parent.parent
         universe_path = project_root / "stock-universe.json"
-        u = Universe(str(universe_path), filter_universes=["NIFTYSC100"])
+        u = Universe(str(universe_path), filter_universes=["NIFTY100"])
         gold = u.get_hedge("gold")
         assert gold is not None
         assert gold["symbol"] == "GOLDBEES"
@@ -98,7 +90,7 @@ class TestUniverseFiltering:
         universe_path = project_root / "stock-universe.json"
         u = Universe(str(universe_path))
         stocks = u.get_all_stocks()
-        assert len(stocks) == 450
+        assert len(stocks) == 200
 
 
 class TestSectorData:

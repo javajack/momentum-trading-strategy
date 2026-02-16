@@ -41,7 +41,6 @@ from .order_manager import OrderManager, OrderType
 from .portfolio import Portfolio, Position
 from .rebalance_executor import (
     ExecutionResult,
-    PlannedTrade,
     RebalanceExecutor,
     RebalancePlan,
     TradeAction,
@@ -98,8 +97,7 @@ class FortressApp:
         ("5", "Backtest", "Run historical simulation"),
         ("6", "Strategy", "Select active strategy"),
         ("7", "Triggers", "Check if rebalance is needed"),
-        ("8", "Exit All", "Liquidate all managed positions"),
-        ("9", "Market Phases", "10-year multi-phase backtest analysis"),
+        ("8", "Market Phases", "10-year multi-phase backtest analysis"),
         ("0", "Exit", "Exit application"),
     ]
 
@@ -116,8 +114,6 @@ class FortressApp:
         self.active_strategy: str = "dual_momentum"  # Default strategy
         self.strategy: Optional[BaseStrategy] = None
         self.cache: Optional[CacheManager] = None
-        self.effective_config: Optional[Config] = None  # Config with profile overrides
-        self.active_profile_name: str = "primary"  # Active profile key
 
     def _load_config(self):
         """Load configuration from file."""
@@ -136,23 +132,21 @@ class FortressApp:
 
     def _init_strategy(self):
         """Initialize the active strategy."""
-        cfg = self.effective_config if self.effective_config is not None else self.config
         try:
-            self.strategy = StrategyRegistry.get(self.active_strategy, cfg)
+            self.strategy = StrategyRegistry.get(self.active_strategy, self.config)
             console.print(
                 f"[green]Strategy: {self.active_strategy} ({self.strategy.description})[/green]"
             )
         except ValueError as e:
             console.print(f"[yellow]Strategy warning: {e}. Using 'dual_momentum'.[/yellow]")
             self.active_strategy = "dual_momentum"
-            self.strategy = StrategyRegistry.get("dual_momentum", cfg)
+            self.strategy = StrategyRegistry.get("dual_momentum", self.config)
 
     def _get_strategy_state_file(self) -> Path:
-        """Get path to strategy state file (profile-aware)."""
+        """Get path to strategy state file."""
         cache_dir = Path(self.config.paths.data_cache)
         cache_dir.mkdir(exist_ok=True)
-        profile = self.config.get_profile(self.active_profile_name)
-        return cache_dir / profile.state_file
+        return cache_dir / "strategy_state.json"
 
     def _load_strategy_state(self) -> Dict:
         """Load strategy state from JSON file.
@@ -227,41 +221,25 @@ class FortressApp:
 
         Creates two Universe instances:
         - self._cache_universe: unfiltered (all stocks) — used for cache so all symbols get cached
-        - self.universe: profile-filtered — used for strategy operations (scan, rebalance, backtest)
+        - self.universe: primary profile filtered — used for strategy operations
         """
         try:
             universe_path = self.config.paths.universe_file
-            profile = self.config.get_profile(self.active_profile_name)
 
-            # Unfiltered universe for cache (all ~300 stocks)
+            # Unfiltered universe for cache (all ~200 stocks)
             self._cache_universe = Universe(universe_path)
 
-            # Profile-filtered universe for strategy operations
-            self.universe = Universe(universe_path, filter_universes=profile.universe_filter)
+            # Primary universe for strategy operations
+            self.universe = Universe(universe_path)
 
             console.print(
-                f"[green]Universe loaded: {len(self.universe.get_all_stocks())} stocks "
-                f"(profile: {self.active_profile_name})[/green]"
+                f"[green]Universe loaded: {len(self.universe.get_all_stocks())} stocks[/green]"
             )
             # Initialize cache manager with UNFILTERED universe (all symbols cached)
             self.cache = CacheManager(self.config, self._cache_universe)
         except Exception as e:
             console.print(f"[red]Failed to load universe: {e}[/red]")
             sys.exit(1)
-
-    def _get_profile_sizing(self):
-        """Get a PositionSizingConfig with profile overrides applied."""
-        from .config import PositionSizingConfig
-
-        profile = self.config.get_profile(self.active_profile_name)
-        return self.config.position_sizing.model_copy(
-            update={
-                "target_positions": profile.target_positions,
-                "min_positions": profile.min_positions,
-                "max_positions": profile.max_positions,
-                "max_single_position": profile.max_single_position,
-            }
-        )
 
     def _ensure_auth(self) -> bool:
         """Ensure we have valid authentication."""
@@ -272,9 +250,7 @@ class FortressApp:
 
     def _display_menu(self):
         """Display the main menu."""
-        profile = self.config.get_profile(self.active_profile_name)
-        profile_label = self.active_profile_name.upper()
-        title = f"FORTRESS MOMENTUM [{profile_label}]"
+        title = "FORTRESS MOMENTUM"
         # Show active strategy in subtitle
         strategy_desc = self.strategy.description if self.strategy else self.active_strategy
         subtitle = f"Strategy: {self.active_strategy.upper()} - {strategy_desc}"
@@ -296,41 +272,9 @@ class FortressApp:
 
         console.print(table)
 
-    def _select_profile(self):
-        """Prompt user to select a portfolio profile at startup."""
-        profile_names = self.config.get_profile_names()
-        if len(profile_names) <= 1:
-            # Single profile (or no profiles configured) — use default
-            self.active_profile_name = profile_names[0] if profile_names else "primary"
-            return
-
-        console.print(Panel("Select Portfolio Profile", style="bright_blue"))
-        for i, name in enumerate(profile_names, 1):
-            profile = self.config.get_profile(name)
-            universes = " + ".join(profile.universe_filter)
-            capital_str = format_currency(profile.initial_capital)
-            console.print(
-                f"  [bold bright_cyan]{i}[/bold bright_cyan] [dim]─[/dim] "
-                f"{name.upper()} [dim]({universes}, {capital_str})[/dim]"
-            )
-
-        choice = Prompt.ask(
-            "\nSelect profile",
-            choices=[str(i) for i in range(1, len(profile_names) + 1)],
-            default="1",
-        )
-        self.active_profile_name = profile_names[int(choice) - 1]
-        console.print(f"[green]Profile: {self.active_profile_name.upper()}[/green]")
-
     def run(self):
         """Run the interactive application."""
         self._load_config()
-        self._select_profile()
-        # Apply per-profile strategy overrides (smallcap: wider stops, higher vol target, etc.)
-        self.effective_config = self.config.with_profile_overrides(self.active_profile_name)
-        if self.effective_config is not self.config:
-            self.strategy = StrategyRegistry.get(self.active_strategy, self.effective_config)
-            console.print("[dim]Strategy overrides applied for profile[/dim]")
         self._load_universe()
 
         while True:
@@ -357,8 +301,6 @@ class FortressApp:
             elif choice == "7":
                 self._do_trigger_check()
             elif choice == "8":
-                self._do_exit_all_positions()
-            elif choice == "9":
                 self._do_market_phase_analysis()
             else:
                 console.print("[red]Invalid option[/red]")
@@ -474,11 +416,11 @@ class FortressApp:
             self.momentum_engine = MomentumEngine(
                 universe=self.universe,
                 market_data=cached_provider,
-                momentum_config=self.effective_config.pure_momentum,
-                sizing_config=self._get_profile_sizing(),
-                risk_config=self.effective_config.risk,
+                momentum_config=self.config.pure_momentum,
+                sizing_config=self.config.position_sizing,
+                risk_config=self.config.risk,
                 strategy=self.strategy,  # Pass strategy for logic parity
-                app_config=self.effective_config,
+                app_config=self.config,
                 cached_data=historical_data,  # Fast path for NMS calculation
             )
 
@@ -584,12 +526,12 @@ class FortressApp:
             self.momentum_engine = MomentumEngine(
                 universe=self.universe,
                 market_data=cached_provider,
-                momentum_config=self.effective_config.pure_momentum,
-                sizing_config=self._get_profile_sizing(),
-                risk_config=self.effective_config.risk,
-                regime_config=self.effective_config.regime,
+                momentum_config=self.config.pure_momentum,
+                sizing_config=self.config.position_sizing,
+                risk_config=self.config.risk,
+                regime_config=self.config.regime,
                 strategy=self.strategy,  # Pass strategy for logic parity
-                app_config=self.effective_config,
+                app_config=self.config,
                 cached_data=historical_data,  # Fast path for NMS calculation
             )
 
@@ -599,8 +541,8 @@ class FortressApp:
 
             # Identify which symbols are managed by the strategy
             universe_symbols = {s.zerodha_symbol for s in self.universe.get_all_stocks()}
-            profile = self.config.get_profile(self.active_profile_name)
-            if profile.max_gold_allocation is not None and profile.max_gold_allocation == 0.0:
+            max_gold = self.config.regime.max_gold_allocation
+            if max_gold is not None and max_gold == 0.0:
                 defensive_symbols = set()
             else:
                 defensive_symbols = {self.config.regime.gold_symbol}
@@ -616,7 +558,6 @@ class FortressApp:
                 "HANGSENGBEES",
                 "HNGSNGBEES",
                 "LIQUIDCASE",
-                "LIQUIDETF",
             }
 
             # Filter current holdings to only strategy-managed positions
@@ -816,11 +757,10 @@ class FortressApp:
                 )
 
             # Get top stocks for display (need to call select_top_stocks again)
-            profile = self.config.get_profile(self.active_profile_name)
             top_stocks = self.momentum_engine.select_top_stocks(
                 as_of_date=as_of,
-                n=profile.target_positions,
-                min_percentile=self.effective_config.pure_momentum.min_score_percentile,
+                n=self.config.position_sizing.target_positions,
+                min_percentile=self.config.pure_momentum.min_score_percentile,
                 max_per_sector=max_per_sector,
             )
 
@@ -1561,162 +1501,6 @@ class FortressApp:
                 "\n[bold bright_green]✓ All orders placed successfully![/bold bright_green]"
             )
 
-    def _do_exit_all_positions(self):
-        """Liquidate all managed equity positions and sweep to cash ETF."""
-        profile_label = self.active_profile_name.upper()
-        console.print(
-            Panel(
-                f"EXIT ALL POSITIONS [{profile_label}]",
-                style="bold bright_red",
-            )
-        )
-
-        if not self._ensure_auth():
-            return
-
-        # Load current positions
-        snapshot = self.portfolio.load_combined_positions()
-        if not snapshot.positions:
-            console.print("[yellow]No positions found.[/yellow]")
-            return
-
-        # Identify managed equity positions (same logic as _do_rebalance)
-        profile = self.config.get_profile(self.active_profile_name)
-        universe_symbols = {s.zerodha_symbol for s in self.universe.get_all_stocks()}
-        cash_symbol = self.effective_config.regime.cash_symbol
-
-        if profile.max_gold_allocation is not None and profile.max_gold_allocation == 0.0:
-            defensive_symbols = set()
-        else:
-            defensive_symbols = {self.config.regime.gold_symbol}
-        defensive_symbols.add(cash_symbol)
-
-        external_etfs = {
-            "NIFTYBEES",
-            "JUNIORBEES",
-            "MID150BEES",
-            "HDFCSML250",
-            "HANGSENGBEES",
-            "HNGSNGBEES",
-            "LIQUIDCASE",
-            "LIQUIDETF",
-        }
-        # Also exclude other profiles' cash symbols
-        for pname in self.config.get_profile_names():
-            p = self.config.get_profile(pname)
-            if p.cash_symbol and p.cash_symbol != cash_symbol:
-                external_etfs.add(p.cash_symbol)
-
-        equity_positions = {}
-        for symbol, pos in snapshot.positions.items():
-            if symbol in external_etfs or symbol in defensive_symbols:
-                continue
-            if symbol in universe_symbols:
-                equity_positions[symbol] = pos
-
-        if not equity_positions:
-            console.print("[yellow]No managed equity positions to exit.[/yellow]")
-            return
-
-        # Display positions to be liquidated
-        total_value = sum(pos.value for pos in equity_positions.values())
-        table = Table(title=f"Positions to Liquidate ({len(equity_positions)} stocks)")
-        table.add_column("Symbol", style="cyan")
-        table.add_column("Qty", justify="right")
-        table.add_column("Price", justify="right")
-        table.add_column("Value", justify="right")
-
-        for symbol in sorted(equity_positions.keys()):
-            pos = equity_positions[symbol]
-            table.add_row(
-                symbol,
-                str(pos.quantity),
-                f"{pos.current_price:,.2f}",
-                format_currency(pos.value),
-            )
-
-        console.print(table)
-        console.print(f"\n[bold]Total equity value: {format_currency(total_value)}[/bold]")
-        console.print(f"[dim]Proceeds will be swept to {cash_symbol}[/dim]")
-
-        # First confirmation
-        if not Confirm.ask(
-            f"\n[bold bright_red]Sell ALL {len(equity_positions)} equity positions?[/bold bright_red]",
-            default=False,
-        ):
-            console.print("[bright_yellow]Cancelled.[/bright_yellow]")
-            return
-
-        # Second confirmation — type LIQUIDATE
-        console.print("\n[bold bright_red]FINAL CONFIRMATION[/bold bright_red]")
-        confirm_text = Prompt.ask(
-            "Type [bold bright_white]LIQUIDATE[/bold bright_white] to proceed", default=""
-        )
-        if confirm_text.strip().upper() != "LIQUIDATE":
-            console.print("[bright_yellow]Cancelled - did not type LIQUIDATE[/bright_yellow]")
-            return
-
-        # Build liquidation plan: SELL_EXIT all equity, BUY cash_symbol with proceeds
-        trades = []
-        total_sell = 0.0
-        for symbol, pos in equity_positions.items():
-            trade = PlannedTrade(
-                symbol=symbol,
-                action=TradeAction.SELL_EXIT,
-                quantity=pos.quantity,
-                price=pos.current_price,
-                value=pos.value,
-                sector=pos.sector if hasattr(pos, "sector") else "",
-                current_qty=pos.quantity,
-                reason="Exit all positions",
-            )
-            trades.append(trade)
-            total_sell += pos.value
-
-        plan = RebalancePlan(
-            trades=trades,
-            total_sell_value=total_sell,
-            total_buy_value=0.0,
-        )
-
-        # Display and execute
-        self._display_execution_plan(plan)
-
-        executor = RebalanceExecutor(
-            kite=self.kite,
-            portfolio=self.portfolio,
-            instrument_mapper=self.market_data.mapper,
-            order_manager=OrderManager(
-                self.kite,
-                RiskGovernor(self.config.risk, self.config.portfolio),
-                dry_run=False,
-            ),
-            universe=self.universe,
-            risk_config=self.config.risk,
-        )
-
-        exec_result = executor.execute_plan(plan)
-
-        if exec_result and exec_result.successes:
-            console.print(
-                f"\n[bold bright_green]Liquidation complete — "
-                f"{len(exec_result.successes)} orders placed[/bold bright_green]"
-            )
-            if exec_result.failures:
-                console.print(f"[bright_red]{len(exec_result.failures)} orders failed[/bright_red]")
-
-            # Save state: empty managed symbols
-            self._save_strategy_state(
-                managed_symbols=[],
-                peak_prices={},
-                last_rebalance_date=date.today().isoformat(),
-            )
-            console.print(
-                f"[dim]Strategy state cleared. Buy {cash_symbol} to redeploy capital later.[/dim]"
-            )
-        else:
-            console.print("[bright_red]Liquidation failed or no orders executed.[/bright_red]")
-
     def _do_trigger_check(self):
         """Check if any dynamic rebalancing triggers have fired.
 
@@ -1748,12 +1532,12 @@ class FortressApp:
             self.momentum_engine = MomentumEngine(
                 universe=self.universe,
                 market_data=cached_provider,
-                momentum_config=self.effective_config.pure_momentum,
-                sizing_config=self._get_profile_sizing(),
-                risk_config=self.effective_config.risk,
-                regime_config=self.effective_config.regime,
+                momentum_config=self.config.pure_momentum,
+                sizing_config=self.config.position_sizing,
+                risk_config=self.config.risk,
+                regime_config=self.config.regime,
                 strategy=self.strategy,
-                app_config=self.effective_config,
+                app_config=self.config,
                 cached_data=historical_data,
             )
 
@@ -1780,7 +1564,7 @@ class FortressApp:
                     pass
 
             # --- Days since last rebalance ---
-            dyn_config = self.effective_config.dynamic_rebalance
+            dyn_config = self.config.dynamic_rebalance
             nifty_df = historical_data.get("NIFTY 50")
 
             if last_rebal_str and nifty_df is not None and not nifty_df.empty:
@@ -1904,9 +1688,7 @@ class FortressApp:
             if regime and regime.stress_score > 0:
                 from .indicators import calculate_graduated_allocation
 
-                eq, gd, _ = calculate_graduated_allocation(
-                    regime.stress_score, self.effective_config.regime
-                )
+                eq, gd, _ = calculate_graduated_allocation(regime.stress_score, self.config.regime)
                 alloc_str = f" → equity {eq:.0%} / gold {gd:.0%}"
 
             lines = [
@@ -2119,39 +1901,29 @@ class FortressApp:
         # Run backtest with selected strategy
         console.print(f"[cyan]Using strategy: {self.active_strategy}[/cyan]\n")
 
-        profile = self.config.get_profile(self.active_profile_name)
-
-        # Profile-specific benchmarks
-        benchmark_map = {
-            "primary": [("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")],
-            "smallcap": [("NIFTY 50", "Nifty 50"), ("NIFTY SMLCAP 100", "Nifty Smlcap 100")],
-            "microcap": [("NIFTY 50", "Nifty 50"), ("NIFTY SMLCAP 250", "Nifty Smlcap 250")],
-        }
-        bench_symbols = benchmark_map.get(self.active_profile_name)
-
         bt_config = BacktestConfig(
             start_date=start_date,
             end_date=end_date,
-            initial_capital=profile.initial_capital,
+            initial_capital=self.config.portfolio.initial_capital,
             rebalance_days=rebalance_days,
-            transaction_cost=self.effective_config.costs.transaction_cost,
-            target_positions=profile.target_positions,
-            min_score_percentile=self.effective_config.pure_momentum.min_score_percentile,
-            min_52w_high_prox=self.effective_config.pure_momentum.min_52w_high_prox,
-            initial_stop_loss=self.effective_config.risk.initial_stop_loss,
-            trailing_stop=self.effective_config.risk.trailing_stop,
-            weight_6m=self.effective_config.pure_momentum.weight_6m,
-            weight_12m=self.effective_config.pure_momentum.weight_12m,
+            transaction_cost=self.config.costs.transaction_cost,
+            target_positions=self.config.position_sizing.target_positions,
+            min_score_percentile=self.config.pure_momentum.min_score_percentile,
+            min_52w_high_prox=self.config.pure_momentum.min_52w_high_prox,
+            initial_stop_loss=self.config.risk.initial_stop_loss,
+            trailing_stop=self.config.risk.trailing_stop,
+            weight_6m=self.config.pure_momentum.weight_6m,
+            weight_12m=self.config.pure_momentum.weight_12m,
             strategy_name=self.active_strategy,
-            profile_max_gold=profile.max_gold_allocation,
-            benchmark_symbols=bench_symbols,
+            profile_max_gold=self.config.regime.max_gold_allocation,
+            benchmark_symbols=[("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")],
         )
 
         engine = BacktestEngine(
             universe=self.universe,
             historical_data=historical_data,
             config=bt_config,
-            app_config=self.effective_config,
+            app_config=self.config,
             strategy_name=self.active_strategy,
         )
 
@@ -2300,7 +2072,7 @@ class FortressApp:
         console.print(table)
 
         # Benchmark comparison table
-        if result.benchmark_returns:
+        if result.nifty_50_return is not None or result.nifty_midcap_100_return is not None:
             bench_table = Table(title="Benchmark Comparison")
             bench_table.add_column("Strategy/Index", style="cyan")
             bench_table.add_column("Return", justify="right")
@@ -2315,17 +2087,29 @@ class FortressApp:
                 "-",
             )
 
-            # Benchmark rows
-            for name, ret in result.benchmark_returns:
-                if ret is not None:
-                    ret_color = "green" if ret > 0 else "red"
-                    diff = result.total_return - ret
-                    diff_color = "green" if diff > 0 else "red"
-                    bench_table.add_row(
-                        name.upper(),
-                        f"[{ret_color}]{format_percentage(ret)}[/{ret_color}]",
-                        f"[{diff_color}]{diff:+.1%}[/{diff_color}]",
-                    )
+            # NIFTY 50
+            if result.nifty_50_return is not None:
+                ret = result.nifty_50_return
+                ret_color = "green" if ret > 0 else "red"
+                diff = result.total_return - ret
+                diff_color = "green" if diff > 0 else "red"
+                bench_table.add_row(
+                    "NIFTY 50",
+                    f"[{ret_color}]{format_percentage(ret)}[/{ret_color}]",
+                    f"[{diff_color}]{diff:+.1%}[/{diff_color}]",
+                )
+
+            # NIFTY MIDCAP 100
+            if result.nifty_midcap_100_return is not None:
+                ret = result.nifty_midcap_100_return
+                ret_color = "green" if ret > 0 else "red"
+                diff = result.total_return - ret
+                diff_color = "green" if diff > 0 else "red"
+                bench_table.add_row(
+                    "NIFTY MIDCAP 100",
+                    f"[{ret_color}]{format_percentage(ret)}[/{ret_color}]",
+                    f"[{diff_color}]{diff:+.1%}[/{diff_color}]",
+                )
 
             console.print(bench_table)
 
@@ -2518,39 +2302,30 @@ class FortressApp:
             f"({self.active_strategy.upper()}) ...[/cyan]"
         )
 
-        profile = self.config.get_profile(self.active_profile_name)
-
-        # Profile-specific benchmarks
-        benchmark_map = {
-            "primary": [("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")],
-            "smallcap": [("NIFTY 50", "Nifty 50"), ("NIFTY SMLCAP 100", "Nifty Smlcap 100")],
-            "microcap": [("NIFTY 50", "Nifty 50"), ("NIFTY SMLCAP 250", "Nifty Smlcap 250")],
-        }
-
         bt_config = BacktestConfig(
             start_date=bt_start,
             end_date=bt_end,
-            initial_capital=profile.initial_capital,
+            initial_capital=self.config.portfolio.initial_capital,
             rebalance_days=5,
-            transaction_cost=self.effective_config.costs.transaction_cost,
-            target_positions=profile.target_positions,
-            min_positions=profile.min_positions,
-            min_score_percentile=self.effective_config.pure_momentum.min_score_percentile,
-            min_52w_high_prox=self.effective_config.pure_momentum.min_52w_high_prox,
-            initial_stop_loss=self.effective_config.risk.initial_stop_loss,
-            trailing_stop=self.effective_config.risk.trailing_stop,
-            weight_6m=self.effective_config.pure_momentum.weight_6m,
-            weight_12m=self.effective_config.pure_momentum.weight_12m,
+            transaction_cost=self.config.costs.transaction_cost,
+            target_positions=self.config.position_sizing.target_positions,
+            min_positions=self.config.position_sizing.min_positions,
+            min_score_percentile=self.config.pure_momentum.min_score_percentile,
+            min_52w_high_prox=self.config.pure_momentum.min_52w_high_prox,
+            initial_stop_loss=self.config.risk.initial_stop_loss,
+            trailing_stop=self.config.risk.trailing_stop,
+            weight_6m=self.config.pure_momentum.weight_6m,
+            weight_12m=self.config.pure_momentum.weight_12m,
             strategy_name=self.active_strategy,
-            profile_max_gold=profile.max_gold_allocation,
-            benchmark_symbols=benchmark_map.get(self.active_profile_name),
+            profile_max_gold=self.config.regime.max_gold_allocation,
+            benchmark_symbols=[("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")],
         )
 
         engine = BacktestEngine(
             universe=self.universe,
             historical_data=historical_data,
             config=bt_config,
-            app_config=self.effective_config,
+            app_config=self.config,
             strategy_name=self.active_strategy,
         )
 
