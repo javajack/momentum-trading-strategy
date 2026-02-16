@@ -1373,7 +1373,7 @@ class FortressApp:
             f"  [dim]Buy cost:[/dim]         [bright_red]-{format_currency(plan.total_buy_value)}[/bright_red]"
         )
         console.print(
-            f"  [dim]Demat cash:[/dim]       [white]{format_currency(plan.available_cash)}[/white] [dim](not used for buys)[/dim]"
+            f"  [dim]Demat cash:[/dim]       [white]{format_currency(plan.available_cash)}[/white] [dim](swept to LIQUIDBEES)[/dim]"
         )
         if plan.net_cash_needed > 0:
             console.print(
