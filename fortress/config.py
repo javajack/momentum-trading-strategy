@@ -1143,6 +1143,56 @@ class AdaptiveDualMomentumConfig(BaseModel):
         description="Score penalty for stocks in bottom sectors (15%)",
     )
 
+    # === I3: Momentum Deceleration Filter ===
+    deceleration_penalty: float = Field(
+        default=0.12,
+        ge=0.0,
+        le=0.50,
+        description="Score penalty for stocks with decelerating momentum (0.12 = 12%)",
+    )
+    deceleration_threshold: float = Field(
+        default=0.85,
+        ge=0.5,
+        le=1.5,
+        description="Acceleration ratio below which penalty applies (< 1.0 = decelerating)",
+    )
+
+    # === I7: Regime-Aware NMS Lookback ===
+    use_regime_adaptive_lookback: bool = Field(
+        default=True,
+        description="Shorten NMS lookbacks in CAUTION/DEFENSIVE regimes",
+    )
+    regime_lookback_mult: float = Field(
+        default=0.50,
+        ge=0.25,
+        le=1.0,
+        description="Multiply lookback periods by this in CAUTION/DEFENSIVE (0.50 = half)",
+    )
+
+    # === I1: Sideways Market Detection ===
+    use_sideways_detection: bool = Field(
+        default=True,
+        description="Enable sideways market detection to reduce churn in range-bound markets",
+    )
+    sideways_hold_days: int = Field(
+        default=7,
+        ge=3,
+        le=21,
+        description="Min hold days when sideways detected (overrides min_hold_days)",
+    )
+    sideways_buffer_mult: float = Field(
+        default=1.5,
+        ge=1.0,
+        le=3.0,
+        description="Multiply trend_break_buffer by this in sideways markets",
+    )
+    sideways_rebalance_days: int = Field(
+        default=12,
+        ge=7,
+        le=30,
+        description="Min days between rebalances when sideways detected",
+    )
+
     # === E9: Minimum Hold Period ===
     min_hold_days: int = Field(
         default=3,
@@ -1163,6 +1213,14 @@ class AdaptiveDualMomentumConfig(BaseModel):
         ge=1.0,
         le=2.0,
         description="Trailing stop multiplier during general drawdown recovery (1.25 = 25% wider)",
+    )
+
+    # I10: Position replacement threshold — only swap if new stock NMS exceeds old by this ratio
+    position_replacement_threshold: float = Field(
+        default=0.25,
+        ge=0.0,
+        le=1.0,
+        description="Only replace held position if new stock NMS exceeds old by this fraction (0.25 = 25%)",
     )
 
     @field_validator("vix_defensive_threshold")

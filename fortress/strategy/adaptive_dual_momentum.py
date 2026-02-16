@@ -34,6 +34,7 @@ from ..indicators import (
     calculate_adaptive_lookback,
     calculate_bull_recovery_signals,
     calculate_exhaustion_score,
+    calculate_momentum_acceleration,
     calculate_normalized_momentum_score,
     calculate_position_momentum,
     calculate_relative_strength,
@@ -200,6 +201,9 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         self._current_drawdown: float = 0.0
         self._vix_history: Optional[object] = None
 
+        # I1: Sideways market state
+        self._is_sideways: bool = False
+
         # Crash avoidance state (NEW - momentum crash protection)
         self._crash_avoidance_state = CrashAvoidanceState()
 
@@ -241,6 +245,10 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             self._current_regime = regime
         elif isinstance(regime, SimpleRegimeResult):
             self._simple_regime = regime
+
+    def set_sideways(self, is_sideways: bool) -> None:
+        """I1: Update sideways market state for buffer widening."""
+        self._is_sideways = is_sideways
 
     def set_vix_history(self, vix_history) -> None:
         """Store VIX history for bull recovery detection."""
@@ -607,10 +615,19 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
         Returns:
             Tuple of (lookback_6m, lookback_12m)
         """
-        return (
-            self._adaptive_lookback_state.lookback_6m,
-            self._adaptive_lookback_state.lookback_12m,
-        )
+        lb_6m = self._adaptive_lookback_state.lookback_6m
+        lb_12m = self._adaptive_lookback_state.lookback_12m
+
+        # I7: Regime-aware lookback — shorten in CAUTION/DEFENSIVE
+        cfg = self._get_config_values()
+        if cfg.get("use_regime_adaptive_lookback", False) and self._current_regime:
+            regime = self._current_regime.regime
+            if regime in (MarketRegime.CAUTION, MarketRegime.DEFENSIVE):
+                mult = cfg.get("regime_lookback_mult", 0.50)
+                lb_6m = max(21, int(lb_6m * mult))
+                lb_12m = max(42, int(lb_12m * mult))
+
+        return (lb_6m, lb_12m)
 
     def _get_config_values(self) -> dict:
         """Get configuration values with defaults. Cached after first call."""
@@ -722,6 +739,17 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             "sector_exclude_bottom": 3,  # Exclude bottom 3 sectors
             # === E9: Minimum Hold Period ===
             "min_hold_days": 3,  # Only hard stop during first 3 days
+            # === I3: Momentum Deceleration Filter ===
+            "deceleration_penalty": 0.12,  # 12% score penalty for decelerating stocks
+            "deceleration_threshold": 0.85,  # Acceleration ratio below which penalty applies
+            # === I7: Regime-Aware NMS Lookback ===
+            "use_regime_adaptive_lookback": True,
+            "regime_lookback_mult": 0.50,
+            # === I1: Sideways Market Detection ===
+            "use_sideways_detection": True,
+            "sideways_hold_days": 7,
+            "sideways_buffer_mult": 1.5,
+            "sideways_rebalance_days": 12,
         }
 
         # Override with config if available
@@ -849,6 +877,10 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             cfg.get("trend_break_buffer_bullish_mult", 1.67),
             cfg.get("trend_break_buffer_defensive_mult", 0.0),
         )
+
+        # I1: Widen trend break buffer in sideways markets
+        if self._is_sideways:
+            ema_buffer *= cfg.get("sideways_buffer_mult", 1.5)
 
         # Stop loss multipliers
         stop_bullish = cfg.get("stop_bullish_mult", 1.25)
@@ -1220,6 +1252,14 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             # Apply sector momentum soft penalty (Change 2)
             if in_bottom_sector:
                 score *= 1.0 - cfg.get("sector_momentum_penalty", 0.15)
+
+            # I3: Momentum deceleration penalty — penalize stocks with fading momentum
+            decel_penalty = cfg.get("deceleration_penalty", 0.0)
+            if decel_penalty > 0:
+                accel = calculate_momentum_acceleration(prices, short_period=21, medium_period=63)
+                decel_threshold = cfg.get("deceleration_threshold", 0.85)
+                if accel < decel_threshold:
+                    score *= 1.0 - decel_penalty
 
             # Create StockScore
             stock_score = StockScore(

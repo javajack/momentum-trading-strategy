@@ -40,6 +40,7 @@ from .indicators import (
     calculate_exit_triggers,
     calculate_normalized_momentum_score,
     detect_market_regime,
+    detect_sideways_market,
 )
 from .market_data import MarketDataProvider
 from .universe import Stock, Universe
@@ -1466,6 +1467,25 @@ class MomentumEngine:
                     self._strategy.update_breadth_state(breadth)
                 except Exception:
                     pass
+
+            # I1: Sideways market detection (parity with backtest.py)
+            if hasattr(self._strategy, "set_sideways"):
+                sc = getattr(self._config, "strategy_dual_momentum", None)
+                if sc and getattr(sc, "use_sideways_detection", False):
+                    try:
+                        from_date = as_of_date - timedelta(days=120)
+                        nifty_df = self.market_data.get_historical(
+                            symbol="NIFTY 50",
+                            from_date=from_date,
+                            to_date=as_of_date,
+                            interval="day",
+                            check_quality=False,
+                        )
+                        if not nifty_df.empty and len(nifty_df) >= 50:
+                            is_sideways, _ = detect_sideways_market(nifty_df["close"])
+                            self._strategy.set_sideways(is_sideways)
+                    except Exception:
+                        pass
 
         # Select top momentum stocks
         top_stocks = self.select_top_stocks(

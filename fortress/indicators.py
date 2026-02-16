@@ -2254,6 +2254,70 @@ def calculate_adx(
     )
 
 
+def detect_sideways_market(
+    prices: pd.Series,
+    highs: Optional[pd.Series] = None,
+    lows: Optional[pd.Series] = None,
+    adx_threshold: float = 20.0,
+    bbw_lookback: int = 20,
+    atr_short: int = 10,
+    atr_long: int = 50,
+    atr_threshold: float = 0.9,
+    min_signals: int = 2,
+) -> Tuple[bool, int]:
+    """
+    Detect sideways (range-bound) market using composite signal.
+
+    Signals:
+    1. Low ADX (< threshold) — no strong trend
+    2. Bollinger Band Width below its 20-day median — price range narrowing
+    3. ATR ratio (short/long) < threshold — volatility not expanding
+
+    Args:
+        prices: Close prices with DateTimeIndex
+        highs: High prices (estimated from closes if None)
+        lows: Low prices (estimated from closes if None)
+        adx_threshold: ADX below this = no trend (default: 20)
+        bbw_lookback: Lookback for BBW median (default: 20)
+        atr_short: Short ATR period (default: 10)
+        atr_long: Long ATR period (default: 50)
+        atr_threshold: ATR ratio below this = not expanding (default: 0.9)
+        min_signals: Minimum signals needed (default: 2 of 3)
+
+    Returns:
+        Tuple of (is_sideways, signal_count)
+    """
+    if len(prices) < max(atr_long, 50):
+        return (False, 0)
+
+    signals = 0
+
+    # Signal 1: Low ADX
+    adx_result = calculate_adx(prices, highs, lows, period=14)
+    if adx_result and adx_result.adx < adx_threshold:
+        signals += 1
+
+    # Signal 2: BBW contraction (BB width below rolling median)
+    sma = prices.rolling(bbw_lookback).mean()
+    std = prices.rolling(bbw_lookback).std()
+    bbw = (2 * std) / sma  # Bollinger Band Width as fraction
+    bbw_median = bbw.rolling(bbw_lookback).median()
+    if len(bbw.dropna()) > 0 and len(bbw_median.dropna()) > 0:
+        current_bbw = bbw.iloc[-1]
+        current_median = bbw_median.iloc[-1]
+        if current_bbw < current_median:
+            signals += 1
+
+    # Signal 3: ATR ratio < threshold (volatility not expanding)
+    atr_ratio, _, _ = calculate_atr_ratio(
+        prices, highs, lows, current_period=atr_short, historical_period=atr_long
+    )
+    if atr_ratio < atr_threshold:
+        signals += 1
+
+    return (signals >= min_signals, signals)
+
+
 def calculate_macd_histogram_slope(
     prices: pd.Series,
     fast_period: int = 12,

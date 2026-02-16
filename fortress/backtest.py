@@ -42,6 +42,7 @@ from .indicators import (
     detect_breadth_thrust,
     detect_market_regime,
     detect_momentum_crash,
+    detect_sideways_market,
     detect_vix_recovery,
     should_trigger_rebalance,
 )
@@ -596,7 +597,13 @@ class BacktestEngine:
         dynamic_config = self.app_config.dynamic_rebalance
 
         # Always skip if under minimum days
-        if days_since_last < dynamic_config.min_days_between:
+        # I1: Use wider minimum when sideways market detected
+        min_days = dynamic_config.min_days_between
+        if self._is_sideways:
+            sc = getattr(self.app_config, "strategy_dual_momentum", None)
+            sideways_days = getattr(sc, "sideways_rebalance_days", 12) if sc else 12
+            min_days = max(min_days, sideways_days)
+        if days_since_last < min_days:
             return False
 
         # Always check if past maximum days
@@ -1811,6 +1818,10 @@ class BacktestEngine:
         # Reset smoothed breadth (FIX 8)
         self._breadth_ema = None
 
+        # I1: Sideways market detection state
+        self._is_sideways = False
+        self._base_min_hold_days = self._min_hold_days
+
         # Clear caches for fresh run
         self._nms_cache.clear()
         self._date_filtered_data.clear()
@@ -1952,6 +1963,21 @@ class BacktestEngine:
             if use_dynamic and regime:
                 self._update_dynamic_state(date, regime.vix_level)
 
+            # I1: Sideways market detection — reduce churn in range-bound markets
+            sc = getattr(self.app_config, "strategy_dual_momentum", None)
+            if sc and getattr(sc, "use_sideways_detection", False):
+                nifty_data = self.data.get("NIFTY 50")
+                if nifty_data is not None:
+                    ts_date = pd.Timestamp(date)
+                    nifty_up_to = nifty_data.loc[:ts_date]
+                    if len(nifty_up_to) >= 50:
+                        self._is_sideways, _ = detect_sideways_market(nifty_up_to["close"])
+                        # Dynamically adjust min_hold_days
+                        if self._is_sideways:
+                            self._min_hold_days = getattr(sc, "sideways_hold_days", 7)
+                        else:
+                            self._min_hold_days = self._base_min_hold_days
+
             # Check if we should rebalance
             should_rebalance = False
             rebalance_reason = ""
@@ -1999,6 +2025,10 @@ class BacktestEngine:
                 # so that crash recovery mode can access current VIX level
                 if hasattr(self.strategy, "set_regime"):
                     self.strategy.set_regime(regime)
+
+                # I1: Pass sideways state to strategy for buffer widening
+                if hasattr(self.strategy, "set_sideways"):
+                    self.strategy.set_sideways(self._is_sideways)
 
                 # Enhanced regime history with new fields
                 regime_history.append(
@@ -2106,6 +2136,40 @@ class BacktestEngine:
                     if freed > 0.01:
                         cash_sym = self.app_config.regime.cash_symbol
                         target_weights[cash_sym] = target_weights.get(cash_sym, 0) + freed
+
+            # I10: Position replacement threshold — keep held positions unless
+            # the new candidate's NMS exceeds the old by a meaningful margin.
+            # This reduces churn from marginal rank shuffles.
+            replacement_threshold = (
+                self.app_config.strategy_dual_momentum.position_replacement_threshold
+            )
+            if replacement_threshold > 0 and self._trail_ranked_stocks:
+                ranked_map = {s.ticker: s.score for s in self._trail_ranked_stocks}
+                defensive_syms = {
+                    self.app_config.regime.gold_symbol,
+                    self.app_config.regime.cash_symbol,
+                }
+                # Find held equity positions that would be dropped
+                for held_ticker in list(portfolio.positions.keys()):
+                    if held_ticker in defensive_syms or held_ticker in target_weights:
+                        continue
+                    held_nms = ranked_map.get(held_ticker)
+                    if held_nms is None or held_nms <= 0:
+                        continue  # No NMS score — let it be sold
+                    # Find the weakest new equity target (potential replacement)
+                    weakest_new = None
+                    weakest_nms = float("inf")
+                    for t, w in target_weights.items():
+                        if t in defensive_syms or t in portfolio.positions:
+                            continue  # Skip defensive and already-held
+                        t_nms = ranked_map.get(t, 0)
+                        if t_nms < weakest_nms:
+                            weakest_nms = t_nms
+                            weakest_new = t
+                    # Keep held position if the weakest new stock isn't meaningfully better
+                    if weakest_new and weakest_nms < held_nms * (1 + replacement_threshold):
+                        # Swap: keep held position, drop the weak new one
+                        target_weights[held_ticker] = target_weights.pop(weakest_new)
 
             # Calculate target positions
             # FIX: Use total portfolio value (positions + cash) for sizing
