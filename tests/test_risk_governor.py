@@ -4,11 +4,12 @@ Tests for risk governor module.
 Verifies invariants R1-R10 for pure momentum strategy.
 """
 
-import pytest
 from datetime import datetime
 
-from fortress.risk_governor import RiskGovernor, RiskCheckResult, StopLossTracker, StopLossEntry
-from fortress.config import RiskConfig, PortfolioConfig
+import pytest
+
+from fortress.config import PortfolioConfig, RiskConfig
+from fortress.risk_governor import RiskCheckResult, RiskGovernor, StopLossEntry, StopLossTracker
 
 
 @pytest.fixture
@@ -25,7 +26,6 @@ def custom_governor():
         hard_max_position=0.10,
         max_sector_exposure=0.25,
         hard_max_sector=0.30,
-        max_drawdown_warning=0.10,
         max_drawdown_halt=0.20,
         daily_loss_limit=0.03,
         initial_stop_loss=0.18,

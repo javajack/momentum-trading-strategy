@@ -45,12 +45,9 @@ position_sizing:
   min_positions: 10 # Maintain at least 10 positions
   max_positions: 15 # Never exceed 15 positions
 
-# Rebalancing schedule (monthly proven optimal)
+# Rebalancing schedule
 rebalancing:
-  frequency: "monthly"
   rebalance_days: 21 # Trading days between rebalances (21 = monthly)
-  day: "friday"
-  min_trade_value: 10000
 
 # Risk limits with stop losses
 risk:
@@ -61,7 +58,6 @@ risk:
   hard_max_sector: 0.30
 
   # Drawdown limits
-  max_drawdown_warning: 0.10
   max_drawdown_halt: 0.20
   daily_loss_limit: 0.03
 
@@ -159,7 +155,6 @@ regime:
 # Paths
 paths:
   universe_file: "stock-universe.json"
-  log_dir: "logs"
   data_cache: ".cache"
 
 # Strategy selection (only dual_momentum is supported)

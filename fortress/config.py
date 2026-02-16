@@ -132,7 +132,6 @@ class RiskConfig(BaseModel):
     hard_max_position: float = Field(default=0.12, gt=0, le=1)
     max_sector_exposure: float = Field(default=0.35, gt=0, le=1)
     hard_max_sector: float = Field(default=0.45, gt=0, le=1)
-    max_drawdown_warning: float = Field(default=0.15, gt=0, le=1)
     max_drawdown_halt: float = Field(default=0.25, gt=0, le=1)
     daily_loss_limit: float = Field(default=0.03, gt=0, le=1)
 
@@ -147,20 +146,9 @@ class RiskConfig(BaseModel):
 class RebalancingConfig(BaseModel):
     """Rebalancing schedule configuration."""
 
-    frequency: str = Field(default="monthly", description="Rebalance frequency")
     rebalance_days: int = Field(
         default=21, ge=1, le=252, description="Trading days between rebalances (21 = monthly)"
     )
-    day: str = Field(default="friday", description="Day of week for rebalancing")
-    min_trade_value: float = Field(default=10000, ge=0, description="Minimum trade value")
-
-    @field_validator("frequency")
-    @classmethod
-    def validate_frequency(cls, v: str) -> str:
-        valid = ("daily", "weekly", "monthly")
-        if v.lower() not in valid:
-            raise ValueError(f"frequency must be one of {valid}")
-        return v.lower()
 
 
 class CostsConfig(BaseModel):
@@ -173,7 +161,6 @@ class PathsConfig(BaseModel):
     """File path settings."""
 
     universe_file: str = Field(default="stock-universe.json")
-    log_dir: str = Field(default="logs")
     data_cache: str = Field(default=".cache")
 
 
