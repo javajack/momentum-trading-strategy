@@ -674,6 +674,8 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             # Regime multipliers
             "rs_bullish_mult": 0.85,
             "rs_defensive_mult": 1.05,
+            "rs_exit_bullish_mult": 0.95,
+            "rs_exit_defensive_mult": 1.05,
             "stop_bullish_mult": 1.25,
             "stop_defensive_mult": 0.85,
             # Trend break
@@ -928,7 +930,11 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             ema_buffer=ema_buffer,
             skip_200sma_check=skip_200sma,
             # Exit thresholds
-            rs_exit_threshold=cfg.get("rs_exit_threshold", 0.94),
+            rs_exit_threshold=self._adaptive_param(
+                cfg.get("rs_exit_threshold", 0.94),
+                cfg.get("rs_exit_bullish_mult", 0.95),
+                cfg.get("rs_exit_defensive_mult", 1.05),
+            ),
             # Stop loss widths (using tiered, with recovery widening)
             initial_stop_loss=self._adaptive_param(
                 cfg["hard_stop"],

@@ -731,6 +731,21 @@ class DynamicRebalanceConfig(BaseModel):
         default=10, ge=5, le=15, description="Max days for breadth to move from low to high"
     )
 
+    # Portfolio momentum trigger
+    portfolio_momentum_trigger: bool = Field(
+        default=True,
+        description="Trigger rebalance when portfolio short-term momentum deteriorates",
+    )
+    portfolio_momentum_threshold: float = Field(
+        default=-0.07,
+        ge=-0.15,
+        le=-0.02,
+        description="Portfolio 20-day return threshold to trigger rebalance (-7%)",
+    )
+    portfolio_momentum_lookback: int = Field(
+        default=20, ge=10, le=40, description="Days to compute portfolio momentum"
+    )
+
 
 class AdaptiveLookbackConfig(BaseModel):
     """

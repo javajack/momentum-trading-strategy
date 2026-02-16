@@ -3023,6 +3023,8 @@ def should_trigger_rebalance(
     vix_spike_threshold: float = 25.0,
     drawdown_threshold: float = 0.10,
     crash_threshold: float = -0.10,
+    portfolio_momentum_return: Optional[float] = None,
+    portfolio_momentum_threshold: float = -0.05,
 ) -> RebalanceTrigger:
     """
     Evaluate whether to trigger a rebalance based on multiple event-driven signals.
@@ -3034,6 +3036,7 @@ def should_trigger_rebalance(
     4. Portfolio drawdown >10% - defensive
     5. Market crash (1M < -10%) - crash avoidance
     6. Breadth thrust signal - aggressive entry
+    7. Portfolio momentum deterioration (20d return < -5%) - early reshuffling
 
     Args:
         days_since_last: Trading days since last rebalance
@@ -3050,6 +3053,8 @@ def should_trigger_rebalance(
         vix_spike_threshold: VIX level considered a spike
         drawdown_threshold: Portfolio drawdown to trigger defensive rebalance
         crash_threshold: Market 1M return to trigger crash avoidance
+        portfolio_momentum_return: Portfolio 20-day compounded return (None if insufficient data)
+        portfolio_momentum_threshold: Threshold to trigger momentum rebalance (-5%)
 
     Returns:
         RebalanceTrigger with decision and reason
@@ -3100,6 +3105,15 @@ def should_trigger_rebalance(
         triggers_fired.append("BREADTH_THRUST")
         urgency = "HIGH" if urgency != "HIGH" else urgency
 
+    # Trigger 7: Portfolio momentum deterioration
+    if (
+        portfolio_momentum_return is not None
+        and portfolio_momentum_return <= portfolio_momentum_threshold
+    ):
+        triggers_fired.append("PORTFOLIO_MOMENTUM")
+        if urgency == "LOW":
+            urgency = "MEDIUM"
+
     # Determine final decision
     should_rebalance = len(triggers_fired) > 0
 
@@ -3110,6 +3124,8 @@ def should_trigger_rebalance(
         reason = "Market crash - momentum crash avoidance"
     elif "PORTFOLIO_DRAWDOWN" in triggers_fired:
         reason = f"Portfolio drawdown {portfolio_drawdown:.1%}"
+    elif "PORTFOLIO_MOMENTUM" in triggers_fired:
+        reason = f"Portfolio momentum deterioration ({portfolio_momentum_return:.1%} over {20}d)"
     elif "REGIME_TRANSITION" in triggers_fired:
         reason = f"Regime changed: {previous_regime} → {current_regime}"
     elif "VIX_RECOVERY" in triggers_fired:

@@ -629,6 +629,15 @@ class BacktestEngine:
         if market_return <= dynamic_config.crash_threshold:
             return True  # Market crash - worth full check
 
+        # Quick portfolio momentum check
+        if dynamic_config.portfolio_momentum_trigger:
+            lookback = dynamic_config.portfolio_momentum_lookback
+            if len(self._portfolio_daily_returns) >= lookback:
+                recent = list(self._portfolio_daily_returns)[-lookback:]
+                pf_return = np.prod([1 + r for r in recent]) - 1
+                if pf_return <= dynamic_config.portfolio_momentum_threshold:
+                    return True  # Portfolio momentum deterioration
+
         # No urgent triggers detected - skip expensive calculations
         return False
 
@@ -1556,6 +1565,16 @@ class BacktestEngine:
         # Map current regime to MarketRegime enum if available
         current_regime_enum = current_regime.regime if current_regime else None
 
+        # Compute portfolio short-term momentum
+        portfolio_momentum_return = None
+        lookback = dynamic_config.portfolio_momentum_lookback
+        if (
+            dynamic_config.portfolio_momentum_trigger
+            and len(self._portfolio_daily_returns) >= lookback
+        ):
+            recent = list(self._portfolio_daily_returns)[-lookback:]
+            portfolio_momentum_return = np.prod([1 + r for r in recent]) - 1
+
         return should_trigger_rebalance(
             days_since_last=days_since_last,
             current_regime=current_regime_enum,
@@ -1571,6 +1590,8 @@ class BacktestEngine:
             vix_spike_threshold=dynamic_config.vix_spike_threshold,
             drawdown_threshold=dynamic_config.drawdown_threshold,
             crash_threshold=dynamic_config.crash_threshold,
+            portfolio_momentum_return=portfolio_momentum_return,
+            portfolio_momentum_threshold=dynamic_config.portfolio_momentum_threshold,
         )
 
     def _update_dynamic_state(

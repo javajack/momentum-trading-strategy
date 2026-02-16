@@ -11,7 +11,6 @@ import pytest
 
 from fortress.indicators import MarketRegime, should_trigger_rebalance
 
-
 # --- Defaults shared across tests ---
 
 DEFAULTS = dict(
@@ -255,7 +254,9 @@ class TestStaleRegimeDisplay:
         prev_str = previous_regime.value.upper() if previous_regime else "—"
 
         if regime_stale and last_regime_str:
-            regime_display = f"{regime_str} (last: {last_regime_str.upper()}, {days_since_last}d ago — stale)"
+            regime_display = (
+                f"{regime_str} (last: {last_regime_str.upper()}, {days_since_last}d ago — stale)"
+            )
         elif prev_str != "—":
             regime_display = f"{regime_str} (was {prev_str})"
         else:
@@ -278,17 +279,13 @@ class TestStaleRegimeDisplay:
         assert stale
 
     def test_no_previous_regime_shows_plain(self):
-        display, stale = self._build_regime_display(
-            MarketRegime.NORMAL, None, None, 10, 30
-        )
+        display, stale = self._build_regime_display(MarketRegime.NORMAL, None, None, 10, 30)
         assert display == "NORMAL"
         assert not stale
 
     def test_stale_but_no_stored_regime_shows_plain(self):
         """Stale + no stored regime = just show current regime (no misleading label)."""
-        display, stale = self._build_regime_display(
-            MarketRegime.BULLISH, None, None, 45, 30
-        )
+        display, stale = self._build_regime_display(MarketRegime.BULLISH, None, None, 45, 30)
         assert display == "BULLISH"
         assert stale
 
@@ -298,3 +295,94 @@ class TestStaleRegimeDisplay:
         )
         assert display == "DEFENSIVE (was NORMAL)"
         assert not stale
+
+
+class TestPortfolioMomentumTrigger:
+    """Portfolio momentum deterioration trigger (Trigger 7)."""
+
+    def test_fires_when_momentum_below_threshold(self):
+        result = should_trigger_rebalance(
+            days_since_last=10,
+            current_regime=MarketRegime.BULLISH,
+            previous_regime=MarketRegime.BULLISH,
+            portfolio_momentum_return=-0.06,
+            portfolio_momentum_threshold=-0.05,
+            **DEFAULTS,
+        )
+        assert result.should_rebalance
+        assert "PORTFOLIO_MOMENTUM" in result.triggers_fired
+        assert "momentum" in result.reason.lower()
+
+    def test_does_not_fire_above_threshold(self):
+        result = should_trigger_rebalance(
+            days_since_last=10,
+            current_regime=MarketRegime.BULLISH,
+            previous_regime=MarketRegime.BULLISH,
+            portfolio_momentum_return=-0.03,
+            portfolio_momentum_threshold=-0.05,
+            **DEFAULTS,
+        )
+        assert not result.should_rebalance
+        assert "PORTFOLIO_MOMENTUM" not in result.triggers_fired
+
+    def test_does_not_fire_when_none(self):
+        """No daily return data available — trigger should not fire."""
+        result = should_trigger_rebalance(
+            days_since_last=10,
+            current_regime=MarketRegime.BULLISH,
+            previous_regime=MarketRegime.BULLISH,
+            portfolio_momentum_return=None,
+            portfolio_momentum_threshold=-0.05,
+            **DEFAULTS,
+        )
+        assert not result.should_rebalance
+        assert "PORTFOLIO_MOMENTUM" not in result.triggers_fired
+
+    def test_urgency_is_medium(self):
+        result = should_trigger_rebalance(
+            days_since_last=10,
+            current_regime=MarketRegime.BULLISH,
+            previous_regime=MarketRegime.BULLISH,
+            portfolio_momentum_return=-0.08,
+            portfolio_momentum_threshold=-0.05,
+            **DEFAULTS,
+        )
+        assert result.urgency == "MEDIUM"
+
+    def test_blocked_by_min_days(self):
+        """Even with bad momentum, min_days_between should block."""
+        result = should_trigger_rebalance(
+            days_since_last=3,
+            current_regime=MarketRegime.BULLISH,
+            previous_regime=MarketRegime.BULLISH,
+            portfolio_momentum_return=-0.10,
+            portfolio_momentum_threshold=-0.05,
+            **{**DEFAULTS, "min_days_between": 5},
+        )
+        assert not result.should_rebalance
+
+    def test_exactly_at_threshold(self):
+        result = should_trigger_rebalance(
+            days_since_last=10,
+            current_regime=MarketRegime.BULLISH,
+            previous_regime=MarketRegime.BULLISH,
+            portfolio_momentum_return=-0.05,
+            portfolio_momentum_threshold=-0.05,
+            **DEFAULTS,
+        )
+        assert result.should_rebalance
+        assert "PORTFOLIO_MOMENTUM" in result.triggers_fired
+
+    def test_does_not_override_high_urgency(self):
+        """When crash also fires (HIGH urgency), momentum shouldn't downgrade it."""
+        result = should_trigger_rebalance(
+            days_since_last=10,
+            current_regime=MarketRegime.BULLISH,
+            previous_regime=MarketRegime.BULLISH,
+            portfolio_momentum_return=-0.08,
+            portfolio_momentum_threshold=-0.05,
+            **{**DEFAULTS, "market_1m_return": -0.12},
+        )
+        assert "MARKET_CRASH" in result.triggers_fired
+        assert "PORTFOLIO_MOMENTUM" in result.triggers_fired
+        assert result.urgency == "HIGH"

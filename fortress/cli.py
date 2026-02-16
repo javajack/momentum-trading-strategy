@@ -1672,6 +1672,9 @@ class FortressApp:
                 vix_spike_threshold=dyn_config.vix_spike_threshold,
                 drawdown_threshold=dyn_config.drawdown_threshold,
                 crash_threshold=dyn_config.crash_threshold,
+                # Portfolio momentum not available in live trigger check (no daily return history)
+                portfolio_momentum_return=None,
+                portfolio_momentum_threshold=dyn_config.portfolio_momentum_threshold,
             )
 
             # --- Display results ---
