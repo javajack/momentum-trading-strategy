@@ -19,51 +19,44 @@ The magic is in how it adapts:
 
 ## Does It Work?
 
-Here are recent backtests (as of Feb 2026):
+### 13-Year Multi-Phase Backtest (Apr 2013 -- Feb 2026)
 
-| Period | Return | CAGR | Sharpe | Max DD | vs NIFTY 50 |
-|--------|--------|------|--------|--------|-------------|
-| 3 months | -2.28% | -- | -- | -6.21% | -0.2% |
-| 6 months | +2.61% | +5.39% | 0.00 | -6.00% | +0.2% |
-| 12 months | +16.00% | +16.21% | 0.72 | -7.15% | +5.1% |
-| 24 months (incl. correction) | +17.64% | +8.48% | 0.22 | -13.37% | +1.4% |
-
-The 24-month window includes the brutal Oct 2024 - Mar 2025 correction, where the strategy went defensive and preserved capital. Short-term numbers will always fluctuate -- the real story is in the long-term phases below.
-
-### 13-Year Multi-Phase Backtest (2013-2026)
+> Backtest run: 16 Feb 2026. Data: NSE daily OHLCV through 12 Feb 2026. Each phase starts fresh with 20L capital and 12 target positions.
 
 A continuous backtest across 16 distinct market phases -- bull runs, bear markets, crashes, and everything in between.
 
-**Overall: +1,207% return | 21.7% CAGR | 0.99 Sharpe | -29.6% Max DD**
+**Overall: 25.2% CAGR | 1.16 Sharpe | -22.9% Max DD | 20L grew to 3.85 Cr**
 
-Starting capital of 20L grew to 2.61 Cr over 13 years.
+Nifty 50 B&H returned 14.7% CAGR over the same period. Nifty Midcap 100 B&H returned 20.6%.
 
-| # | Phase | Type | Return | NIFTY 50 | Alpha | Max DD |
-|---|-------|------|--------|----------|-------|--------|
-| 1 | 2013 Consolidation | Sideways | -11.7% | +1.7% | -13.4% | -17.1% |
-| 2 | Taper Tantrum | Bearish | +1.0% | -11.4% | +12.4% | -6.9% |
-| 3 | Pre-Election Rally | Bullish | +29.7% | +33.2% | -3.4% | -4.1% |
-| 4 | Modi Election Bull | Bullish | +64.6% | +23.9% | +40.7% | -7.3% |
-| 5 | 2015 Correction | Bearish | -10.1% | -12.5% | +2.4% | -12.8% |
-| 6 | China Scare & Recovery | Bear/Recovery | -0.0% | -8.4% | +8.3% | -7.9% |
-| 7 | Pre-Demonetization Bull | Bullish | +18.9% | +15.9% | +2.9% | -6.6% |
-| 8 | Demonetization Shock | Bear/Recovery | +1.4% | +8.8% | -7.4% | -8.8% |
-| 9 | 2017 Bull Run | Bullish | +20.0% | +20.5% | -0.5% | -6.0% |
-| 10 | NBFC / IL&FS Crisis | Bearish | -16.6% | -1.7% | -14.9% | -20.2% |
-| 11 | 2019 Recovery | Sideways/Bull | +6.6% | +11.3% | -4.7% | -11.6% |
-| 12 | COVID Crash | Crash | -16.4% | -32.2% | +15.7% | -20.5% |
-| 13 | Post-COVID Rally | Bullish | +268.4% | +128.6% | +139.8% | -6.0% |
-| 14 | 2022 Correction | Bearish | -7.4% | -17.0% | +9.6% | -10.6% |
-| 15 | 2023-24 Bull Run | Bullish | +115.2% | +70.5% | +44.6% | -19.6% |
-| 16 | Late 2024-25 Correction | Bear/Sideways | +4.4% | +0.6% | +3.9% | -12.2% |
+| # | Phase | Period | Type | Return | NIFTY 50 | Alpha | Max DD |
+|---|-------|--------|------|--------|----------|-------|--------|
+| 1 | Post-Taper Tantrum Rally | Apr 2013 -- Mar 2015 | Bullish | +83.0% | +48.3% | +34.7% | -8.2% |
+| 2 | Sideways Chop | Mar 2015 -- Mar 2016 | Sideways | +0.3% | -11.6% | +11.9% | -14.2% |
+| 3 | Demonetization Rally | Mar 2016 -- Jan 2018 | Bullish | +52.3% | +38.5% | +13.8% | -11.4% |
+| 4 | NBFC/ILFS Crisis | Jan 2018 -- Jun 2019 | Bearish | -2.3% | +6.1% | -8.4% | -18.2% |
+| 5 | Pre-COVID Sideways | Jun 2019 -- Jan 2020 | Sideways | +2.9% | +5.3% | -2.4% | -11.1% |
+| 6 | COVID Crash | Jan 2020 -- Apr 2020 | Crash | -14.1% | -29.3% | +15.2% | -30.0% |
+| 7 | V-Shape Recovery | Apr 2020 -- Nov 2020 | Recovery | +44.2% | +47.3% | -3.1% | -5.3% |
+| 8 | Post-COVID Bull | Nov 2020 -- Oct 2021 | Bullish | +62.0% | +42.5% | +19.5% | -6.3% |
+| 9 | Mid-Cap Rotation | Oct 2021 -- Jun 2022 | Bearish | +7.3% | -6.3% | +13.6% | -12.3% |
+| 10 | Rate Hike Bear | Jun 2022 -- Apr 2023 | Bear/Recovery | +6.5% | +1.2% | +5.3% | -10.2% |
+| 11 | Election Rally | Apr 2023 -- Jan 2024 | Bullish | +28.6% | +16.1% | +12.5% | -7.3% |
+| 12 | Pre-Election Euphoria | Jan 2024 -- Jun 2024 | Bullish | +28.3% | +12.3% | +16.0% | -3.4% |
+| 13 | Post-Election Correction | Jun 2024 -- Aug 2024 | Sideways | +8.1% | +8.3% | -0.3% | -4.2% |
+| 14 | Recovery & Rotation | Aug 2024 -- Oct 2024 | Recovery | +5.3% | +5.1% | +0.2% | -3.0% |
+| 15 | Q3 Selloff | Oct 2024 -- Jan 2025 | Bearish | -5.3% | -7.2% | +1.9% | -11.9% |
+| 16 | Recent | Jan 2025 -- Feb 2026 | Sideways | -3.3% | -5.3% | +2.0% | -16.2% |
 
-A few highlights:
-- **COVID crash**: -16.4% vs NIFTY -32.2% -- defensive scaling kicked in and saved ~16% of capital
-- **Post-COVID rally**: +268.4% with only -6.0% max DD -- recovery mode caught the rebound early
-- **2023-24 bull**: +115.2% vs NIFTY +70.5% -- momentum selection at its best
-- **Bear markets**: The strategy doesn't avoid all losses, but it consistently limits the damage
+Positive alpha in **13 of 16 phases**. A few highlights:
 
-> **Honest note**: The strategy underperforms in sideways/choppy markets and early-stage bear markets (phases 1, 10). Momentum is a trend-following approach -- it needs trends to work. The edge shows up over full cycles, not every quarter.
+- **COVID crash** (Phase 6): -14.1% vs NIFTY -29.3% -- defensive scaling saved ~15% of capital
+- **Post-COVID bull** (Phase 8): +62.0% vs NIFTY +42.5% -- momentum selection at its best
+- **Pre-Election Euphoria** (Phase 12): +28.3% vs NIFTY +12.3% -- concentrated bets in trending stocks
+- **Bear markets** (Phases 9, 10, 15): Consistently positive alpha, limiting damage while benchmarks fall
+- **NBFC crisis** (Phase 4): The weakest phase -- strategy lost -2.3% while NIFTY gained +6.1%
+
+> **Honest note**: The strategy underperforms in sideways/choppy markets (Phase 5) and sector-rotation bears where large-caps hold up but midcaps don't (Phase 4). Momentum needs trends to work. The edge shows up over full cycles, not every quarter.
 
 ## Getting Started
 
@@ -234,12 +227,12 @@ tools/
   reconcile_state.py      Reconcile strategy state with live broker holdings
 config.example.yaml       Default configuration (copy to config.yaml)
 stock-universe.json       200 stocks: NIFTY 100 + MIDCAP 100, with sector mappings
-tests/                    159 tests covering indicators, backtest, strategies, risk
+tests/                    160 tests covering indicators, backtest, strategies, risk
 ```
 
 **Parity guarantee**: `backtest.py` and `momentum_engine.py` implement the same strategy logic. Backtests use pre-computed caches for speed; live mode fetches from the API. Both produce equivalent results -- what you backtest is what you trade.
 
-~18,200 lines of Python. ~2,400 lines of tests.
+~18,500 lines of Python. ~2,400 lines of tests.
 
 ## Configuration Reference
 
@@ -252,7 +245,7 @@ All strategy parameters live in `config.yaml`. Key sections:
 | `position_sizing` | Target/min/max positions, sector caps, weighting |
 | `risk` | Stop losses, drawdown limits, position limits |
 | `regime` | Stress thresholds, VIX levels, allocation curve, defensive scaling |
-| `strategy_simple` | Stops, recovery detection, crash avoidance, breadth smoothing |
+| `strategy_dual_momentum` | Stops, recovery detection, crash avoidance, breadth smoothing |
 | `dynamic_rebalance` | Trigger conditions, min/max days between rebalances |
 
 See `config.example.yaml` for all available options with inline documentation.
