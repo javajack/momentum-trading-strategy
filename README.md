@@ -266,6 +266,21 @@ The strategy draws from well-studied academic and practitioner research:
 - **Volatility Targeting** (Moskowitz et al.) -- Reduces max drawdown by ~6.6%, can double Sharpe ratio
 - **Regime Detection** -- Multi-factor stress scoring for adaptive allocation
 
+## FAQ: "But What About...?"
+
+Momentum strategies have well-known failure modes. Here's how this system addresses each one:
+
+| Concern | How It's Handled | Where |
+|---------|-----------------|-------|
+| **"Momentum dies in bear markets"** | 4-regime system (BULLISH → NORMAL → CAUTION → DEFENSIVE) shifts allocation from 95% equity down to 40%. Not a binary switch -- a graduated curve. | `indicators.py` regime detection |
+| **"How do you decide if it's safe to invest?"** | A multi-factor stress score combining VIX level, market breadth (% stocks above 50-DMA), and 1M/3M returns. No gut feel, no manual override. | `indicators.py` stress model |
+| **"No exit logic = silent killer"** | Three-layer exit stack: (1) tiered trailing stops that adapt to gain size, (2) trend-break exits when price breaks below key MAs, (3) relative strength floor exits when a stock falls below RS threshold. Plus a 3-day minimum hold to prevent whipsaws. | `strategy/adaptive_dual_momentum.py` |
+| **"All top stocks = same sector = hidden leverage"** | Dynamic sector caps: 30% in BULLISH, 25% in CAUTION, 20% in DEFENSIVE. Plus a soft sector momentum penalty (15% score reduction for bottom sectors) that discourages piling into one theme. | `momentum_engine.py` E4/E5 |
+| **"Rebalancing frequency mismatch"** | Not fixed-schedule. The system checks daily for triggers (regime transitions, VIX spikes, drawdown breaches, breadth thrusts) and only rebalances when there's a reason. Min 7 days between rebalances to avoid whipsaw, max 15 days to stay responsive. | `indicators.py` dynamic triggers |
+| **"Transaction costs eat the edge"** | Configurable transaction cost (default 0.3%) applied in backtests. Minimum hold period (3 days) and minimum days between rebalances (7) reduce churn. Turnover is visible in backtest output. | `config.py`, `backtest.py` |
+| **"No drawdown protection"** | Portfolio drawdown > 10% triggers defensive regime. Crash avoidance activates at -5%/-8% (1M/3M). Vol targeting scales down when portfolio volatility exceeds 15%. Three independent circuit breakers. | E2, E3, E6 |
+| **"Backtests are too optimistic"** | Backtests include transaction costs, use T-1 data (no lookahead), and the backtest engine runs identical logic to the live engine (parity guarantee). What you backtest is what you trade. | `backtest.py` |
+
 ## Disclaimer
 
 This is a personal project shared for educational purposes. It is **not financial advice**.
