@@ -610,75 +610,16 @@ class MomentumEngine:
         selected_stocks: List[StockMomentum],
         max_sector_override: Optional[float] = None,
     ) -> Dict[str, float]:
-        """
-        Apply sector concentration limits to weights.
-
-        Uses iterative capping algorithm (same as backtest) to ensure
-        no sector exceeds max_sector_exposure while properly redistributing
-        excess weight to other sectors.
-
-        Args:
-            weights: Initial weight allocation
-            selected_stocks: Selected stocks (for sector mapping)
-
-        Returns:
-            Adjusted weights respecting sector limits
-        """
-        # Build ticker -> sector mapping
+        """Apply sector concentration limits to weights."""
         ticker_to_sector = {s.ticker: s.sector for s in selected_stocks}
         max_sector = (
             max_sector_override
             if max_sector_override is not None
             else self.sizing_config.max_sector_exposure
         )
-        adjusted_weights = dict(weights)
-        capped_sectors: set = set()
+        from .defensive import apply_iterative_sector_caps
 
-        # Iteratively cap sectors and redistribute to uncapped sectors
-        max_iterations = 10
-        for _ in range(max_iterations):
-            # Calculate current sector weights
-            sector_weights: Dict[str, float] = {}
-            for ticker, weight in adjusted_weights.items():
-                sector = ticker_to_sector.get(ticker, "UNKNOWN")
-                sector_weights[sector] = sector_weights.get(sector, 0) + weight
-
-            # Find newly overweight sectors (excluding already capped)
-            newly_capped = False
-            for sector, sw in sector_weights.items():
-                if sector in capped_sectors:
-                    continue
-                if sw > max_sector:
-                    # Cap this sector
-                    capped_sectors.add(sector)
-                    scale = max_sector / sw
-                    for ticker in adjusted_weights:
-                        if ticker_to_sector.get(ticker) == sector:
-                            adjusted_weights[ticker] *= scale
-                    newly_capped = True
-
-            if not newly_capped:
-                break  # No new sectors to cap
-
-            # Normalize only uncapped sectors to make weights sum to 1.0
-            capped_total = sum(
-                w for t, w in adjusted_weights.items() if ticker_to_sector.get(t) in capped_sectors
-            )
-            uncapped_total = sum(
-                w
-                for t, w in adjusted_weights.items()
-                if ticker_to_sector.get(t) not in capped_sectors
-            )
-
-            # Uncapped sectors should sum to (1.0 - capped_total)
-            target_uncapped = 1.0 - capped_total
-            if uncapped_total > 0 and target_uncapped > 0:
-                scale = target_uncapped / uncapped_total
-                for ticker in adjusted_weights:
-                    if ticker_to_sector.get(ticker) not in capped_sectors:
-                        adjusted_weights[ticker] *= scale
-
-        return adjusted_weights
+        return apply_iterative_sector_caps(weights, ticker_to_sector, max_sector)
 
     def check_exit_triggers(
         self,
@@ -1044,11 +985,13 @@ class MomentumEngine:
         if len(self._portfolio_daily_returns) < lookback:
             return 1.0
         recent_returns = self._portfolio_daily_returns[-lookback:]
-        realized_vol = np.std(recent_returns) * (252**0.5)
-        if realized_vol < 0.01:
-            return 1.0
-        raw_scale = self.regime_config.target_portfolio_vol / realized_vol
-        return min(1.0, max(self.regime_config.vol_scale_floor, raw_scale))
+        from .defensive import calculate_vol_scale
+
+        return calculate_vol_scale(
+            list(recent_returns),
+            self.regime_config.target_portfolio_vol,
+            self.regime_config.vol_scale_floor,
+        )
 
     def _calculate_breadth_scale(self, as_of_date: datetime) -> float:
         """Calculate breadth-based exposure scaling (E3) for live mode."""
@@ -1058,23 +1001,17 @@ class MomentumEngine:
             raw_breadth = self._compute_live_breadth(as_of_date)
         except Exception:
             return 1.0
-
-        # Smooth breadth with 5-day EMA to reduce oscillation in sideways markets (FIX 8)
-        alpha = 2.0 / (5 + 1)
-        if self._breadth_ema is None:
-            self._breadth_ema = raw_breadth
-        else:
-            self._breadth_ema = alpha * raw_breadth + (1 - alpha) * self._breadth_ema
-        breadth = self._breadth_ema
+        from .defensive import calculate_breadth_scale
 
         cfg = self.regime_config
-        if breadth >= cfg.breadth_full:
-            return 1.0
-        elif breadth <= cfg.breadth_low:
-            return cfg.breadth_min_scale
-        else:
-            t = (breadth - cfg.breadth_low) / (cfg.breadth_full - cfg.breadth_low)
-            return cfg.breadth_min_scale + t * (1.0 - cfg.breadth_min_scale)
+        scale, self._breadth_ema = calculate_breadth_scale(
+            raw_breadth,
+            self._breadth_ema,
+            cfg.breadth_full,
+            cfg.breadth_low,
+            cfg.breadth_min_scale,
+        )
+        return scale
 
     def _compute_live_breadth(self, as_of_date: datetime) -> float:
         """Compute market breadth from cached or live data."""
@@ -1104,14 +1041,15 @@ class MomentumEngine:
 
     def _get_effective_sector_cap(self, regime: Optional[RegimeResult]) -> float:
         """Get effective sector cap based on regime (E4)."""
-        if not self.sizing_config.use_dynamic_sector_caps or regime is None:
-            return self.sizing_config.max_sector_exposure
-        if regime.regime == MarketRegime.DEFENSIVE:
-            return self.sizing_config.defensive_max_sector
-        elif regime.regime == MarketRegime.CAUTION:
-            return self.sizing_config.caution_max_sector
-        else:
-            return self.sizing_config.max_sector_exposure
+        from .defensive import get_effective_sector_cap
+
+        return get_effective_sector_cap(
+            regime,
+            self.sizing_config.max_sector_exposure,
+            self.sizing_config.caution_max_sector,
+            self.sizing_config.defensive_max_sector,
+            self.sizing_config.use_dynamic_sector_caps,
+        )
 
     def _is_market_uptrend(self, as_of_date: datetime) -> bool:
         """Check if NIFTY 50 is above its 200-day SMA (structural uptrend)."""
@@ -1137,16 +1075,7 @@ class MomentumEngine:
             return False
 
     def _should_skip_gold(self, as_of_date: datetime) -> Tuple[bool, str]:
-        """
-        Check if gold ETF should be skipped from defensive allocation.
-
-        Two modes controlled by config.regime.gold_skip_logic:
-        - "downtrend": Skip only if price < 50-SMA (volatile gold in crisis = good)
-        - "volatile": Legacy logic - skip if recent vol > 1.5x average
-
-        Returns:
-            Tuple of (should_skip, reason_string)
-        """
+        """Check if gold ETF should be skipped from defensive allocation."""
         gold_symbol = self.regime_config.gold_symbol
         try:
             gold_df = self.market_data.get_historical(
@@ -1158,41 +1087,16 @@ class MomentumEngine:
             )
             if gold_df.empty or len(gold_df) < 50:
                 return (False, "")
+            from .defensive import should_skip_gold
 
-            skip_logic = self.regime_config.gold_skip_logic
-
-            if skip_logic == "downtrend":
-                current_price = gold_df["close"].iloc[-1]
-                sma_50 = gold_df["close"].iloc[-50:].mean()
-                if current_price < sma_50:
-                    return (True, f"Gold downtrend: {current_price:.1f} < 50-SMA {sma_50:.1f}")
-                return (False, "")
-            else:
-                returns = gold_df["close"].pct_change().dropna()
-                recent_vol = returns.iloc[-10:].std() * (252**0.5)
-                avg_vol = returns.std() * (252**0.5)
-                if recent_vol > avg_vol * 1.5 and recent_vol > 0.15:
-                    return (
-                        True,
-                        f"Gold volatile: recent_vol {recent_vol:.3f} > 1.5x avg {avg_vol:.3f}",
-                    )
-                return (False, "")
+            return should_skip_gold(gold_df["close"], self.regime_config.gold_skip_logic)
         except Exception:
             return (False, "")
 
     def _calculate_gold_exhaustion_scale(self, as_of_date: datetime) -> float:
-        """
-        Calculate gold exhaustion scaling factor (GE1).
-
-        Linearly scales gold allocation from 1.0 to 0.0 as gold moves
-        from threshold_low to threshold_high above its SMA.
-
-        Returns:
-            Float between 0.0 and 1.0
-        """
+        """Calculate gold exhaustion scaling factor (GE1)."""
         if not self.regime_config.use_gold_exhaustion_scaling:
             return 1.0
-
         gold_symbol = self.regime_config.gold_symbol
         sma_period = self.regime_config.gold_exhaustion_sma_period
         try:
@@ -1209,22 +1113,18 @@ class MomentumEngine:
                 )
             if df.empty or len(df) < sma_period:
                 return 1.0
-
             sma_val = df["close"].iloc[-sma_period:].mean()
             if sma_val <= 0:
                 return 1.0
-
             current_price = df["close"].iloc[-1]
-            deviation = (current_price - sma_val) / sma_val
+            from .defensive import calculate_gold_exhaustion_scale
 
-            low = self.regime_config.gold_exhaustion_threshold_low
-            high = self.regime_config.gold_exhaustion_threshold_high
-            if deviation <= low:
-                return 1.0
-            elif deviation >= high:
-                return 0.0
-            else:
-                return 1.0 - (deviation - low) / (high - low)
+            return calculate_gold_exhaustion_scale(
+                current_price,
+                sma_val,
+                self.regime_config.gold_exhaustion_threshold_low,
+                self.regime_config.gold_exhaustion_threshold_high,
+            )
         except Exception:
             return 1.0
 
@@ -1232,18 +1132,19 @@ class MomentumEngine:
         self, weights: Dict[str, float], freed: float, as_of_date: datetime
     ) -> None:
         """Redirect freed gold weight to equities pro-rata (uptrend) or cash (downtrend)."""
-        cash_sym = self.regime_config.cash_symbol
-        if self.regime_config.redirect_freed_to_equity_in_uptrend and self._is_market_uptrend(
-            as_of_date
-        ):
-            defensive = {self.regime_config.gold_symbol, cash_sym}
-            equity_weights = {t: w for t, w in weights.items() if t not in defensive and w > 0}
-            total_eq = sum(equity_weights.values())
-            if total_eq > 0:
-                for t, w in equity_weights.items():
-                    weights[t] += freed * (w / total_eq)
-                return
-        weights[cash_sym] = weights.get(cash_sym, 0.0) + freed
+        is_uptrend = (
+            self.regime_config.redirect_freed_to_equity_in_uptrend
+            and self._is_market_uptrend(as_of_date)
+        )
+        from .defensive import redirect_freed_weight
+
+        redirect_freed_weight(
+            weights,
+            freed,
+            is_uptrend,
+            self.regime_config.gold_symbol,
+            self.regime_config.cash_symbol,
+        )
 
     def reset_regime_state(self) -> None:
         """

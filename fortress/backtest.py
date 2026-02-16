@@ -805,115 +805,61 @@ class BacktestEngine:
         )
 
     def _should_skip_gold(self, as_of_date: datetime) -> Tuple[bool, str]:
-        """
-        Check if GOLDBEES should be skipped from defensive allocation.
-
-        Two modes controlled by config.regime.gold_skip_logic:
-        - "downtrend": Skip gold only if price < 50-SMA (downtrend).
-          Volatile gold during crisis is flight-to-safety = good.
-        - "volatile": Legacy logic - skip if recent vol > 1.5x average.
-
-        Args:
-            as_of_date: Date to check as of
-
-        Returns:
-            Tuple of (should_skip, reason_string)
-        """
+        """Check if GOLDBEES should be skipped from defensive allocation."""
         gold_symbol = self.app_config.regime.gold_symbol
-
         if gold_symbol not in self.data:
             return (False, "")
-
-        gold_df = self.data[gold_symbol]
         ts_date = pd.Timestamp(as_of_date)
-        mask = gold_df.index <= ts_date
-        available = gold_df[mask]
-
+        available = self.data[gold_symbol][self.data[gold_symbol].index <= ts_date]
         if len(available) < 50:
-            return (False, "")  # Not enough data
-
-        skip_logic = self.app_config.regime.gold_skip_logic
-
-        if skip_logic == "downtrend":
-            # Skip gold only if it's in a downtrend (below 50-SMA)
-            # Volatile gold during crisis is GOOD (flight to safety)
-            current_price = available["close"].iloc[-1]
-            sma_50 = available["close"].iloc[-50:].mean()
-            if current_price < sma_50:
-                reason = f"Gold in downtrend: {current_price:.1f} < 50-SMA {sma_50:.1f}"
-                return (True, reason)
             return (False, "")
-        else:
-            # Legacy volatile check
-            returns = available["close"].pct_change().dropna()
-            recent_vol = returns.iloc[-10:].std() * (252**0.5)
-            avg_vol = returns.std() * (252**0.5)
-            if recent_vol > avg_vol * 1.5 and recent_vol > 0.15:
-                reason = f"Recent vol {recent_vol:.0%} vs normal {avg_vol:.0%} ({recent_vol / avg_vol:.1f}x)"
-                return (True, reason)
-            return (False, "")
+        from .defensive import should_skip_gold
+
+        return should_skip_gold(available["close"], self.app_config.regime.gold_skip_logic)
 
     def _calculate_gold_exhaustion_scale(self, as_of_date: datetime) -> float:
-        """
-        Calculate gold exhaustion scaling factor (GE1).
-
-        Linearly scales gold allocation from 1.0 to 0.0 as gold moves
-        from threshold_low to threshold_high above its 200-SMA.
-
-        Returns:
-            Float between 0.0 and 1.0
-        """
+        """Calculate gold exhaustion scaling factor (GE1)."""
         regime_config = self.app_config.regime
         if not regime_config.use_gold_exhaustion_scaling:
             return 1.0
-
         if self._gold_200sma_cache.empty:
             return 1.0
-
         gold_symbol = regime_config.gold_symbol
         if gold_symbol not in self.data:
             return 1.0
-
         ts_date = pd.Timestamp(as_of_date)
         if ts_date not in self._gold_200sma_cache.index:
             return 1.0
-
         sma_val = self._gold_200sma_cache.loc[ts_date]
         if pd.isna(sma_val) or sma_val <= 0:
             return 1.0
-
         gold_price = self.data[gold_symbol].loc[ts_date, "close"]
-        deviation = (gold_price - sma_val) / sma_val
+        from .defensive import calculate_gold_exhaustion_scale
 
-        if deviation <= regime_config.gold_exhaustion_threshold_low:
-            return 1.0
-        elif deviation >= regime_config.gold_exhaustion_threshold_high:
-            return 0.0
-        else:
-            # Linear interpolation from 1.0 → 0.0
-            span = (
-                regime_config.gold_exhaustion_threshold_high
-                - regime_config.gold_exhaustion_threshold_low
-            )
-            return 1.0 - (deviation - regime_config.gold_exhaustion_threshold_low) / span
+        return calculate_gold_exhaustion_scale(
+            gold_price,
+            sma_val,
+            regime_config.gold_exhaustion_threshold_low,
+            regime_config.gold_exhaustion_threshold_high,
+        )
 
     def _redirect_freed_weight(
         self, weights: Dict[str, float], freed: float, as_of_date: datetime
     ) -> None:
         """Redirect freed gold weight to equities pro-rata (uptrend) or cash (downtrend)."""
         regime_config = self.app_config.regime
-        cash_sym = regime_config.cash_symbol
-        if regime_config.redirect_freed_to_equity_in_uptrend and self._is_market_uptrend(
+        is_uptrend = regime_config.redirect_freed_to_equity_in_uptrend and self._is_market_uptrend(
             as_of_date
-        ):
-            defensive = {regime_config.gold_symbol, cash_sym}
-            equity_weights = {t: w for t, w in weights.items() if t not in defensive and w > 0}
-            total_eq = sum(equity_weights.values())
-            if total_eq > 0:
-                for t, w in equity_weights.items():
-                    weights[t] += freed * (w / total_eq)
-                return
-        weights[cash_sym] = weights.get(cash_sym, 0.0) + freed
+        )
+        from .defensive import redirect_freed_weight
+
+        redirect_freed_weight(
+            weights,
+            freed,
+            is_uptrend,
+            regime_config.gold_symbol,
+            regime_config.cash_symbol,
+        )
 
     def _calculate_benchmark_returns(
         self,
@@ -1216,47 +1162,9 @@ class BacktestEngine:
 
         # Apply sector limits by capping overweight sectors
         ticker_sectors = {t: s for t, s, _ in selected}
-        capped_sectors: set = set()  # Sectors that have been capped
+        from .defensive import apply_iterative_sector_caps
 
-        # Iteratively cap sectors and redistribute to uncapped sectors
-        max_iterations = 10
-        for _ in range(max_iterations):
-            # Calculate current sector weights
-            sector_weights: Dict[str, float] = {}
-            for ticker, weight in weights.items():
-                sector = ticker_sectors[ticker]
-                sector_weights[sector] = sector_weights.get(sector, 0) + weight
-
-            # Find newly overweight sectors (excluding already capped)
-            newly_capped = False
-            for sector, sw in sector_weights.items():
-                if sector in capped_sectors:
-                    continue
-                if sw > max_sector:
-                    # Cap this sector
-                    capped_sectors.add(sector)
-                    scale = max_sector / sw
-                    for ticker in weights:
-                        if ticker_sectors[ticker] == sector:
-                            weights[ticker] *= scale
-                    newly_capped = True
-
-            if not newly_capped:
-                break  # No new sectors to cap
-
-            # Normalize only uncapped sectors to make weights sum to 1.0
-            capped_total = sum(w for t, w in weights.items() if ticker_sectors[t] in capped_sectors)
-            uncapped_total = sum(
-                w for t, w in weights.items() if ticker_sectors[t] not in capped_sectors
-            )
-
-            # Uncapped sectors should sum to (1.0 - capped_total)
-            target_uncapped = 1.0 - capped_total
-            if uncapped_total > 0 and target_uncapped > 0:
-                scale = target_uncapped / uncapped_total
-                for ticker in weights:
-                    if ticker_sectors[ticker] not in capped_sectors:
-                        weights[ticker] *= scale
+        weights = apply_iterative_sector_caps(weights, ticker_sectors, max_sector)
 
         # Re-enforce per-position caps after sector capping may have inflated weights
         weights = renormalize_with_caps(weights, max_weight, min_weight)
@@ -1295,96 +1203,49 @@ class BacktestEngine:
         return weights
 
     def _calculate_vol_scale(self) -> float:
-        """
-        Calculate portfolio-level volatility scaling factor (E2).
-
-        Scales equity inversely to realized portfolio vol:
-        vol_scale = clamp(target_vol / realized_vol, floor, 1.0)
-
-        When vol spikes to 30% (crisis), scale = 15/30 = 0.50 → halves equity.
-        When vol is normal (12-15%), scale = 1.0 → no drag.
-
-        Returns:
-            Float between vol_scale_floor and 1.0
-        """
+        """Calculate portfolio-level volatility scaling factor (E2)."""
         regime_config = self.app_config.regime
         if not regime_config.use_vol_targeting:
             return 1.0
-
         lookback = regime_config.vol_lookback_days
         if len(self._portfolio_daily_returns) < lookback:
-            return 1.0  # Not enough history yet
-
+            return 1.0
         recent_returns = list(self._portfolio_daily_returns)[-lookback:]
-        realized_vol = np.std(recent_returns) * (252**0.5)
+        from .defensive import calculate_vol_scale
 
-        if realized_vol < 0.01:
-            return 1.0  # Avoid division by near-zero
-
-        target_vol = regime_config.target_portfolio_vol
-        raw_scale = target_vol / realized_vol
-        return min(1.0, max(regime_config.vol_scale_floor, raw_scale))
+        return calculate_vol_scale(
+            recent_returns, regime_config.target_portfolio_vol, regime_config.vol_scale_floor
+        )
 
     def _calculate_breadth_scale(self, as_of_date: datetime) -> float:
-        """
-        Calculate breadth-based exposure scaling factor (E3).
-
-        Linear interpolation between breadth_low and breadth_full:
-        breadth >= full → 1.0 (broad rally)
-        breadth <= low  → min_scale (narrow market)
-        between → linear interpolation
-
-        Uses 5-day EMA smoothing to reduce oscillation in sideways markets (FIX 8).
-
-        Returns:
-            Float between breadth_min_scale and 1.0
-        """
+        """Calculate breadth-based exposure scaling factor (E3)."""
         regime_config = self.app_config.regime
         if not regime_config.use_breadth_scaling:
             return 1.0
-
         raw_breadth = self._calculate_market_breadth(as_of_date)
+        from .defensive import calculate_breadth_scale
 
-        # Smooth breadth with 5-day EMA to reduce oscillation in sideways markets (FIX 8)
-        alpha = 2.0 / (5 + 1)
-        if self._breadth_ema is None:
-            self._breadth_ema = raw_breadth
-        else:
-            self._breadth_ema = alpha * raw_breadth + (1 - alpha) * self._breadth_ema
-        breadth = self._breadth_ema
-
-        if breadth >= regime_config.breadth_full:
-            return 1.0
-        elif breadth <= regime_config.breadth_low:
-            return regime_config.breadth_min_scale
-        else:
-            # Linear interpolation
-            t = (breadth - regime_config.breadth_low) / (
-                regime_config.breadth_full - regime_config.breadth_low
-            )
-            return regime_config.breadth_min_scale + t * (1.0 - regime_config.breadth_min_scale)
+        scale, self._breadth_ema = calculate_breadth_scale(
+            raw_breadth,
+            self._breadth_ema,
+            regime_config.breadth_full,
+            regime_config.breadth_low,
+            regime_config.breadth_min_scale,
+        )
+        return scale
 
     def _get_effective_sector_cap(self, regime: Optional[RegimeResult]) -> float:
-        """
-        Get effective sector cap based on regime (E4).
-
-        BULLISH/NORMAL: use default max_sector_exposure (30%)
-        CAUTION: use caution_max_sector (25%)
-        DEFENSIVE: use defensive_max_sector (20%)
-
-        Returns:
-            Float representing maximum sector weight
-        """
+        """Get effective sector cap based on regime (E4)."""
         sizing_config = self.app_config.position_sizing
-        if not sizing_config.use_dynamic_sector_caps or regime is None:
-            return sizing_config.max_sector_exposure
+        from .defensive import get_effective_sector_cap
 
-        if regime.regime == MarketRegime.DEFENSIVE:
-            return sizing_config.defensive_max_sector
-        elif regime.regime == MarketRegime.CAUTION:
-            return sizing_config.caution_max_sector
-        else:
-            return sizing_config.max_sector_exposure
+        return get_effective_sector_cap(
+            regime,
+            sizing_config.max_sector_exposure,
+            sizing_config.caution_max_sector,
+            sizing_config.defensive_max_sector,
+            sizing_config.use_dynamic_sector_caps,
+        )
 
     def _select_portfolio_via_strategy(
         self,
@@ -1449,42 +1310,13 @@ class BacktestEngine:
         # Apply sector weight limits with dynamic caps (E4)
         max_sector_exposure = self._get_effective_sector_cap(regime)
         ticker_to_sector = {s.ticker: s.sector for s in ranked_stocks}
-        # Include defensive symbols (gold + cash) from universe
         for ticker in weights:
             if ticker not in ticker_to_sector:
                 stock = self.universe.get_stock(ticker)
                 ticker_to_sector[ticker] = stock.sector if stock else "UNKNOWN"
-        capped_sectors: set = set()
-        for _ in range(10):  # Iterative capping
-            sector_weights: Dict[str, float] = {}
-            for ticker, w in weights.items():
-                sec = ticker_to_sector.get(ticker, "UNKNOWN")
-                sector_weights[sec] = sector_weights.get(sec, 0) + w
-            newly_capped = False
-            for sec, sw in sector_weights.items():
-                if sec in capped_sectors or sw <= max_sector_exposure:
-                    continue
-                capped_sectors.add(sec)
-                scale = max_sector_exposure / sw
-                for ticker in weights:
-                    if ticker_to_sector.get(ticker) == sec:
-                        weights[ticker] *= scale
-                newly_capped = True
-            if not newly_capped:
-                break
-            # Redistribute excess to uncapped tickers
-            capped_total = sum(
-                w for t, w in weights.items() if ticker_to_sector.get(t) in capped_sectors
-            )
-            uncapped_total = sum(
-                w for t, w in weights.items() if ticker_to_sector.get(t) not in capped_sectors
-            )
-            target_uncapped = 1.0 - capped_total
-            if uncapped_total > 0 and target_uncapped > 0:
-                scale_up = target_uncapped / uncapped_total
-                for ticker in weights:
-                    if ticker_to_sector.get(ticker) not in capped_sectors:
-                        weights[ticker] *= scale_up
+        from .defensive import apply_iterative_sector_caps
+
+        weights = apply_iterative_sector_caps(weights, ticker_to_sector, max_sector_exposure)
 
         # Per-profile gold cap: clamp regime gold weight before allocation
         if regime and profile_max_gold is not None and regime.gold_weight > profile_max_gold:
