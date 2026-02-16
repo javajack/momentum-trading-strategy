@@ -1470,7 +1470,7 @@ class MomentumEngine:
 
             # I1: Sideways market detection (parity with backtest.py)
             if hasattr(self._strategy, "set_sideways"):
-                sc = getattr(self._config, "strategy_dual_momentum", None)
+                sc = getattr(self._app_config, "strategy_dual_momentum", None)
                 if sc and getattr(sc, "use_sideways_detection", False):
                     try:
                         from_date = as_of_date - timedelta(days=120)
