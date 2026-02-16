@@ -602,7 +602,9 @@ class FortressApp:
             cash_symbol = self.config.regime.cash_symbol
             if managed_capital == 0:
                 console.print(f"\n[bold bright_yellow]► NO MANAGED POSITIONS[/bold bright_yellow]")
-                console.print(f"  Target capital: {format_currency(profile.initial_capital)}")
+                console.print(
+                    f"  Target capital: {format_currency(self.config.portfolio.initial_capital)}"
+                )
                 cash_sym_price = None
                 try:
                     ltp = self.kite.ltp([f"NSE:{cash_symbol}"])
@@ -610,14 +612,14 @@ class FortressApp:
                 except Exception:
                     pass
                 if cash_sym_price:
-                    units_needed = int(profile.initial_capital / cash_sym_price) + 10
+                    units_needed = int(self.config.portfolio.initial_capital / cash_sym_price) + 10
                     console.print(
                         f"  Buy [bold]{units_needed}[/bold] units of {cash_symbol} "
                         f"(~₹{cash_sym_price:.2f} each = {format_currency(units_needed * cash_sym_price)})"
                     )
                 else:
                     console.print(
-                        f"  Buy {cash_symbol} worth {format_currency(profile.initial_capital)}"
+                        f"  Buy {cash_symbol} worth {format_currency(self.config.portfolio.initial_capital)}"
                     )
                 console.print(
                     f"  Then run rebalance again — {cash_symbol} will be converted to equity positions."
@@ -718,7 +720,7 @@ class FortressApp:
                     as_of_date=as_of,
                     portfolio_value=managed_capital,  # Use calculated capital
                     max_per_sector=max_per_sector,
-                    profile_max_gold=profile.max_gold_allocation,
+                    profile_max_gold=self.config.regime.max_gold_allocation,
                 )
 
             # Display current regime in compact format
@@ -1916,7 +1918,6 @@ class FortressApp:
             weight_12m=self.config.pure_momentum.weight_12m,
             strategy_name=self.active_strategy,
             profile_max_gold=self.config.regime.max_gold_allocation,
-            benchmark_symbols=[("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")],
         )
 
         engine = BacktestEngine(
@@ -2318,7 +2319,6 @@ class FortressApp:
             weight_12m=self.config.pure_momentum.weight_12m,
             strategy_name=self.active_strategy,
             profile_max_gold=self.config.regime.max_gold_allocation,
-            benchmark_symbols=[("NIFTY 50", "Nifty 50"), ("NIFTY MIDCAP 100", "Nifty Midcap 100")],
         )
 
         engine = BacktestEngine(
