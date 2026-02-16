@@ -13,7 +13,7 @@ It ranks stocks by **Normalized Momentum Score (NMS)** -- a volatility-adjusted 
 The magic is in how it adapts:
 
 - **Reads the room** -- A stress model combining VIX, market breadth, and returns classifies conditions as BULLISH, NORMAL, CAUTION, or DEFENSIVE. The equity/gold/cash mix shifts smoothly along a graduated curve -- no sudden all-in or all-out moves.
-- **Rebalances when it matters** -- Instead of fixed schedules, it watches for triggers (regime shifts, VIX spikes, drawdowns, breadth thrusts) and acts only when needed. Fewer trades, lower costs, better timing.
+- **Rebalances when it matters** -- Instead of fixed schedules, 7 event-driven triggers (regime shifts, VIX recovery, drawdowns, crashes, breadth thrusts, portfolio momentum) fire only when needed. Fewer trades, lower costs, better timing.
 - **Protects the downside** -- Five independent defense layers (volatility targeting, breadth scaling, dynamic sector caps, sector momentum filter, crash avoidance) work together to reduce exposure in rough markets.
 - **Catches the recovery** -- When markets turn around, the system detects improving breadth and ramps back to full equity faster, avoiding the classic trap of staying defensive too long.
 
@@ -25,7 +25,7 @@ The magic is in how it adapts:
 
 A continuous backtest across 16 distinct market phases -- bull runs, bear markets, crashes, and everything in between.
 
-**Overall: 19.8% CAGR | 0.87 Sharpe | -27.3% Max DD | 20L grew to 2.14 Cr**
+**Overall: 22.3% CAGR | 1.02 Sharpe | -20.8% Max DD | 20L grew to 2.81 Cr**
 
 Nifty 50 B&H: 11.8% CAGR | Nifty Midcap 100 B&H: 16.0% CAGR over the same period.
 
@@ -144,14 +144,76 @@ The CLI menu:
 
 ## How Capital Works
 
-All capital flows through **LIQUIDBEES** (a liquid ETF earning ~6-7% annualized):
+All capital flows through **LIQUIDBEES** (a liquid ETF earning ~6-7% annualized). LIQUIDBEES is the single entry and exit point for capital -- the system never touches your demat cash directly.
 
-- **Add money**: Buy LIQUIDBEES in your demat --> next rebalance deploys it into stocks
-- **Withdraw**: Sell some LIQUIDBEES --> that capital stays out
-- **Surplus**: After filling all stock positions, leftover cash sweeps into LIQUIDBEES
-- **No idle cash**: Your money is always working, even when parked
+### Funding the System
 
-This means you never need to worry about "cash drag" -- uninvested capital earns returns in LIQUIDBEES while waiting to be deployed.
+1. **To start**: Buy LIQUIDBEES worth your target capital (e.g., 15-20L) through your broker's normal order flow
+2. **The first rebalance** detects LIQUIDBEES in your holdings, sells it, and deploys the proceeds into high-momentum stocks + GOLDBEES
+3. **To add capital later**: Buy more LIQUIDBEES -- the next rebalance picks it up automatically
+4. **To withdraw**: Sell some LIQUIDBEES -- that capital leaves the strategy
+
+You never need to "tell" the system about capital changes. It discovers LIQUIDBEES in your broker positions and acts accordingly.
+
+### The Self-Funding Rebalance Cycle
+
+Every rebalance is **fully self-funded** -- sells generate the cash for buys:
+
+```
+SELL: Exit positions not in target, reduce overweight positions
+  │
+  ├── Proceeds fund BUY orders (new positions + increases)
+  │
+  ├── Any surplus deploys to:
+  │     1. Underweight equity positions (pro-rata top-up)
+  │     2. Underweight GOLDBEES (if below target)
+  │     3. LIQUIDBEES (sweep remainder)
+  │
+  └── Result: ₹0 external cash needed
+```
+
+The system will **never ask you for additional cash** during a rebalance. If buys exceed sell proceeds, buy quantities are automatically scaled down to fit. Your capital stays fully allocated at all times -- working in equities, gold, or LIQUIDBEES.
+
+If you have idle demat cash (from dividends, past sells, etc.), the system detects it and sweeps it into LIQUIDBEES as a separate "capital injection" -- but this is shown separately from the rebalance and doesn't affect the self-funding guarantee.
+
+## How Rebalancing Works
+
+The system doesn't rebalance on a fixed schedule. Instead, it checks daily for **trigger conditions** and only acts when there's a reason to.
+
+### Rebalance Triggers
+
+| Trigger | Condition | Urgency | Purpose |
+|---------|-----------|---------|---------|
+| Regular interval | 15+ days since last rebalance | Medium | Baseline refresh |
+| Regime transition | Market regime changed (e.g., NORMAL → CAUTION) | High | Adapt allocation |
+| VIX recovery | VIX drops 15%+ from recent spike above 25 | High | Capture recovery |
+| Portfolio drawdown | Portfolio down 10%+ from peak | High | Defensive rebalance |
+| Market crash | Market 1-month return below -7% | High | Crash avoidance |
+| Breadth thrust | Breadth surges from <40% to >61.5% in 10 days | High | Aggressive re-entry |
+| Portfolio momentum | Portfolio 20-day return below -7% | Medium | Early reshuffling |
+
+**Guardrails**: Minimum 7 days between rebalances (prevents whipsaw). Maximum 15 days (forces periodic refresh).
+
+### Recommended Rebalance Frequency
+
+In practice, the system triggers a rebalance every **7-15 trading days** (roughly 1-3 weeks). Here's what to expect:
+
+- **Calm bull markets**: Rebalance every ~15 days (max interval). Few changes, low turnover.
+- **Volatile periods**: Rebalance every 7-10 days. Regime shifts, VIX spikes, and drawdowns trigger earlier action.
+- **Crashes**: Multiple triggers fire simultaneously (crash + drawdown + regime). The system acts quickly but respects the 7-day minimum to avoid panic-selling.
+
+**What you need to do**: Run option 7 (Triggers) periodically to check if a rebalance is needed. When it says yes, run option 4 (Rebalance) in dry-run mode first, review the plan, then execute.
+
+### What a Rebalance Actually Does
+
+A typical rebalance involves 3-8 trades:
+
+1. **Exits** (0-3 stocks): Positions that fell below stops, broke trend, or lost relative strength
+2. **New entries** (0-3 stocks): High-NMS stocks that passed all filters
+3. **Adjustments** (0-3 trades): Reductions of overweight positions, increases of underweight ones
+4. **Sweep** (0-1 trade): Leftover proceeds → LIQUIDBEES
+
+Average annual turnover is ~1700-1800 trades across both directions. Transaction costs are modeled at 0.3% in backtests.
 
 ## Key Features
 
@@ -196,9 +258,10 @@ Additional exits: trend-break detection, relative strength floor, and a 3-day mi
 ### Live Trading
 
 - **Dry-run mode** -- Preview every trade before committing
-- **Self-funding rebalances** -- Sells generate cash for buys within the same session
-- **Post-execution reconciliation** -- Handles failed orders gracefully
-- **Daily trigger checks** -- Only rebalance when the system detects a reason to
+- **Self-funding rebalances** -- Sells always generate enough cash for buys. No external capital needed. See [How Capital Works](#how-capital-works)
+- **LIQUIDBEES capital pool** -- All capital enters/exits through LIQUIDBEES. Idle cash automatically sweeps in
+- **Post-execution reconciliation** -- Handles failed orders gracefully (failed buys removed from tracking, failed sells kept)
+- **7 event-driven triggers** -- Only rebalance when the system detects a reason to. See [How Rebalancing Works](#how-rebalancing-works)
 
 ## Architecture
 
@@ -228,7 +291,7 @@ tools/
   reconcile_state.py      Reconcile strategy state with live broker holdings
 config.example.yaml       Default configuration (copy to config.yaml)
 stock-universe.json       200 stocks: NIFTY 100 + MIDCAP 100, with sector mappings
-tests/                    187 tests covering indicators, backtest, defensive, strategies, risk
+tests/                    201 tests covering indicators, backtest, defensive, strategies, rebalance, risk
 ```
 
 **Parity guarantee**: `backtest.py` and `momentum_engine.py` share defensive logic via `defensive.py` -- gold allocation, vol targeting, breadth scaling, and sector caps are implemented once as pure functions. Backtests use pre-computed caches for speed; live mode fetches from the API. Both produce equivalent results -- what you backtest is what you trade.
@@ -268,7 +331,7 @@ Momentum strategies have well-known failure modes. Here's how this system addres
 | **"How do you decide if it's safe to invest?"** | A multi-factor stress score combining VIX level, market breadth (% stocks above 50-DMA), and 1M/3M returns. No gut feel, no manual override. | `indicators.py` stress model |
 | **"No exit logic = silent killer"** | Three-layer exit stack: (1) tiered trailing stops that adapt to gain size, (2) trend-break exits when price breaks below key MAs, (3) relative strength floor exits when a stock falls below RS threshold. Plus a 3-day minimum hold to prevent whipsaws. | `strategy/adaptive_dual_momentum.py` |
 | **"All top stocks = same sector = hidden leverage"** | Dynamic sector caps: 30% in BULLISH, 25% in CAUTION, 20% in DEFENSIVE. Plus a soft sector momentum penalty (15% score reduction for bottom sectors) that discourages piling into one theme. | `momentum_engine.py` E4/E5 |
-| **"Rebalancing frequency mismatch"** | Not fixed-schedule. The system checks daily for triggers (regime transitions, VIX spikes, drawdown breaches, breadth thrusts) and only rebalances when there's a reason. Min 7 days between rebalances to avoid whipsaw, max 15 days to stay responsive. | `indicators.py` dynamic triggers |
+| **"Rebalancing frequency mismatch"** | Not fixed-schedule. 7 trigger types (regime shifts, VIX recovery, drawdowns, crashes, breadth thrusts, portfolio momentum) fire only when needed. Min 7 / max 15 days between rebalances. See [How Rebalancing Works](#how-rebalancing-works). | `indicators.py` dynamic triggers |
 | **"Transaction costs eat the edge"** | Configurable transaction cost (default 0.3%) applied in backtests. Minimum hold period (3 days) and minimum days between rebalances (7) reduce churn. Turnover is visible in backtest output. | `config.py`, `backtest.py` |
 | **"No drawdown protection"** | Portfolio drawdown > 10% triggers defensive regime. Crash avoidance activates at -5%/-8% (1M/3M). Vol targeting scales down when portfolio volatility exceeds 15%. Three independent circuit breakers. | E2, E3, E6 |
 | **"Backtests are too optimistic"** | Backtests include transaction costs, use T-1 data (no lookahead), and the backtest engine runs identical logic to the live engine (parity guarantee). What you backtest is what you trade. | `backtest.py` |
