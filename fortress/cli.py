@@ -1511,6 +1511,7 @@ class FortressApp:
         - Portfolio drawdown
         - Market crash (1M return)
         - Breadth thrust
+        - Portfolio momentum deterioration (20-day return)
         - Regular interval (max days between rebalances)
         """
         console.print(Panel("Trigger Check", style="bright_blue"))
@@ -1655,6 +1656,22 @@ class FortressApp:
             except Exception:
                 pass
 
+            # --- Portfolio momentum (approximate from cached data) ---
+            portfolio_momentum_return = None
+            lookback = dyn_config.portfolio_momentum_lookback
+            if dyn_config.portfolio_momentum_trigger and managed_symbols:
+                # Compute equal-weighted compounded return of managed equity symbols
+                symbol_returns = []
+                for symbol in managed_symbols:
+                    df = historical_data.get(symbol)
+                    if df is not None and len(df) > lookback:
+                        price_now = float(df["close"].iloc[-1])
+                        price_then = float(df["close"].iloc[-(lookback + 1)])
+                        if price_then > 0:
+                            symbol_returns.append(price_now / price_then - 1)
+                if symbol_returns:
+                    portfolio_momentum_return = sum(symbol_returns) / len(symbol_returns)
+
             # --- Evaluate triggers ---
             trigger = should_trigger_rebalance(
                 days_since_last=days_since_last,
@@ -1671,8 +1688,7 @@ class FortressApp:
                 vix_spike_threshold=dyn_config.vix_spike_threshold,
                 drawdown_threshold=dyn_config.drawdown_threshold,
                 crash_threshold=dyn_config.crash_threshold,
-                # Portfolio momentum not available in live trigger check (no daily return history)
-                portfolio_momentum_return=None,
+                portfolio_momentum_return=portfolio_momentum_return,
                 portfolio_momentum_threshold=dyn_config.portfolio_momentum_threshold,
             )
 
@@ -1704,6 +1720,9 @@ class FortressApp:
                 f"  Market 3M return:      [bold]{market_3m_return:+.1%}[/bold]",
                 f"  Portfolio drawdown:    [bold]{portfolio_drawdown:+.1%}[/bold]",
                 f"  Breadth thrust:        [bold]{'Yes' if breadth_thrust else 'No'}[/bold]",
+                f"  Portfolio momentum:    [bold]{portfolio_momentum_return:+.1%}[/bold] ({lookback}d)"
+                if portfolio_momentum_return is not None
+                else f"  Portfolio momentum:    [dim]—[/dim] (no managed symbols)",
             ]
 
             if early_warning_active:
