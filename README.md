@@ -82,8 +82,8 @@ ZERODHA_API_KEY=your_api_key_here
 ZERODHA_API_SECRET=your_api_secret_here
 EOF
 
-# Config (copy and adjust initial_capital, target_positions)
-cp config.example.yaml config.yaml
+# Config (adjust initial_capital, target_positions)
+# config.yaml is tracked with sensible defaults -- edit directly
 
 # Run
 ./start.sh
@@ -347,7 +347,7 @@ All parameters live in `config.yaml`. Key sections:
 | `strategy_dual_momentum` | Stops, recovery, crash avoidance, breadth smoothing |
 | `dynamic_rebalance` | Trigger conditions, min/max days between rebalances |
 
-See `config.example.yaml` for all options with inline documentation.
+See `config.yaml` for all options with inline documentation.
 
 ## Research Basis
 

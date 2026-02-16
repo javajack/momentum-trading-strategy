@@ -1,0 +1,267 @@
+# FORTRESS MOMENTUM Configuration
+# Pure momentum strategy targeting 3% monthly returns
+
+# Zerodha API credentials
+# Set via environment variables: ZERODHA_API_KEY, ZERODHA_API_SECRET
+zerodha:
+  api_key: ""
+  api_secret: ""
+
+# Portfolio settings
+portfolio:
+  initial_capital: 2000000
+  max_positions: 20
+
+# Pure Momentum Strategy Settings (Nifty 500 Momentum 50 style)
+# OPTIMIZED: Balanced for all market conditions
+pure_momentum:
+  # NMS calculation parameters
+  lookback_6m: 126 # 6-month lookback (trading days)
+  lookback_12m: 252 # 12-month lookback (trading days)
+  lookback_volatility: 126 # Volatility calculation window
+  skip_recent_days: 5 # Skip recent days to avoid reversal
+  weight_6m: 0.50 # 50% weight to 6M adjusted return
+  weight_12m: 0.50 # 50% weight to 12M adjusted return
+
+  # Entry filters (all must pass)
+  min_score_percentile: 85 # Top 15% by NMS for entry consideration
+  min_52w_high_prox: 0.85 # Price >= 85% of 52-week high
+  min_volume_ratio: 1.1 # 20-day volume > 50-day × 1.1
+  min_daily_turnover: 20000000 # Rs 2 Cr minimum daily turnover
+
+  # Exit triggers
+  min_hold_percentile: 50 # Exit if NMS falls below 50th percentile
+  max_days_without_gain: 60 # Exit after 60 days without +10% gain
+  min_gain_threshold: 0.10 # Target gain for time-based exit check
+
+# Position sizing - OPTIMIZED for quality over quantity
+position_sizing:
+  method: "momentum_weighted" # "equal", "momentum_weighted", or "inverse_volatility"
+  max_single_position: 0.10 # 10% max per position (allow conviction bets)
+  min_single_position: 0.04 # 4% min per position (meaningful positions)
+  max_sector_exposure: 0.30 # 30% max per sector
+  target_positions: 12 # Target 12 positions (quality focus)
+  min_positions: 10 # Maintain at least 10 positions
+  max_positions: 15 # Never exceed 15 positions
+
+# Rebalancing schedule (monthly proven optimal)
+rebalancing:
+  frequency: "monthly"
+  rebalance_days: 15 # Trading days between rebalances
+  day: "friday"
+  min_trade_value: 10000
+
+# Risk limits with stop losses
+risk:
+  # Position limits
+  max_single_position: 0.10
+  hard_max_position: 0.12
+  max_sector_exposure: 0.25
+  hard_max_sector: 0.30
+
+  # Drawdown limits
+  max_drawdown_warning: 0.10
+  max_drawdown_halt: 0.20
+  daily_loss_limit: 0.03
+
+  # Stop losses - BALANCED (wider stops reduce whipsaws)
+  initial_stop_loss: 0.18 # 18% initial stop loss
+  trailing_stop: 0.15 # 15% trailing stop
+  trailing_activation: 0.08 # Activate trailing after +8% gain
+
+# Transaction costs
+costs:
+  transaction_cost: 0.003
+
+# Market Regime Detection - AGILE (faster recovery without compromising safety)
+# Multi-timeframe detection with adaptive hysteresis, momentum, and VIX recovery
+regime:
+  enabled: true # Enable regime detection
+
+  # Multi-timeframe lookbacks
+  lookback_short: 21 # 1 month fast signal
+  lookback_medium: 63 # 3 months intermediate
+  lookback_long: 126 # 6 months trend confirmation
+
+  # REBALANCED weights (30/35/35 - increased short-term responsiveness)
+  weight_short: 0.30 # 30% weight to fast signal (was 20%)
+  weight_medium: 0.35 # 35% weight to medium
+  weight_long: 0.35 # 35% weight to slow (was 45%)
+
+  # Entry thresholds (unchanged - protection works well)
+  bullish_threshold: 0.65 # Above 65% = BULLISH
+  caution_threshold: 0.45 # 25-45% = CAUTION
+  defensive_threshold: 0.25 # Below 25% = DEFENSIVE
+
+  # REDUCED recovery thresholds (faster recovery without compromising safety)
+  bullish_recovery_threshold: 0.70 # Recovery to BULLISH (was 0.75)
+  normal_recovery_threshold: 0.48 # Recovery to NORMAL (E7: 0.52→0.48)
+  caution_recovery_threshold: 0.32 # Recovery from DEFENSIVE (was 0.40)
+
+  # E7: 2-of-3 recovery gate (any 2 of: position, VIX, returns)
+  recovery_require_all_conditions: false # false = 2-of-3, true = all 3
+
+  # E10: Stress score weights (reduces position dominance)
+  stress_weight_position: 0.40 # Position weight (was 0.50)
+  stress_weight_vix: 0.30 # VIX weight (was 0.25)
+  stress_weight_returns: 0.30 # Returns weight (was 0.25)
+
+  # REDUCED hysteresis asymmetry
+  upgrade_confirmation_days: 3 # 3 days to confirm upgrade (more defensive)
+  downgrade_confirmation_days: 3 # 3 days to confirm downgrade (E7: 4→3)
+
+  # NEW: Position momentum settings (detect trend reversals faster)
+  use_position_momentum: true # Enable position momentum signal
+  position_momentum_period: 5 # Days to measure rate-of-change
+  position_momentum_recovery_bonus: 0.10 # Threshold reduction when momentum > 0.005/day (E7: 0.05→0.10)
+
+  # NEW: VIX recovery accelerator (detect VIX mean-reversion)
+  use_vix_recovery_accelerator: true # Enable VIX mean-reversion detection
+  vix_recovery_spike_threshold: 25.0 # VIX level considered a spike
+  vix_recovery_decline_rate: 0.10 # Min decline from peak to trigger signal
+  vix_recovery_bonus: 0.03 # Threshold reduction during VIX recovery
+
+  # NEW: Adaptive hysteresis (strong signals reduce confirmation)
+  adaptive_hysteresis: true # Strong signals reduce confirmation by 1 day
+  strong_signal_bonus: 0.10 # Position must exceed threshold by this much
+
+  # NEW: Short-term return settings (faster early detection)
+  use_return_10d: true # Include 10-day return in stress calculation
+  return_10d_weight: 0.15 # Weight for 10-day return in stress score
+
+  # VIX thresholds (ADJUSTED - raised to avoid over-reaction)
+  vix_elevated: 18.0 # Early warning level (NEW)
+  vix_caution: 22.0 # VIX > 22 upgrades to CAUTION (was 20)
+  vix_defensive: 28.0 # VIX > 28 forces DEFENSIVE (was 25)
+  vix_normal: 19.0 # VIX < 19 allows recovery to NORMAL (E7: 16→19)
+  vix_calm: 14.0 # VIX < 14 allows full recovery (NEW)
+
+  # Return thresholds (ENHANCED - includes 1-month warning)
+  return_warning: -0.03 # 1M return < -3% early warning (NEW)
+  return_caution: -0.05 # 3M return < -5% upgrades to CAUTION
+  return_defensive: -0.10 # 3M return < -10% forces DEFENSIVE
+  return_recovery_normal: 0.01 # 3M return > 1% allows recovery to NORMAL (E7: 0.03→0.01)
+  return_recovery_bullish: 0.08 # 3M return > 8% allows recovery to BULLISH (NEW)
+
+  # Graduated allocation settings (NEW - smooth transitions)
+  use_graduated_allocation: true # Use smooth stress-based allocation (BULLISH=100% equity)
+  min_equity_allocation: 0.50 # Minimum equity at max stress
+  max_gold_allocation: 0.10 # Maximum gold allocation
+  max_cash_allocation: 0.25 # Maximum cash allocation
+
+  # Gold exhaustion scaling (GE1): reduce gold when overextended above 200-SMA
+  use_gold_exhaustion_scaling: true
+  gold_exhaustion_sma_period: 200
+  gold_exhaustion_threshold_low: 0.15 # Below 15% above SMA: full gold
+  gold_exhaustion_threshold_high: 0.40 # Above 40% above SMA: zero gold
+  allocation_curve_steepness: 2.0 # Higher = more aggressive at extremes
+
+  # Fixed allocation - CAUTION regime (used when graduated is disabled)
+  caution_equity: 0.80 # 80% equity
+  caution_gold: 0.10 # 10% gold (GOLDBEES)
+  caution_cash: 0.10 # 10% cash (LIQUIDCASE)
+
+  # Fixed allocation - DEFENSIVE regime (used when graduated is disabled)
+  defensive_equity: 0.60 # 60% equity
+  defensive_gold: 0.20 # 20% gold (GOLDBEES)
+  defensive_cash: 0.20 # 20% cash (LIQUIDCASE)
+
+  # Defensive instruments
+  gold_symbol: "GOLDBEES"
+  cash_symbol: "LIQUIDBEES"
+  redirect_freed_to_equity_in_uptrend: true
+
+# Paths
+paths:
+  universe_file: "stock-universe.json"
+  log_dir: "logs"
+  data_cache: ".cache"
+
+# ============================================================================
+# NEW: Dynamic Rebalancing Configuration
+# ============================================================================
+# Event-driven rebalancing triggers that supplement fixed-interval rebalancing.
+# Research shows dynamic triggers can improve short-term (3-12M) alpha by 3-5%.
+# Source: Regime-Switching Signals Research (arXiv:2402.05272)
+dynamic_rebalance:
+  enabled: true # Enable dynamic rebalancing triggers
+  min_days_between: 7 # Minimum days between rebalances (E8: tuned sweet spot)
+  max_days_between: 15 # Force rebalance after this many days
+
+  # Trigger 1: Regime Transition
+  # Immediate rebalance when market regime changes (e.g., NORMAL→CAUTION)
+  regime_transition_trigger: true
+
+  # Trigger 2: VIX Recovery
+  # Opportunity rebalance when VIX declines from spike (fear subsiding)
+  vix_recovery_trigger: true
+  vix_recovery_decline: 0.15 # 15% decline from peak to trigger
+  vix_spike_threshold: 25.0 # VIX level considered a spike
+
+  # Trigger 3: Portfolio Drawdown
+  # Defensive rebalance when portfolio drawdown exceeds threshold
+  drawdown_trigger: true
+  drawdown_threshold: 0.10 # 10% portfolio drawdown
+
+  # Trigger 4: Crash Avoidance (Momentum Crash Detection)
+  # Switch to contrarian mode when market crashes (momentum crash avoidance)
+  # Research: Past losers outperform past winners for 1-3 months after crashes
+  # Source: ScienceDirect - Momentum Crash Research
+  crash_avoidance_trigger: true
+  crash_threshold: -0.07 # Market 1-month return threshold (E6: -0.10→-0.07)
+  crash_avoidance_duration: 60 # Days to maintain crash avoidance mode
+  crash_position_scale: 0.6 # Scale down positions 40% during crash
+
+  # Trigger 5: Breadth Thrust
+  # Aggressive entry signal when breadth moves from oversold to overbought
+  # Source: TheRobustTrader - Market Momentum Breadth Thrust
+  breadth_thrust_trigger: true
+  breadth_thrust_low: 0.40 # Starting breadth level (40%)
+  breadth_thrust_high: 0.615 # Thrust confirmation level (61.5%)
+  breadth_thrust_days: 10 # Max days for breadth to move
+
+# ============================================================================
+# NEW: Adaptive Lookback Configuration
+# ============================================================================
+# Dynamic momentum lookback periods based on market conditions.
+# Research shows optimal lookbacks vary with volatility and drawdown.
+# Source: Dynamic Momentum Learning (arXiv:2106.08420)
+adaptive_lookback:
+  enabled: true # Enable adaptive lookback periods
+
+  # Normal market lookbacks (standard)
+  normal_6m: 126 # 6-month lookback in normal conditions
+  normal_12m: 252 # 12-month lookback in normal conditions
+
+  # Recovery mode lookbacks (shorter for faster signals)
+  # Activated when portfolio drawdown exceeds threshold
+  recovery_6m: 63 # 6-month lookback in recovery mode
+  recovery_12m: 126 # 12-month lookback in recovery mode
+
+  # High volatility lookbacks (longer to reduce whipsaws)
+  # Activated when VIX exceeds threshold
+  volatile_6m: 189 # 6-month lookback in high volatility
+  volatile_12m: 315 # 12-month lookback in high volatility
+
+  # Thresholds for switching modes
+  drawdown_threshold: 0.05 # Drawdown level to switch to recovery (5%)
+  vix_volatile_threshold: 30.0 # VIX level to switch to volatile mode
+
+  # Alternative: Use multipliers instead of fixed values
+  use_multipliers: false
+  recovery_multiplier: 0.5 # Lookback multiplier in recovery (50% shorter)
+  volatile_multiplier: 1.5 # Lookback multiplier in volatile (50% longer)
+
+# Strategy selection (only dual_momentum is supported)
+active_strategy: "dual_momentum"
+
+# Excluded symbols (ETFs, liquid funds)
+excluded_symbols:
+  - LIQUIDCASE
+  - LIQUIDBEES
+  - NIFTYBEES
+  - JUNIORBEES
+  - MID150BEES
+  - HDFCSML250
+  - GOLDBEES
+  - HANGSENGBEES

@@ -1,6 +1,3 @@
-# User-specific config (copy config.example.yaml to config.yaml)
-config.yaml
-
 # Virtual environments
 venv/
 .venv/
