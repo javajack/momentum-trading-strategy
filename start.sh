@@ -87,9 +87,10 @@ install_deps() {
         STORED_HASH=$(cat "$REQUIREMENTS_HASH_FILE")
     fi
 
-    # Check if fortress is installed
-    if ! "$VENV_DIR/bin/python" -c "import fortress" 2>/dev/null; then
+    # Check if fortress and all key deps are importable
+    if ! "$VENV_DIR/bin/python" -c "import fortress, pytz, pandas, numpy, rich, pydantic, yaml" 2>/dev/null; then
         NEEDS_INSTALL=true
+        echo -e "${YELLOW}Missing dependencies detected, installing...${NC}"
     elif [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
         NEEDS_INSTALL=true
         echo -e "${YELLOW}Dependencies changed, updating...${NC}"
