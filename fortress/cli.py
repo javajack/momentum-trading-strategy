@@ -41,6 +41,7 @@ from .order_manager import OrderManager, OrderType
 from .portfolio import Portfolio, Position
 from .rebalance_executor import (
     ExecutionResult,
+    PlannedTrade,
     RebalanceExecutor,
     RebalancePlan,
     TradeAction,
@@ -48,7 +49,7 @@ from .rebalance_executor import (
 from .risk_governor import RiskGovernor
 from .strategy import BaseStrategy, StrategyRegistry
 from .universe import Universe
-from .utils import format_currency, format_percentage, validate_market_hours
+from .utils import calculate_order_quantity, format_currency, format_percentage, validate_market_hours
 
 console = Console()
 T = TypeVar("T")
@@ -98,6 +99,7 @@ class FortressApp:
         ("6", "Strategy", "Select active strategy"),
         ("7", "Triggers", "Check if rebalance is needed"),
         ("8", "Market Phases", "10-year multi-phase backtest analysis"),
+        ("9", "Exit All", "Exit all managed equity positions"),
         ("0", "Exit", "Exit application"),
     ]
 
@@ -302,6 +304,8 @@ class FortressApp:
                 self._do_trigger_check()
             elif choice == "8":
                 self._do_market_phase_analysis()
+            elif choice == "9":
+                self._do_exit_all()
             else:
                 console.print("[red]Invalid option[/red]")
 
@@ -1501,6 +1505,164 @@ class FortressApp:
             console.print(
                 "\n[bold bright_green]✓ All orders placed successfully![/bold bright_green]"
             )
+
+    def _do_exit_all(self):
+        """Exit all managed equity positions and sweep proceeds into LIQUIDBEES."""
+        console.print(
+            Panel(
+                "[bold bright_red]EXIT ALL EQUITY POSITIONS[/bold bright_red]",
+                style="bright_red",
+            )
+        )
+
+        if not self._ensure_auth():
+            return
+
+        try:
+            # Load current portfolio state
+            snapshot = self.portfolio.load_combined_positions()
+
+            # Identify managed equity positions (same pattern as _do_rebalance)
+            universe_symbols = {s.zerodha_symbol for s in self.universe.get_all_stocks()}
+            cash_symbol = self.config.regime.cash_symbol
+            gold_symbol = self.config.regime.gold_symbol
+
+            max_gold = self.config.regime.max_gold_allocation
+            if max_gold is not None and max_gold == 0.0:
+                defensive_symbols = set()
+            else:
+                defensive_symbols = {gold_symbol}
+            defensive_symbols.add(cash_symbol)
+
+            external_etfs = {
+                "NIFTYBEES",
+                "JUNIORBEES",
+                "MID150BEES",
+                "HDFCSML250",
+                "HANGSENGBEES",
+                "HNGSNGBEES",
+                "LIQUIDCASE",
+            }
+
+            # Collect equity positions only (exclude defensive + external)
+            equity_positions: Dict[str, Position] = {}
+            for symbol, pos in snapshot.positions.items():
+                if symbol in external_etfs:
+                    continue
+                if symbol in defensive_symbols:
+                    continue
+                if symbol in universe_symbols:
+                    equity_positions[symbol] = pos
+
+            if not equity_positions:
+                console.print("[yellow]No managed equity positions to exit.[/yellow]")
+                return
+
+            # Fetch current prices for equity positions + LIQUIDBEES
+            all_symbols = list(equity_positions.keys()) + [cash_symbol]
+            current_prices = {}
+            try:
+                ltp_data = self.kite.ltp([f"NSE:{s}" for s in all_symbols])
+                for key, data in ltp_data.items():
+                    symbol = key.split(":")[1]
+                    current_prices[symbol] = data["last_price"]
+            except Exception as e:
+                console.print(f"[red]Error fetching prices: {e}[/red]")
+                return
+
+            # Build plan manually: SELL_EXIT for each equity position
+            plan = RebalancePlan()
+            total_sell_proceeds = 0.0
+
+            for symbol, pos in equity_positions.items():
+                price = current_prices.get(symbol, pos.current_price)
+                value = pos.quantity * price
+                trade = PlannedTrade(
+                    symbol=symbol,
+                    action=TradeAction.SELL_EXIT,
+                    quantity=pos.quantity,
+                    price=price,
+                    value=value,
+                    sector=pos.sector,
+                    current_qty=pos.quantity,
+                    reason="Exit All",
+                    entry_price=pos.average_price,
+                )
+                plan.trades.append(trade)
+                plan.total_sell_value += value
+                total_sell_proceeds += value
+
+            # BUY_INCREASE for LIQUIDBEES with total sell proceeds
+            cash_price = current_prices.get(cash_symbol)
+            if cash_price and cash_price > 0:
+                lot_size = self.market_data.mapper.get_lot_size(cash_symbol)
+                qty, _ = calculate_order_quantity(total_sell_proceeds, cash_price, lot_size)
+                if qty > 0:
+                    rounded_price = self.market_data.mapper.round_to_tick(cash_price, cash_symbol)
+                    cash_pos = snapshot.positions.get(cash_symbol)
+                    current_qty = cash_pos.quantity if cash_pos else 0
+                    plan.trades.append(
+                        PlannedTrade(
+                            symbol=cash_symbol,
+                            action=TradeAction.BUY_INCREASE,
+                            quantity=qty,
+                            price=rounded_price,
+                            value=qty * cash_price,
+                            sector="Cash",
+                            current_qty=current_qty,
+                            reason="Cash sweep (exit all)",
+                        )
+                    )
+                    plan.total_buy_value += qty * cash_price
+
+            # Display the plan
+            self._display_execution_plan(plan)
+
+            # Validate market hours
+            market_open, market_msg = validate_market_hours()
+            if not market_open:
+                console.print(f"\n[bright_yellow]⚠ {market_msg}[/bright_yellow]")
+                console.print("[dim]Orders cannot be placed outside market hours[/dim]")
+                return
+
+            # Execute with double confirmation
+            executor = RebalanceExecutor(
+                kite=self.kite,
+                portfolio=self.portfolio,
+                instrument_mapper=self.market_data.mapper,
+                order_manager=OrderManager(
+                    self.kite,
+                    RiskGovernor(self.config.risk, self.config.portfolio),
+                    dry_run=False,
+                ),
+                universe=self.universe,
+                risk_config=self.config.risk,
+            )
+
+            exec_result = self._execute_with_confirmation(executor, plan)
+
+            if exec_result is None:
+                return
+
+            # Update strategy state: clear equity positions, keep only defensive symbols
+            remaining_managed = []
+            remaining_peaks = {}
+            strategy_state = self._load_strategy_state()
+            for symbol in defensive_symbols:
+                if symbol in snapshot.positions:
+                    remaining_managed.append(symbol)
+                    peak = strategy_state.get("peak_prices", {}).get(symbol)
+                    if peak:
+                        remaining_peaks[symbol] = peak
+
+            self._save_strategy_state(remaining_managed, remaining_peaks)
+            console.print(
+                "\n[bold bright_green]Strategy state updated — "
+                "equity positions cleared.[/bold bright_green]"
+            )
+
+        except Exception as e:
+            console.print(f"[red]Error: {e}[/red]")
 
     def _do_trigger_check(self):
         """Check if any dynamic rebalancing triggers have fired.
