@@ -45,9 +45,13 @@ position_sizing:
   max_positions: 15 # Never exceed 15 positions
 
 # Rebalancing schedule (monthly proven optimal)
+# Sweep across Pre-COVID 2015-2020 + Post-COVID 2020-2026 showed 30 trading days
+# is the only interval with positive Sharpe in both regimes (avg Sharpe 0.35 vs
+# 0.20 at 21d, 0.11 at 63d). Pre-COVID choppy period penalised short intervals;
+# Post-COVID trending period rewarded longer holds. 30d is the robust middle.
 rebalancing:
   frequency: "monthly"
-  rebalance_days: 15 # Trading days between rebalances
+  rebalance_days: 30 # Trading days between rebalances (was 15, sweep-optimised)
   day: "friday"
   min_trade_value: 10000
 
@@ -192,8 +196,8 @@ universe:
 # Source: Regime-Switching Signals Research (arXiv:2402.05272)
 dynamic_rebalance:
   enabled: true # Enable dynamic rebalancing triggers
-  min_days_between: 7 # Minimum days between rebalances (E8: tuned sweet spot)
-  max_days_between: 15 # Force rebalance after this many days
+  min_days_between: 10 # Minimum days between rebalances (was 7, less thrash on noise)
+  max_days_between: 30 # Force rebalance after this many days (was 15, let winners run)
 
   # Trigger 1: Regime Transition
   # Immediate rebalance when market regime changes (e.g., NORMAL→CAUTION)
