@@ -1,0 +1,36 @@
+# Custom index definitions. Ranks are 1-indexed and inclusive on both ends.
+# A stock with rank R is a member of index I if I.rank_range[0] <= R <= I.rank_range[1].
+#
+# The "universe" (nifty_500 by default) defines the ranking ceiling; stocks ranked
+# beyond the last monthly rebalance's top-N are not in any index for that month.
+#
+# Add your own freely — they're derived at query time, no rebuild needed.
+
+indices:
+  nifty_50:
+    rank_range: [1, 50]
+    description: "Top 50 by 6mo median turnover"
+
+  nifty_100:
+    rank_range: [1, 100]
+    description: "Top 100 by 6mo median turnover"
+
+  nifty_200:
+    rank_range: [1, 200]
+    description: "Top 200 by 6mo median turnover"
+
+  nifty_500:
+    rank_range: [1, 500]
+    description: "Top 500 — the universe ceiling"
+
+  midcap_150:
+    rank_range: [101, 250]
+    description: "Ranks 101-250 (Nifty Midcap 150 equivalent)"
+
+  smallcap_250:
+    rank_range: [251, 500]
+    description: "Ranks 251-500 (Nifty Smallcap 250 equivalent)"
+
+  largecap_100:
+    rank_range: [1, 100]
+    description: "Alias for nifty_100"
