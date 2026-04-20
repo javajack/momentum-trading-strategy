@@ -1,10 +1,10 @@
 # FORTRESS MOMENTUM
 
-**22.3% CAGR over 13 years. 20L grew to 2.81 Cr. Fully automated.**
+A momentum-based stock rotation system for Indian equities (NSE). Picks high-momentum names from a configurable rank window (default top-200 by 6-month median turnover), adapts allocation to market regime, and produces a human-executable rebalance plan — no live order placement.
 
-A momentum-based stock rotation system for Indian equities (NSE). It picks high-momentum stocks from NIFTY 100 + MIDCAP 100 (200 stocks), adapts to market conditions in real-time, and manages risk through five independent defense layers -- so you stay invested without constantly watching the market.
+**Backtest baseline (2013-01-01 → 2026-02-11, 16 phases, survivorship-free):** +8.7% CAGR · 0.24 Sharpe · −45.6% MaxDD · 5,221 trades · 46% win rate. Capital ₹20L → ₹60L. Old pre-refactor baseline was 19.8% CAGR, but that was survivorship-biased (ran today's top-200 against historical prices); the new number tells the honest story across real drawdowns.
 
-Built on the Zerodha Kite Connect API. ~18,000 lines of Python. 201 tests.
+Built on Zerodha Kite Connect (read-only, post-April-2026 policy-compliant) plus the [nse-universe](https://github.com/javajack/custom-nse-500-historical-data) sibling repo for bias-free backtest data. ~18,000 lines of Python. 222 tests.
 
 ---
 
@@ -24,41 +24,34 @@ FORTRESS MOMENTUM solves this with three ideas:
 
 ## Performance
 
-### 13-Year Multi-Phase Backtest (Jan 2013 -- Feb 2026)
+### 13-Year Multi-Phase Backtest (Jan 2013 → Feb 2026, survivorship-free)
 
-> Run: 16 Feb 2026. Data: NSE daily OHLCV through 12 Feb 2026. Continuous backtest with compounding -- capital carries forward across all phases starting at 20L.
+> Run: 21 Apr 2026. Data: nse-universe parquet (split-adjusted), 16 phases, ₹20L → ₹60L end, ₹77.6L peak. Universe resolved point-in-time per rebalance (top-200 by 6-month median turnover of each month's snapshot).
 
-**Overall: 22.3% CAGR | 1.02 Sharpe | -20.8% Max Drawdown | 20L -> 2.81 Cr**
+**Overall: +8.7% CAGR · 0.24 Sharpe · −45.6% MaxDD · +200.3% total · 5,221 trades · 46% win rate**
 
-Benchmarks over the same period: Nifty 50 B&H 11.8% CAGR | Nifty Midcap 100 B&H 16.0% CAGR.
+| # | Phase | Period | Type | Return | Max DD |
+|---|-------|--------|------|--------|--------|
+| 1 | 2013 Consolidation | Jan 13 → May 13 | Sideways | −7.9% | −12.7% |
+| 2 | Taper Tantrum & Rupee Crisis | May 13 → Aug 13 | Bearish | −4.1% | −7.6% |
+| 3 | Pre-Election Rally | Aug 13 → May 14 | Bullish | +28.1% | −5.3% |
+| 4 | Modi Election Bull Run | May 14 → Mar 15 | Bullish | +62.1% | −7.3% |
+| 5 | 2015 Correction | Mar 15 → Aug 15 | Bearish | −14.9% | −17.0% |
+| 6 | China Scare & Recovery | Aug 15 → Mar 16 | Bear/Recovery | −5.4% | −12.4% |
+| 7 | Pre-Demonetization Bull | Mar 16 → Nov 16 | Bullish | +17.5% | −5.3% |
+| 8 | Demonetization Shock & Recovery | Nov 16 → Apr 17 | Bear/Recovery | −4.4% | −11.9% |
+| 9 | 2017 Bull Run | Apr 17 → Jan 18 | Bullish | +22.7% | −11.9% |
+| 10 | NBFC / IL&FS Crisis | Jan 18 → Mar 19 | Bearish | −29.0% | −30.0% |
+| 11 | 2019 Recovery (Corp Tax Cut) | Mar 19 → Jan 20 | Sideways→Bullish | −0.9% | −10.4% |
+| 12 | COVID Crash | Jan 20 → Apr 20 | Crash | −18.8% | −19.2% |
+| 13 | Post-COVID Rally | Apr 20 → Oct 21 | Bullish | **+144.8%** | −6.1% |
+| 14 | 2022 Correction (Ukraine/Rates) | Oct 21 → Jun 22 | Bearish | −23.8% | −25.0% |
+| 15 | 2023-24 Recovery & Bull Run | Jun 22 → Sep 24 | Bullish | +72.0% | −16.4% |
+| 16 | Late 2024-25 Correction | Sep 24 → Feb 26 | Bear/Sideways | −20.0% | −27.0% |
 
-| # | Phase | Period | Type | Return | NIFTY 50 | Alpha | Max DD |
-|---|-------|--------|------|--------|----------|-------|--------|
-| 1 | 2013 Consolidation | Jan 13 -- May 13 | Sideways | -10.0% | +1.7% | -11.7% | -12.1% |
-| 2 | Taper Tantrum | May 13 -- Aug 13 | Bearish | -2.4% | -11.4% | +9.0% | -8.0% |
-| 3 | Pre-Election Rally | Aug 13 -- May 14 | Bullish | +36.0% | +33.1% | +2.9% | -4.5% |
-| 4 | Modi Bull Run | May 14 -- Mar 15 | Bullish | +52.3% | +23.5% | +28.8% | -7.8% |
-| 5 | 2015 Correction | Mar 15 -- Aug 15 | Bearish | -10.8% | -12.5% | +1.7% | -15.6% |
-| 6 | China Scare | Aug 15 -- Mar 16 | Bear/Recovery | -3.9% | -8.4% | +4.4% | -8.2% |
-| 7 | Pre-Demonetization | Mar 16 -- Nov 16 | Bullish | +21.8% | +15.9% | +5.9% | -6.2% |
-| 8 | Demonetization Shock | Nov 16 -- Apr 17 | Bear/Recovery | +0.3% | +8.8% | -8.5% | -8.7% |
-| 9 | 2017 Bull Run | Apr 17 -- Jan 18 | Bullish | +29.8% | +20.5% | +9.3% | -5.3% |
-| 10 | NBFC/IL&FS Crisis | Jan 18 -- Mar 19 | Bearish | -12.0% | -1.7% | -10.3% | -22.3% |
-| 11 | 2019 Recovery | Mar 19 -- Jan 20 | Sideways | +14.0% | +11.3% | +2.7% | -11.0% |
-| 12 | COVID Crash | Jan 20 -- Apr 20 | Crash | -18.7% | -32.0% | +13.3% | -20.5% |
-| 13 | Post-COVID Rally | Apr 20 -- Oct 21 | Bullish | +231.5% | +128.6% | +102.9% | -6.2% |
-| 14 | 2022 Correction | Oct 21 -- Jun 22 | Bearish | -16.7% | -17.0% | +0.2% | -17.5% |
-| 15 | 2023-24 Bull Run | Jun 22 -- Sep 24 | Bullish | +107.2% | +70.6% | +36.6% | -22.2% |
-| 16 | Late 2024-25 | Sep 24 -- Feb 26 | Bear/Sideways | -1.7% | +0.6% | -2.2% | -16.2% |
+Average bull-phase return +49.5% (7 phases). Average bear/crash return −15.1% (8 phases). Worst phase: NBFC/IL&FS (−29%). Best: Post-COVID rally (+144.8%).
 
-Positive alpha in **10 of 16 phases**. Highlights:
-
-- **Post-COVID rally** (Phase 13): +231.5% vs NIFTY +128.6% -- momentum at its best, +103pp alpha
-- **Modi bull run** (Phase 4): +52.3% vs NIFTY +23.5% -- concentrated bets in trending stocks
-- **COVID crash** (Phase 12): -18.7% vs NIFTY -32.0% -- defensive scaling saved ~13% of capital
-- **2023-24 bull run** (Phase 15): +107.2% vs NIFTY +70.6% -- sustained alpha over 2+ years
-
-> **Honest note**: The strategy underperforms in early consolidation phases (Phase 1) and prolonged bear markets where large-caps hold up but midcaps don't (Phase 10). Momentum needs trends. The edge shows up over full market cycles, not every quarter.
+> **Why this is different from "most Indian momentum backtests on the internet":** the universe is resolved point-in-time for each rebalance via the nse-universe rank archive, not today's NIFTY 100 + MIDCAP 100. Names that later got delisted (Jet Airways, DHFL, IL&FS, many others) are in the universe for the months they were liquid, then leave — that honesty shows up as bigger drawdowns in crisis phases (NBFC/IL&FS, Late 2024-25) and a lower headline CAGR than survivorship-biased tests report.
 
 ---
 
@@ -67,12 +60,18 @@ Positive alpha in **10 of 16 phases**. Highlights:
 ### Prerequisites
 
 - Python 3.10+
-- Zerodha trading account with [Kite Connect API](https://kite.trade) subscription
+- Zerodha trading account with [Kite Connect API](https://kite.trade) subscription (read-only is enough — order APIs aren't used)
+- [nse-universe](https://github.com/javajack/custom-nse-500-historical-data) cloned to `~/work/nse500` (powers backtests; ~680 MB dataset)
 - 15-20L capital recommended (works with less, but position sizing gets tight below 10L)
 
 ### Setup
 
 ```bash
+# Install nse-universe sibling (one-time)
+git clone https://github.com/javajack/custom-nse-500-historical-data.git ~/work/nse500
+cd ~/work/nse500 && uv sync
+
+# Clone this repo
 git clone https://github.com/javajack/stock-rotation.git
 cd stock-rotation
 
@@ -82,62 +81,61 @@ ZERODHA_API_KEY=your_api_key_here
 ZERODHA_API_SECRET=your_api_secret_here
 EOF
 
-# Config (adjust initial_capital, target_positions)
-# config.yaml is tracked with sensible defaults -- edit directly
+# Build the sector map (one-time, regenerate quarterly)
+./start.sh   # first run; installs deps incl. editable nse-universe
+# then, from another shell:
+.venv/bin/python tools/build_sectors.py
 
 # Run
 ./start.sh
 ```
 
-`start.sh` creates a virtual environment, installs dependencies, loads credentials, and launches the CLI. Subsequent runs go straight to the menu.
-
 ### First Session
 
 ```
 1  Login       Authenticate with Zerodha (cached for the day)
-2  Status      View current positions and P&L
+2  Status      Current managed positions, external holdings, P&L
 3  Scan        Rank stocks by momentum
-4  Rebalance   Generate trades (dry-run first, then live)
-5  Backtest    Run historical simulations
+4  Rebalance   Build rebalance plan → writes plans/rebalance_<date>.csv
+5  Backtest    Run historical simulation (uses nse-universe data)
 6  Strategy    Select active strategy
 7  Triggers    Check if rebalance is needed today
-8  Phases      Run the full 16-phase backtest
+8  Phases      Run the 16-phase backtest (2013 → present)
+9  Exit All    Build an equity-exit plan → writes plans/exit_all_<date>.csv
+0  Exit
 ```
+
+**Important: no orders are placed by code.** Post-April-2026 NSE policy requires static-IP whitelisting for API order placement. Options 4 and 9 produce Kite-basket-compatible CSVs; humans paste them into the Kite dashboard (or use Kite's basket-import feature) to execute.
 
 **Recommended first steps:**
 
-1. **Login** (1) -- Authenticate with Zerodha
-2. **Scan** (3) -- See which stocks the system likes right now
-3. **Backtest** (5) -- Run a 12-month backtest to verify everything works
-4. **Triggers** (7) -- Check if today warrants a rebalance
-5. **Rebalance** (4) -- Dry-run first to see the plan, then go live
+1. **Login** (1) — Authenticate with Zerodha
+2. **Status** (2) — See managed / external holdings breakdown
+3. **Scan** (3) — See which stocks the system likes right now
+4. **Phases** (8) — Run the 16-phase backtest to verify reproducibility (~1-2 min)
+5. **Triggers** (7) — Check if today warrants a rebalance
+6. **Rebalance** (4) — Generate today's plan CSV and execute from Kite dashboard
 
 ---
 
 ## System Performance & Cache
 
-### First Run vs. Subsequent Runs
+### Data Sources
 
-The system uses a **smart caching system** that dramatically speeds up all operations. Understanding how it works helps set expectations for first-time setup.
+| Path | Used for | Provider | Cap |
+|------|----------|----------|-----|
+| Live signals / scan / trigger check | OHLCV, LTP, holdings | Kite Connect | ~12-month history (NSE post-April-2026 policy) |
+| Backtest (Option 5, Option 8) | 20-year OHLCV, bias-free | nse-universe parquet via DuckDB | 2005-01-03 → today |
 
-#### **Initial Setup (First Run)**
+Live paths use `.cache/*.parquet` (per-symbol, fetched incrementally from Kite; refreshes T-1 on every run, ~3-5 sec after warm). Backtest paths read `~/work/nse500/data/parquet/` directly — no local copy, no backfill — via `fortress.nse_data_loader.load_historical_for_backtest`.
 
-When you run any operation for the first time, the system needs to fetch historical data from Zerodha's API:
+#### First-run expectations
 
-| Operation | Data Required | Time | What Happens |
-|-----------|---------------|------|--------------|
-| **Scan / Rebalance** | 400 days for 200+ symbols | ~60-90 sec | Fetches 1.5 years of data |
-| **Backtest (1-2 years)** | 400 days | ~60-90 sec | Same as above |
-| **Backtest (3+ years)** | From start date to today | ~3-5 min | Fetches + auto-backfills |
-| **Phase backtest (13 years)** | Dec 2011 to today | ~5-7 min | Full history one time |
-
-**Why the first phase backtest takes 5-7 minutes:**
-1. Fetches recent 400 days (~70 sec)
-2. Detects gap: "Data starts 2024 but need 2011"
-3. Auto-backfills 2011-2024 (~4-5 min)
-4. Saves everything to `.cache/` folder
-
-**This happens only once.** All data is cached locally.
+| Operation | Time | What Happens |
+|-----------|------|--------------|
+| **Login + Scan / Rebalance** | ~1-2 min first time | Kite fetches 400 days × ~200 symbols into `.cache/` |
+| **Phase backtest (13 years)** | ~1-2 min (!) | Single DuckDB query against nse-universe parquet, split-adjusted in-memory |
+| **Daily updates (live)** | ~3-5 sec | Kite fetches T-1 only (incremental) |
 
 #### **Subsequent Runs (After Cache Built)**
 
@@ -301,33 +299,27 @@ If you want to check in:
 ./start.sh
 1  Login
 7  Triggers          (confirm trigger)
-4  Rebalance
-   Mode 1: DRY RUN  (always do this first)
+4  Rebalance         (generates plan, always — no "live" mode)
 ```
 
-Review the dry-run:
-- **SELL orders** -- Do the exits make sense? (stops hit, trend broke, RS fell)
-- **BUY orders** -- High-momentum stocks you're comfortable holding?
-- **Cash Flow** -- Should say "Fully self-funded"
+The plan is printed as a Rich table and also written to `plans/rebalance_<date>.csv`. Review:
 
-If the plan looks good:
+- **SELL orders** — do the exits make sense? (stops hit, trend broke, RS fell)
+- **BUY orders** — high-momentum stocks you're comfortable holding?
+- **Cash Flow** — should say "Fully self-funded"
 
-```
-4  Rebalance
-   Mode 2: LIVE
-   Confirm twice
-```
+If the plan looks good, import it into Zerodha Kite's basket order feature (Settings → Baskets → Create → Import CSV) or key the rows in manually in `seq` order. SELLs always precede BUYs so the basket is cash-neutral.
 
-Sells execute first, then buys. Failed orders are handled gracefully -- failed buys are removed from tracking, failed sells are kept.
+No code-initiated orders. Post-April-2026 NSE policy requires static-IP whitelisting for API order placement; the strategy sidesteps that by making humans the execution layer for a once-a-week / once-a-fortnight rebalance.
 
 ### Weekly Schedule
 
 | When | Action | Menu |
 |------|--------|------|
-| Any weekday | Login + check triggers | 1 -> 7 |
-| If triggered | Dry-run -> review -> live | 1 -> 4 (mode 1, then 2) |
-| Monthly | Run 3-month backtest to verify system health | 1 -> 5 |
-| Quarterly | Run full 16-phase backtest | 1 -> 8 |
+| Any weekday | Login + check triggers | 1 → 7 |
+| If triggered | Generate rebalance CSV → review → import to Kite basket | 1 → 4 |
+| Monthly | Run 3-month backtest to verify system health | 1 → 5 |
+| Quarterly | Run full 16-phase backtest + rebuild sector map | 1 → 8, then `tools/build_sectors.py` |
 
 ### Capital Management
 
@@ -341,10 +333,10 @@ No config edits needed. The system discovers LIQUIDBEES in your broker positions
 
 ### What NOT to Do
 
-- **Don't manually trade managed stocks.** The system tracks positions and will get confused if holdings change outside its knowledge.
+- **Don't manually trade managed stocks between rebalances.** The strategy tracks positions; ad-hoc trades outside the rebalance CSV confuse its state.
 - **Don't rebalance more than once per week** unless a HIGH urgency trigger fires.
 - **Don't panic-sell during drawdowns.** Five defense layers reduce exposure automatically when conditions warrant it.
-- **Don't override the dry-run.** If the plan looks wrong, don't execute. Investigate first.
+- **Don't execute the plan CSV without reviewing it.** If the plan looks wrong — e.g. a sector concentration jumps, or a big SELL on a stock you expected to hold — don't import blindly. Investigate first.
 
 ---
 
@@ -420,17 +412,22 @@ fortress/
     registry.py                 Pluggable strategy registry
   portfolio.py            Portfolio tracking for backtests
   rebalance_executor.py   Trade plan builder (self-funding cycle)
-  order_manager.py        Zerodha order placement (dry-run + live)
+  rebalance_planner.py    Pure plan-builder (SELL → BUY cash-neutral sequencing)
+  plan_render.py          Rich-table + Kite basket CSV output for the plan
   risk_governor.py        Position/sector limits, stop loss tracking
-  market_data.py          Zerodha historical data provider
+  market_data.py          Kite historical data provider (live)
+  nse_data_loader.py      nse-universe parquet loader (backtest, split-adjusted)
   instruments.py          NSE instrument mapping
-  cache.py                Parquet-based data cache with incremental updates
-  universe.py             Stock universe loader (NIFTY 100 + MIDCAP 100)
-  auth.py                 Zerodha authentication (TOTP + request token)
+  cache.py                Per-symbol parquet cache for live Kite data
+  universe.py             Composable Universe (nse-universe + sector map + metadata)
+  auth.py                 Zerodha authentication (request token flow)
   utils.py                Weight renormalization, rate limiting
 tools/
+  build_sectors.py        One-shot sector classifier → stock-sectors.json (4,166 NSE EQ)
   reconcile_state.py      Reconcile strategy state with live broker holdings
-tests/                    201 tests across 10 files
+tests/                    222 tests across 11 files
+stock-sectors.json        Sector/sub-sector for every NSE EQ symbol (~120 KB)
+market-metadata.json      Benchmark, sectoral indices, VIX, hedges (~10 KB)
 ```
 
 **Parity guarantee**: `backtest.py` and `momentum_engine.py` share all defensive logic via `defensive.py` -- gold allocation, vol targeting, breadth scaling, and sector caps are implemented once as pure functions. What you backtest is what you trade.
@@ -441,7 +438,8 @@ All parameters live in `config.yaml`. Key sections:
 
 | Section | Controls |
 |---------|----------|
-| `portfolio` | Initial capital, universe file |
+| `portfolio` | Initial capital, max positions |
+| `universe` | `rank_range` — nse-universe window for tradable pool (default `[1, 200]` = top-200) |
 | `pure_momentum` | NMS lookbacks, entry filters, percentile thresholds |
 | `position_sizing` | Target/min/max positions, sector caps, weighting |
 | `risk` | Stop losses, drawdown limits, position limits |
@@ -470,8 +468,8 @@ See `config.yaml` for all options with inline documentation.
 | **"No drawdown protection"** | Portfolio drawdown >10% triggers defensive regime. Crash avoidance at -5%/-8%. Vol targeting at 15%. Three independent circuit breakers. |
 | **"Backtests are too optimistic"** | Transaction costs included, T-1 data (no lookahead), identical logic in backtest and live engines. |
 | **"How do I add/remove capital?"** | Buy/sell LIQUIDBEES through your broker. System detects it automatically. See [How Capital Works](#how-capital-works). |
-| **"Why is the first run slow?"** | System fetches 13 years of data once (~5-7 min). After that, all operations are <5 sec. See [System Performance & Cache](#system-performance--cache). |
-| **"What if I delete the cache?"** | Fully self-healing. System auto-fetches missing data transparently. Takes 5-7 min to rebuild, then fast again. |
+| **"Why is the first run slow?"** | Backtests query nse-universe parquet directly — roughly 1-2 min for a 13-year phase run. Live scans pull ~400 days of Kite data on first login (~60-90 sec), cached afterwards. See [System Performance & Cache](#system-performance--cache). |
+| **"What if I delete the `.cache/`?"** | Live cache rebuilds on next login (fetches from Kite, ~60-90 sec). Backtests don't use `.cache/` — they read `~/work/nse500/data/parquet/` directly. |
 
 ## Disclaimer
 
@@ -480,7 +478,7 @@ This is a personal project shared for educational purposes. It is **not financia
 - Past backtest performance does not guarantee future results
 - Momentum strategies can underperform in choppy/sideways markets
 - Always do your own research before deploying real capital
-- Start with dry-run mode and small amounts until you're comfortable
+- Execute your first few rebalance CSVs with small amounts until you're comfortable with the flow
 
 The author uses this system with real capital, but your risk tolerance may differ.
 
