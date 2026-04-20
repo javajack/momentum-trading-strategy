@@ -9,10 +9,11 @@
 ## Key Rules
 - Never change strategy logic without running a full phase backtest (Option 8) before and after
 - **Current baseline** (survivorship-free, nse-universe data, 30-day cadence,
-  2013-01-01 → 2026-02-11, re-baselined after rebalance-interval sweep
-  2026-04-21): **+9.7% CAGR, 0.30 Sharpe, −33.4% MaxDD, +238.4% total.**
-  Improvement over the 15-day baseline came mostly from MaxDD reduction
-  (−45.6% → −33.4%); lower turnover dampens whipsaw in crisis phases.
+  real NIFTY 50 benchmark, run 2026-04-22 on f_custom):
+  **+14.3% CAGR, 0.55 Sharpe, −32.5% MaxDD, +476.7% total** (2013-01-01 →
+  2026-02-11, 16 phases). vs real NIFTY 50 CAGR 11.83% over same period —
+  strategy beats by **+2.47 pp/yr**. ₹20L end value: strategy ₹1.15 Cr,
+  NIFTY 50 buy-and-hold ₹86L.
   Old pre-refactor baseline (19.8% CAGR / 0.87 Sharpe / −27.3% MaxDD) was
   survivorship-biased — it ran today's 200-stock winners against historical
   prices, which is the classic "picked the survivors" trap.
@@ -43,13 +44,16 @@
   Rebalance / exit-all ignore external.
 
 ## Known caveats
-- **Benchmark alpha is understated**: the backtest uses NIFTYBEES as a proxy
-  for NIFTY 50 in relative-strength calculations. NIFTYBEES raw bhavcopy
-  misses dividend payouts (~1.5% p.a.), so the printed "NIFTY 50 CAGR" and
-  "Alpha vs NIFTY" columns are cosmetic. Strategy's own CAGR is unaffected.
 - **Sectoral-index momentum filter (E5)** is no-op in backtest: sectoral
   indices (NIFTY BANK, NIFTY IT, etc.) aren't in the parquet. Filter silently
   returns empty. Live mode uses Kite historical for these indices normally.
+  A synthetic (equal-weighted) injection was tried and proved too noisy —
+  regressed CAGR by 2.5pp. The function lives in nse_data_loader.py for
+  future use with proper cap-weighted reconstruction.
+- **Filter toggles available but default off**: `falling_knife_6m_cutoff`
+  and `require_above_12m_sma` in strategy_dual_momentum config. Both were
+  measured to regress CAGR in the 13-year backtest (over-constrain the
+  strategy). Opt in only for specific regime experiments.
 
 ## Run Commands
 - **CLI**: `.venv/bin/python -m fortress` or `./start.sh`
