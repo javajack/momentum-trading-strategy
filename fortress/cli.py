@@ -2190,49 +2190,37 @@ class FortressApp:
         # Data must cover NMS lookback (252 days), 200-day SMA, 52-week high
         required_data_start = (bt_start - relativedelta(months=self._DATA_LOOKBACK_MONTHS)).date()
 
-        historical_data = self.cache.load()
+        # Load from nse-universe parquet — survivorship-bias-free, covers
+        # 2005-present, no Kite rate limit / historical cap to worry about.
+        # Split-adjusted via nse_universe.actions.compute_adj_factor.
+        from .nse_data_loader import load_historical_for_backtest
 
-        # Try update if cache is near-empty
-        if len(historical_data) < 50:
-            console.print("[yellow]Insufficient cached data.[/yellow]")
-            if self.cache.market_data:
-                historical_data = self.cache.load_and_update(lookback_days=4500)
-            else:
-                console.print(
-                    "[yellow]Login first to fetch data, or run "
-                    "Rebalance to populate cache.[/yellow]"
-                )
-                return
+        rank_range = tuple(self.config.universe.rank_range)
+        console.print(
+            f"[cyan]Loading backtest data from nse-universe parquet "
+            f"({required_data_start} → {bt_end.date()}, rank {rank_range}) …[/cyan]"
+        )
+        with console.status("[bold green]Querying parquet archive..."):
+            historical_data = load_historical_for_backtest(
+                start=required_data_start,
+                end=bt_end.date(),
+                rank_range=rank_range,
+            )
 
         if len(historical_data) < 50:
-            console.print("[red]Failed to load sufficient data[/red]")
+            console.print(
+                "[red]nse-universe returned too few symbols "
+                f"({len(historical_data)}). Ensure ~/work/nse500 is synced.[/red]"
+            )
             return
 
-        console.print(f"[green]Loaded {len(historical_data)} symbols[/green]")
+        console.print(
+            f"[green]Loaded {len(historical_data)} symbols from nse-universe[/green]"
+        )
 
-        # Check earliest data point; backfill if needed
         earliest = min(df.index[0] for df in historical_data.values() if len(df) > 0)
         latest = max(df.index[-1] for df in historical_data.values() if len(df) > 0)
         console.print(f"Data range: {earliest.date()} to {latest.date()}")
-
-        if earliest.date() > required_data_start:
-            if self.cache.market_data:
-                console.print(
-                    f"[cyan]Data starts {earliest.date()} but need "
-                    f"{required_data_start} — backfilling …[/cyan]"
-                )
-                backfilled = self.cache.backfill_history(required_data_start)
-                if backfilled > 0:
-                    # Reload from the now-updated session cache
-                    historical_data = self.cache.data
-                    earliest = min(df.index[0] for df in historical_data.values() if len(df) > 0)
-                    console.print(f"[green]Data now starts {earliest.date()}[/green]")
-            else:
-                console.print(
-                    f"[yellow]Data only starts {earliest.date()}; "
-                    f"login (Option 1) to auto-fetch older history back to "
-                    f"{required_data_start} for better early-phase coverage.[/yellow]"
-                )
 
         # ---- Determine effective phases based on available data ----
         # NMS requires ~252 trading days from data start before positions begin.
