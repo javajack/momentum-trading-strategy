@@ -198,4 +198,19 @@ def load_historical_for_backtest(
         "backtest symbol union %s-%s rank (%d,%d): %d symbols",
         start, end, wide_lo, wide_hi, len(symbols),
     )
-    return load_historical_bulk(start, end, symbols=symbols, apply_adj=True)
+    data = load_historical_bulk(start, end, symbols=symbols, apply_adj=True)
+
+    # Inject NIFTYBEES as a proxy for "NIFTY 50" so the strategy's relative-
+    # strength filter has a benchmark series. NIFTYBEES tracks NIFTY 50
+    # within ~0.01% and is in the parquet as a regular EQ instrument — the
+    # index itself isn't (parquet is bhavcopy EQ only). Without this, the
+    # strategy defaults RS to 1.0 and rejects every stock at the RS gate.
+    bench_sym = "NIFTYBEES"
+    if bench_sym not in data:
+        bench = load_historical_bulk(start, end, symbols=[bench_sym], apply_adj=True)
+        if bench_sym in bench:
+            data[bench_sym] = bench[bench_sym]
+    if bench_sym in data:
+        data["NIFTY 50"] = data[bench_sym]
+
+    return data
