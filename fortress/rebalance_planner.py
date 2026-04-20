@@ -1,19 +1,23 @@
 """
-Rebalance execution bridge - connects rebalance calculation with order placement.
+Rebalance planner — computes trade plans without placing any orders.
 
-Enforces invariants:
-- O1: Dry-run is default mode
-- O2: Live orders require explicit confirmation
-- R9: Sells execute before buys
+Post-April-2026 Zerodha policy requires static-IP whitelisting for order
+placement. This codebase no longer calls `kite.place_order`. Instead, the
+planner produces a deterministic SELL-first / BUY-after trade list that
+humans execute manually from the Kite dashboard (or import as a basket CSV
+via fortress.plan_render).
+
+Invariants preserved from the old executor:
+- R9: Sells-before-buys (cash-neutral sequencing)
+- Sector-aware ordering and position-count tracking
 """
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from .config import RiskConfig
 from .instruments import InstrumentMapper
-from .order_manager import OrderManager, OrderResult, OrderType
 from .portfolio import Portfolio, Position
 from .utils import calculate_order_quantity, format_currency
 
@@ -109,46 +113,29 @@ class RebalancePlan:
         )
 
 
-@dataclass
-class ExecutionResult:
-    """Results of plan execution."""
+class RebalancePlanner:
+    """Builds a RebalancePlan from target weights and current holdings.
 
-    successes: List[OrderResult] = field(default_factory=list)
-    failures: List[OrderResult] = field(default_factory=list)
-
-    @property
-    def all_succeeded(self) -> bool:
-        """Check if all orders succeeded."""
-        return len(self.failures) == 0
-
-
-class RebalanceExecutor:
-    """Bridges rebalance calculation with order execution."""
+    Pure computation — no side effects, no API calls. Every call to
+    ``build_plan`` is independent.
+    """
 
     def __init__(
         self,
-        kite,
         portfolio: Portfolio,
         instrument_mapper: InstrumentMapper,
-        order_manager: OrderManager,
         universe,
         risk_config: RiskConfig = None,
     ):
         """
-        Initialize rebalance executor.
-
         Args:
-            kite: Authenticated KiteConnect instance
-            portfolio: Portfolio instance
-            instrument_mapper: InstrumentMapper instance
-            order_manager: OrderManager instance
+            portfolio: Portfolio (for sector / position lookups)
+            instrument_mapper: InstrumentMapper (resolves sector labels for hedges)
             universe: Universe instance
             risk_config: Risk configuration for position limits
         """
-        self.kite = kite
         self.portfolio = portfolio
         self.mapper = instrument_mapper
-        self.order_manager = order_manager
         self.universe = universe
         self.risk_config = risk_config or RiskConfig()
 
@@ -546,100 +533,10 @@ class RebalanceExecutor:
 
         return plan
 
-    def execute_plan(
-        self,
-        plan: RebalancePlan,
-        progress_callback: Optional[Callable] = None,
-    ) -> ExecutionResult:
+    def ordered_trades(self, plan: RebalancePlan) -> List[PlannedTrade]:
+        """Return trades in safe execution order (SELL → BUY_NEW → BUY_INCREASE).
+
+        This ordering is cash-neutral: proceeds from sells fund buys, same
+        sequencing the old executor used when it placed orders live.
         """
-        Execute the rebalance plan with proper sequencing.
-
-        R9: Sells execute before buys.
-
-        Args:
-            plan: RebalancePlan to execute
-            progress_callback: Optional callback(order, result) for progress updates
-
-        Returns:
-            ExecutionResult with successes and failures
-        """
-        result = ExecutionResult()
-
-        # Get current state for validation
-        snapshot = self.portfolio.get_snapshot()
-        sector_exposures = {}
-        position_values = {}
-
-        # External ETFs not managed by strategy - exclude from position count
-        external_etfs = {
-            "NIFTYBEES",
-            "JUNIORBEES",
-            "MID150BEES",
-            "HDFCSML250",
-            "HANGSENGBEES",
-            "HNGSNGBEES",
-            "LIQUIDCASE",
-        }
-
-        # Track managed position count (excluding external ETFs)
-        managed_positions = set()
-        for symbol, pos in snapshot.positions.items():
-            sector_exposures[pos.sector] = sector_exposures.get(pos.sector, 0) + pos.value
-            position_values[symbol] = pos.value
-            if symbol not in external_etfs:
-                managed_positions.add(symbol)
-
-        current_position_count = len(managed_positions)
-
-        # Execute in order: Sells -> New buys -> Increases (R9)
-        all_trades = plan.sell_trades + plan.buy_new_trades + plan.buy_increase_trades
-
-        for trade in all_trades:
-            order_type = OrderType.SELL if trade.is_sell else OrderType.BUY
-            order = self.order_manager.create_order(
-                symbol=trade.symbol,
-                order_type=order_type,
-                quantity=trade.quantity,
-                price=trade.price,
-                sector=trade.sector,
-            )
-
-            order_result = self.order_manager.place_order(
-                order=order,
-                portfolio_value=snapshot.total_value,
-                current_position_value=position_values.get(trade.symbol, 0),
-                current_sector_value=sector_exposures.get(trade.sector, 0),
-                current_positions=current_position_count,
-            )
-
-            if progress_callback:
-                progress_callback(order, order_result)
-
-            if order_result.success:
-                result.successes.append(order_result)
-                # Update tracking for subsequent orders
-                if trade.is_sell:
-                    sector_exposures[trade.sector] = max(
-                        0, sector_exposures.get(trade.sector, 0) - trade.value
-                    )
-                    old_value = position_values.get(trade.symbol, 0)
-                    new_value = max(0, old_value - trade.value)
-                    position_values[trade.symbol] = new_value
-                    # If position fully sold, decrement count
-                    if old_value > 0 and new_value == 0 and trade.symbol in managed_positions:
-                        managed_positions.discard(trade.symbol)
-                        current_position_count = len(managed_positions)
-                else:
-                    sector_exposures[trade.sector] = (
-                        sector_exposures.get(trade.sector, 0) + trade.value
-                    )
-                    old_value = position_values.get(trade.symbol, 0)
-                    position_values[trade.symbol] = old_value + trade.value
-                    # If new position, increment count
-                    if old_value == 0 and trade.symbol not in external_etfs:
-                        managed_positions.add(trade.symbol)
-                        current_position_count = len(managed_positions)
-            else:
-                result.failures.append(order_result)
-
-        return result
+        return plan.sell_trades + plan.buy_new_trades + plan.buy_increase_trades

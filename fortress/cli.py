@@ -20,7 +20,7 @@ from dateutil.relativedelta import relativedelta
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
-from rich.prompt import Confirm, Prompt
+from rich.prompt import Prompt
 from rich.table import Table
 
 from .auth import AuthenticationError, ZerodhaAuth
@@ -37,13 +37,12 @@ from .indicators import (
 from .instruments import InstrumentMapper
 from .market_data import MarketDataProvider
 from .momentum_engine import MomentumEngine
-from .order_manager import OrderManager, OrderType
+from .plan_render import render_console as render_plan_console, write_basket_csv
 from .portfolio import Portfolio, Position
-from .rebalance_executor import (
-    ExecutionResult,
+from .rebalance_planner import (
     PlannedTrade,
-    RebalanceExecutor,
     RebalancePlan,
+    RebalancePlanner,
     TradeAction,
 )
 from .risk_governor import RiskGovernor
@@ -495,37 +494,18 @@ class FortressApp:
             console.print(f"[red]Error: {e}[/red]")
 
     def _do_rebalance_interactive(self):
-        """Interactive wrapper for rebalance with execution mode selection."""
+        """Generate a rebalance plan. Since post-April-2026 Zerodha policy
+        blocks API order placement for non-whitelisted IPs, there is no
+        "live" execution path any more — the plan is printed to the console
+        and also written as a Kite basket CSV for manual import / entry."""
         strategy_name = self.active_strategy.upper()
-        console.print(Panel(f"Rebalance Portfolio ({strategy_name})", style="bright_blue"))
+        console.print(Panel(f"Rebalance plan ({strategy_name})", style="bright_blue"))
+        self._do_rebalance()
 
-        # Prompt for execution mode
-        console.print("[bold white]Execution Mode:[/bold white]")
-        console.print(
-            "  [bold bright_cyan]1[/bold bright_cyan] [dim]─[/dim] Dry Run [dim](show plan only, no orders placed)[/dim]"
-        )
-        console.print(
-            "  [bold bright_yellow]2[/bold bright_yellow] [dim]─[/dim] Live [dim](place real orders with confirmation)[/dim]"
-        )
-        console.print()
-
-        mode_choice = Prompt.ask("Select mode", choices=["1", "2"], default="1")
-
-        if mode_choice == "1":
-            console.print("[bright_cyan]► DRY-RUN mode[/bright_cyan]\n")
-            self._do_rebalance(dry_run=True)
-        else:
-            console.print(
-                "[bold bright_yellow]► LIVE mode - orders will be placed![/bold bright_yellow]\n"
-            )
-            self._do_rebalance(dry_run=False)
-
-    def _do_rebalance(self, dry_run: bool = True):
-        """Generate rebalance orders using same logic as backtest."""
+    def _do_rebalance(self):
+        """Build a rebalance plan (SELL-first, BUY-after) and render it to
+        the console + a CSV file. No orders are placed."""
         strategy_name = self.active_strategy.upper()
-        mode_text = "DRY RUN" if dry_run else "LIVE"
-        mode_style = "bright_blue" if dry_run else "bold bright_red"
-        console.print(Panel(f"Rebalance ({strategy_name}) - {mode_text}", style=mode_style))
 
         if not self._ensure_auth():
             return
@@ -911,16 +891,10 @@ class FortressApp:
             # Note: Gold skip logic is handled by select_portfolio_with_regime() via
             # _should_skip_gold() using the config-driven gold_skip_logic setting.
 
-            # Build execution plan with quantities
-            executor = RebalanceExecutor(
-                kite=self.kite,
+            # Build rebalance plan (pure computation — no Kite calls).
+            planner = RebalancePlanner(
                 portfolio=self.portfolio,
                 instrument_mapper=self.market_data.mapper,
-                order_manager=OrderManager(
-                    self.kite,
-                    RiskGovernor(self.config.risk, self.config.portfolio),
-                    dry_run=dry_run,
-                ),
                 universe=self.universe,
                 risk_config=self.config.risk,
             )
@@ -970,7 +944,7 @@ class FortressApp:
                         target_weights = {k: v * scale for k, v in target_weights.items()}
                         console.print(f"[dim]  Weights renormalized after exits[/dim]")
 
-            plan = executor.build_plan(
+            plan = planner.build_plan(
                 target_weights=target_weights,
                 current_holdings=managed_holdings,
                 managed_capital=managed_capital,
@@ -1032,54 +1006,27 @@ class FortressApp:
 
             self._save_strategy_state(list(all_managed), final_peak_prices)
 
-            # Check market hours for live execution
-            if not dry_run:
-                market_open, market_msg = validate_market_hours()
-                if not market_open:
-                    console.print(f"\n[bright_yellow]⚠ {market_msg}[/bright_yellow]")
-                    console.print("[dim]Orders cannot be placed outside market hours[/dim]")
-                    return
-
-                # Double confirmation flow
-                exec_result = self._execute_with_confirmation(executor, plan)
-
-                if exec_result is None:
-                    # User cancelled — don't save rebalance date or regime
-                    return
-
-                # Reconcile state based on actual execution results
-                if exec_result.failures:
-                    failed_value = 0.0
-                    for order_result in exec_result.failures:
-                        o = order_result.order
-                        if o.order_type == OrderType.BUY:
-                            # Failed buy: remove from managed if it wasn't already held
-                            if o.symbol not in current_managed:
-                                all_managed.discard(o.symbol)
-                                final_peak_prices.pop(o.symbol, None)
-                            failed_value += o.value
-                        elif o.order_type == OrderType.SELL:
-                            # Failed sell: symbol is still held
-                            all_managed.add(o.symbol)
-
-                    if failed_value > 0:
-                        console.print(
-                            f"\n[bold bright_yellow]⚠ {format_currency(failed_value)} "
-                            f"from failed buy orders remains as demat cash — "
-                            f"buy {self.config.regime.cash_symbol} to redeploy[/bold bright_yellow]"
-                        )
-
-                # After live execution, persist rebalance date and regime for trigger checks
-                regime_value = regime.regime.value if regime else None
-                self._save_strategy_state(
-                    list(all_managed),
-                    final_peak_prices,
-                    last_rebalance_date=date.today().isoformat(),
-                    last_regime=regime_value,
+            # Write the plan as a Kite basket CSV. Humans execute it manually
+            # from the dashboard; we no longer place orders via the API.
+            if plan.trades:
+                csv_path = Path("plans") / f"rebalance_{date.today().isoformat()}.csv"
+                rows = write_basket_csv(plan, csv_path)
+                console.print(
+                    f"\n[green]✓ Plan saved: {csv_path} ({rows} trade{'s' if rows != 1 else ''})[/green]"
                 )
-            else:
-                console.print("\n[bright_cyan]─── Dry-run complete ───[/bright_cyan]")
-                console.print("[dim]Select Live mode (option 2) to place orders[/dim]")
+                console.print(
+                    "[dim]  SELL-first, then BUY. Execute in `seq` order via Kite basket import "
+                    "or manual entry.[/dim]"
+                )
+
+            # Persist rebalance date + regime so trigger checks know a plan ran.
+            regime_value = regime.regime.value if regime else None
+            self._save_strategy_state(
+                list(all_managed),
+                final_peak_prices,
+                last_rebalance_date=date.today().isoformat(),
+                last_regime=regime_value,
+            )
 
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
@@ -1374,125 +1321,6 @@ class FortressApp:
                 f"  [dim]Capital injection:[/dim] [bright_cyan]{format_currency(plan.demat_cash_deployed)}[/bright_cyan] [dim](demat cash → LIQUIDBEES)[/dim]"
             )
 
-    def _execute_with_confirmation(
-        self, executor: RebalanceExecutor, plan: RebalancePlan
-    ) -> Optional[ExecutionResult]:
-        """Execute plan with double confirmation.
-
-        Returns:
-            ExecutionResult if execution happened, None if cancelled or no trades.
-        """
-        if not plan.trades:
-            console.print("[dim]No trades to execute[/dim]")
-            return None
-
-        console.print("\n[bold bright_yellow]═══ CONFIRMATION REQUIRED ═══[/bold bright_yellow]")
-        console.print(f"[white]Total orders:[/white] [bold]{len(plan.trades)}[/bold]")
-        console.print(
-            f"  [bright_red]SELL:[/bright_red]     {len(plan.sell_trades)} orders ({format_currency(plan.total_sell_value)})"
-        )
-        console.print(f"  [bright_green]BUY NEW:[/bright_green]  {len(plan.buy_new_trades)} orders")
-        console.print(
-            f"  [bright_cyan]INCREASE:[/bright_cyan] {len(plan.buy_increase_trades)} orders"
-        )
-        console.print(f"  [dim]Total buy:[/dim] {format_currency(plan.total_buy_value)}")
-
-        # First confirmation
-        if not Confirm.ask(
-            "\n[bold bright_white]Proceed with order placement?[/bold bright_white]", default=False
-        ):
-            console.print("[bright_yellow]Cancelled by user[/bright_yellow]")
-            return None
-
-        # Second confirmation - type CONFIRM
-        console.print("\n[bold bright_red]⚠ FINAL CONFIRMATION ⚠[/bold bright_red]")
-        console.print("[white]This will place REAL orders with your broker.[/white]")
-        confirm_text = Prompt.ask(
-            "Type [bold bright_white]CONFIRM[/bold bright_white] to execute", default=""
-        )
-
-        if confirm_text.strip().upper() != "CONFIRM":
-            console.print("[bright_yellow]Cancelled - did not type CONFIRM[/bright_yellow]")
-            return None
-
-        # Execute with progress
-        console.print("\n[bold bright_green]Executing orders...[/bold bright_green]")
-
-        with Progress(
-            SpinnerColumn(style="bright_cyan"),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(complete_style="bright_green", finished_style="bright_green"),
-            TaskProgressColumn(),
-            console=console,
-        ) as progress:
-            task = progress.add_task("[bright_cyan]Placing orders...", total=len(plan.trades))
-
-            def on_order_complete(order, result):
-                status = (
-                    "[bright_green]✓[/bright_green]"
-                    if result.success
-                    else "[bright_red]✗[/bright_red]"
-                )
-                msg = "" if result.success else f" [dim]- {result.message}[/dim]"
-                progress.update(
-                    task,
-                    advance=1,
-                    description=f"{status} {order.symbol} {order.order_type.value}{msg}",
-                )
-
-            result = executor.execute_plan(plan, progress_callback=on_order_complete)
-
-        # Show results
-        self._display_execution_results(result)
-        return result
-
-    def _display_execution_results(self, result: ExecutionResult):
-        """Display execution results with errors prominently shown."""
-        console.print("\n[bold bright_white]═══ EXECUTION RESULTS ═══[/bold bright_white]")
-
-        if result.successes:
-            console.print(
-                f"\n[bold bright_green]Successful Orders ({len(result.successes)}):[/bold bright_green]"
-            )
-            for order_result in result.successes:
-                o = order_result.order
-                console.print(
-                    f"  [bright_green]✓[/bright_green] {o.symbol}: {o.order_type.value} "
-                    f"{o.quantity} @ {format_currency(o.price or 0)}"
-                )
-                if o.order_id:
-                    console.print(f"    [dim]Order ID: {o.order_id}[/dim]")
-
-        if result.failures:
-            console.print(
-                f"\n[bold bright_red]Failed Orders ({len(result.failures)}):[/bold bright_red]"
-            )
-            for order_result in result.failures:
-                o = order_result.order
-                console.print(
-                    f"  [bright_red]✗[/bright_red] {o.symbol}: {o.order_type.value} {o.quantity}"
-                )
-                console.print(f"    [red]Error: {order_result.message}[/red]")
-
-        # Summary
-        console.print(f"\n[bold bright_white]Summary:[/bold bright_white]")
-        console.print(
-            f"  [dim]Succeeded:[/dim] [bold bright_green]{len(result.successes)}[/bold bright_green]"
-        )
-        console.print(
-            f"  [dim]Failed:[/dim]    [bold bright_red]{len(result.failures)}[/bold bright_red]"
-        )
-
-        if result.failures:
-            console.print(
-                "\n[bright_yellow]⚠ Some orders failed. Please review errors above "
-                "and handle manually if needed.[/bright_yellow]"
-            )
-        elif result.successes:
-            console.print(
-                "\n[bold bright_green]✓ All orders placed successfully![/bold bright_green]"
-            )
-
     def _do_exit_all(self):
         """Exit all managed equity positions and sweep proceeds into LIQUIDBEES."""
         console.print(
@@ -1592,33 +1420,20 @@ class FortressApp:
             # Display the plan
             self._display_execution_plan(plan)
 
-            # Validate market hours
-            market_open, market_msg = validate_market_hours()
-            if not market_open:
-                console.print(f"\n[bright_yellow]⚠ {market_msg}[/bright_yellow]")
-                console.print("[dim]Orders cannot be placed outside market hours[/dim]")
-                return
+            # Write exit-all plan as a Kite basket CSV — SELLs for every equity
+            # position, plus the LIQUIDBEES sweep. Manual execution from Kite
+            # dashboard / basket import.
+            if plan.trades:
+                csv_path = Path("plans") / f"exit_all_{date.today().isoformat()}.csv"
+                rows = write_basket_csv(plan, csv_path)
+                console.print(
+                    f"\n[green]✓ Exit plan saved: {csv_path} ({rows} trades)[/green]"
+                )
+                console.print(
+                    "[dim]  Execute SELLs first, then BUY LIQUIDBEES to sweep proceeds.[/dim]"
+                )
 
-            # Execute with double confirmation
-            executor = RebalanceExecutor(
-                kite=self.kite,
-                portfolio=self.portfolio,
-                instrument_mapper=self.market_data.mapper,
-                order_manager=OrderManager(
-                    self.kite,
-                    RiskGovernor(self.config.risk, self.config.portfolio),
-                    dry_run=False,
-                ),
-                universe=self.universe,
-                risk_config=self.config.risk,
-            )
-
-            exec_result = self._execute_with_confirmation(executor, plan)
-
-            if exec_result is None:
-                return
-
-            # Update strategy state: clear equity positions, keep only defensive symbols
+            # Update strategy state: clear equity positions, keep defensive.
             remaining_managed = []
             remaining_peaks = {}
             strategy_state = self._load_strategy_state()
@@ -2980,13 +2795,11 @@ def main(config):
 
 @click.group()
 @click.option("--config", "-c", default="config.yaml", help="Config file path")
-@click.option("--dry-run/--live", default=True, help="Dry run mode")
 @click.pass_context
-def cli(ctx, config, dry_run):
+def cli(ctx, config):
     """FORTRESS MOMENTUM - Pure Momentum Strategy CLI"""
     ctx.ensure_object(dict)
     ctx.obj["config_path"] = config
-    ctx.obj["dry_run"] = dry_run
 
 
 @cli.command()
@@ -3066,14 +2879,12 @@ def backtest(ctx):
 
 
 @cli.command()
-@click.option("--confirm", is_flag=True, help="Confirm live orders")
 @click.pass_context
-def rebalance(ctx, confirm):
-    """Execute rebalance."""
+def rebalance(ctx):
+    """Build a rebalance plan and write it as a Kite basket CSV (no orders placed)."""
     app = FortressApp(ctx.obj["config_path"])
     app._load_config()
     app._load_universe()
-    # Authenticate using cached token
     if app.config.zerodha.api_key:
         app.auth = ZerodhaAuth(app.config.zerodha.api_key, app.config.zerodha.api_secret)
         try:
@@ -3085,8 +2896,7 @@ def rebalance(ctx, confirm):
         except Exception as e:
             console.print(f"[red]Authentication failed: {e}[/red]")
             return
-    dry_run = ctx.obj["dry_run"] or not confirm
-    app._do_rebalance(dry_run=dry_run)
+    app._do_rebalance()
 
 
 if __name__ == "__main__":
