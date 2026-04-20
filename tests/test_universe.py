@@ -28,10 +28,9 @@ class TestUniverseLoading:
         assert universe is not None
 
     def test_metadata_present(self, universe):
-        """D1: Metadata is present."""
+        """D1: Metadata is present (composed from market-metadata.json)."""
         assert universe.metadata is not None
         assert "version" in universe.metadata
-        assert "total_stocks" in universe.metadata
 
     def test_benchmark_present(self, universe):
         """D1: Benchmark index is present."""
@@ -51,9 +50,16 @@ class TestStockIntegrity:
             assert stock.api_format.startswith("NSE:"), f"{stock.ticker} bad api_format"
 
     def test_stock_count(self, universe):
-        """Verify expected stock count (NIFTY100 + MIDCAP100)."""
+        """Rank-200 window returns near-200 stocks after ETF filter.
+
+        nse-universe's rank_range=(1,200) delivers 200 symbols, but a
+        handful are index/ETF instruments (NIFTYBEES, GOLDBEES etc.)
+        that the DEFENSIVE/COMMODITIES/DEBT filter strips out. Keep
+        tolerance wide: the window aims at equities and the count
+        drifts as new ETFs earn liquidity rank.
+        """
         stocks = universe.get_all_stocks()
-        assert len(stocks) == 200, f"Expected 200 stocks, got {len(stocks)}"
+        assert 170 <= len(stocks) <= 200, f"unexpected universe size: {len(stocks)}"
 
     def test_no_duplicate_tickers(self, universe):
         """D4: No duplicate tickers in universe."""
@@ -61,36 +67,34 @@ class TestStockIntegrity:
         assert len(tickers) == len(set(tickers)), "Duplicate tickers found"
 
 
-class TestUniverseFiltering:
-    """Test universe filtering by sub-universe."""
+class TestRankRange:
+    """The rank_range knob picks different slices of the nse-universe."""
 
-    def test_filter_primary(self):
-        """Filter to NIFTY100 + MIDCAP100 returns ~200 stocks."""
-        project_root = Path(__file__).parent.parent
-        universe_path = project_root / "stock-universe.json"
-        u = Universe(str(universe_path), filter_universes=["NIFTY100", "MIDCAP100"])
+    def test_default_is_top_200(self):
+        u = Universe()
         stocks = u.get_all_stocks()
-        assert len(stocks) == 200, f"Expected 200 stocks, got {len(stocks)}"
+        # After ETF filter, a top-200 window yields roughly 180-200 equities.
+        assert 170 <= len(stocks) <= 200
 
-    def test_filter_preserves_hedges(self):
-        """Hedges are always included regardless of filter."""
-        project_root = Path(__file__).parent.parent
-        universe_path = project_root / "stock-universe.json"
-        u = Universe(str(universe_path), filter_universes=["NIFTY100"])
+    def test_narrower_range_yields_fewer(self):
+        top50 = Universe(rank_range=(1, 50))
+        top200 = Universe(rank_range=(1, 200))
+        assert len(top50.get_all_stocks()) < len(top200.get_all_stocks())
+
+    def test_midcap_window_different_from_large_cap(self):
+        top100 = set(s.ticker for s in Universe(rank_range=(1, 100)).get_all_stocks())
+        midcap = set(s.ticker for s in Universe(rank_range=(101, 250)).get_all_stocks())
+        # Disjoint windows — no overlap.
+        assert top100.isdisjoint(midcap)
+
+    def test_hedges_always_available_regardless_of_rank_range(self):
+        u = Universe(rank_range=(1, 50))  # tight window
         gold = u.get_hedge("gold")
         assert gold is not None
         assert gold["symbol"] == "GOLDBEES"
-        # Hedge tickers should be in stock cache
+        # Hedge ticker is lookable even if not in rank window.
         goldbees = u.get_stock("GOLDBEES")
         assert goldbees is not None
-
-    def test_no_filter_loads_all(self):
-        """No filter loads all stocks."""
-        project_root = Path(__file__).parent.parent
-        universe_path = project_root / "stock-universe.json"
-        u = Universe(str(universe_path))
-        stocks = u.get_all_stocks()
-        assert len(stocks) == 200
 
 
 class TestSectorData:
@@ -133,17 +137,10 @@ class TestSectorSummary:
         assert len(fin_stocks) == actual_counts.get("FINANCIALS", 0)
 
 
-class TestETFAndHedges:
-    """Test ETF and hedge instrument data."""
-
-    def test_sector_etf_available(self, universe):
-        """ETFs available for key sectors."""
-        fin_etf = universe.get_sector_etf("FINANCIALS")
-        assert fin_etf is not None
-        assert fin_etf.symbol == "BANKBEES"
+class TestHedges:
+    """Hedge instrument registry (sector ETFs live in a different codebase)."""
 
     def test_hedge_instruments(self, universe):
-        """Hedge instruments are defined."""
         gold = universe.get_hedge("gold")
         assert gold is not None
         assert gold["symbol"] == "GOLDBEES"

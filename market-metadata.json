@@ -1,0 +1,301 @@
+{
+  "benchmark": {
+    "api_format": "NSE:NIFTY 50",
+    "description": "NSE NIFTY 50 Index - Top 50 large cap stocks",
+    "exchange": "NSE",
+    "instrument_token": 256265,
+    "instrument_type": "INDEX",
+    "segment": "INDICES",
+    "symbol": "NIFTY 50",
+    "zerodha_symbol": "NIFTY 50"
+  },
+  "broad_market_indices": {
+    "INDIA_VIX": {
+      "api_format": "NSE:INDIA VIX",
+      "description": "Volatility index - market fear gauge",
+      "exchange": "NSE",
+      "instrument_token": 264969,
+      "segment": "INDICES",
+      "symbol": "INDIA VIX",
+      "zerodha_symbol": "INDIA VIX"
+    },
+    "NIFTY_100": {
+      "api_format": "NSE:NIFTY 100",
+      "description": "Top 100 companies by market cap",
+      "exchange": "NSE",
+      "instrument_token": 260617,
+      "segment": "INDICES",
+      "symbol": "NIFTY 100",
+      "zerodha_symbol": "NIFTY 100"
+    },
+    "NIFTY_50": {
+      "api_format": "NSE:NIFTY 50",
+      "description": "Top 50 large cap companies",
+      "exchange": "NSE",
+      "instrument_token": 256265,
+      "segment": "INDICES",
+      "symbol": "NIFTY 50",
+      "zerodha_symbol": "NIFTY 50"
+    },
+    "NIFTY_MIDCAP_100": {
+      "api_format": "NSE:NIFTY MIDCAP 100",
+      "description": "Top 100 midcap companies",
+      "exchange": "NSE",
+      "instrument_token": 256777,
+      "segment": "INDICES",
+      "symbol": "NIFTY MIDCAP 100",
+      "zerodha_symbol": "NIFTY MIDCAP 100"
+    },
+    "NIFTY_MIDCAP_50": {
+      "api_format": "NSE:NIFTY MIDCAP 50",
+      "description": "Top 50 midcap companies",
+      "exchange": "NSE",
+      "instrument_token": 260873,
+      "segment": "INDICES",
+      "symbol": "NIFTY MIDCAP 50",
+      "zerodha_symbol": "NIFTY MIDCAP 50"
+    },
+    "NIFTY_NEXT_50": {
+      "api_format": "NSE:NIFTY JUNIOR",
+      "description": "Stocks ranked 51-100 by market cap",
+      "exchange": "NSE",
+      "instrument_token": 260361,
+      "segment": "INDICES",
+      "symbol": "NIFTY JUNIOR",
+      "zerodha_symbol": "NIFTY JUNIOR"
+    }
+  },
+  "hedges": {
+    "cash": {
+      "api_format": "NSE:LIQUIDBEES",
+      "description": "Liquid ETF - overnight rate returns, cash equivalent for margin",
+      "exchange": "NSE",
+      "fund_house": "Nippon India",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "symbol": "LIQUIDBEES",
+      "zerodha_symbol": "LIQUIDBEES"
+    },
+    "cash_liquid": {
+      "api_format": "NSE:LIQUIDCASE",
+      "description": "Liquid fund ETF - cash equivalent for defensive allocation",
+      "exchange": "NSE",
+      "fund_house": "ICICI Prudential",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "symbol": "LIQUIDCASE",
+      "zerodha_symbol": "LIQUIDCASE"
+    },
+    "gold": {
+      "api_format": "NSE:GOLDBEES",
+      "description": "Gold ETF - tracks domestic gold prices",
+      "exchange": "NSE",
+      "fund_house": "Nippon India",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "symbol": "GOLDBEES",
+      "zerodha_symbol": "GOLDBEES"
+    },
+    "international": {
+      "alternate_symbols": [
+        "N100"
+      ],
+      "api_format": "NSE:MON100",
+      "description": "NASDAQ 100 ETF - US tech exposure",
+      "exchange": "NSE",
+      "fund_house": "Motilal Oswal",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "symbol": "MON100",
+      "zerodha_symbol": "MON100"
+    },
+    "silver": {
+      "api_format": "NSE:SILVERBEES",
+      "description": "Silver ETF",
+      "exchange": "NSE",
+      "fund_house": "Nippon India",
+      "instrument_type": "EQ",
+      "segment": "EQ",
+      "symbol": "SILVERBEES",
+      "zerodha_symbol": "SILVERBEES"
+    }
+  },
+  "metadata": {
+    "description": "Broad + sectoral index tokens, VIX, hedges. Stock membership lives in nse-universe; sector classification in stock-sectors.json.",
+    "generated_from": {
+      "created_at": "2026-01-29",
+      "description": "FORTRESS MOMENTUM Universe - Enhanced with Zerodha Kite API compatible symbols",
+      "last_updated": "2026-02-09",
+      "notes": {
+        "etf_segment": "ETFs use segment='EQ' and can be traded like regular stocks",
+        "index_segment": "Indices use segment='INDICES' in Zerodha instruments dump",
+        "sector_update": "Added AUTOMOBILES sector for auto OEMs and components",
+        "zerodha_api_usage": "Use exchange:tradingsymbol format for API calls (e.g., 'NSE:NIFTY 50' for indices, 'NSE:RELIANCE' for stocks)"
+      },
+      "schema_version": "2025-01",
+      "source": "NSE Index Constituents - NIFTY 100 + NIFTY MIDCAP 100",
+      "total_stocks": 200,
+      "version": "2.0"
+    },
+    "version": "1.0"
+  },
+  "sectoral_indices": {
+    "NIFTY_AUTO": {
+      "api_format": "NSE:NIFTY AUTO",
+      "description": "Automobile and auto components",
+      "exchange": "NSE",
+      "instrument_token": 263433,
+      "maps_to_sector": "AUTOMOBILES",
+      "segment": "INDICES",
+      "symbol": "NIFTY AUTO",
+      "zerodha_symbol": "NIFTY AUTO"
+    },
+    "NIFTY_BANK": {
+      "api_format": "NSE:NIFTY BANK",
+      "description": "Banking sector index - top 12 banks",
+      "exchange": "NSE",
+      "instrument_token": 260105,
+      "maps_to_sector": "FINANCIALS",
+      "segment": "INDICES",
+      "symbol": "NIFTY BANK",
+      "zerodha_symbol": "NIFTY BANK"
+    },
+    "NIFTY_COMMODITIES": {
+      "api_format": "NSE:NIFTY COMMODITIES",
+      "description": "Commodities theme",
+      "exchange": "NSE",
+      "instrument_token": 257289,
+      "maps_to_sector": "MATERIALS",
+      "segment": "INDICES",
+      "symbol": "NIFTY COMMODITIES",
+      "zerodha_symbol": "NIFTY COMMODITIES"
+    },
+    "NIFTY_CONSUMPTION": {
+      "api_format": "NSE:NIFTY CONSUMPTION",
+      "description": "Consumer consumption theme",
+      "exchange": "NSE",
+      "instrument_token": 257545,
+      "maps_to_sector": "CONSUMER_DISCRETIONARY",
+      "segment": "INDICES",
+      "symbol": "NIFTY CONSUMPTION",
+      "zerodha_symbol": "NIFTY CONSUMPTION"
+    },
+    "NIFTY_ENERGY": {
+      "api_format": "NSE:NIFTY ENERGY",
+      "description": "Energy sector - oil, gas, power",
+      "exchange": "NSE",
+      "instrument_token": 261641,
+      "maps_to_sector": "ENERGY",
+      "segment": "INDICES",
+      "symbol": "NIFTY ENERGY",
+      "zerodha_symbol": "NIFTY ENERGY"
+    },
+    "NIFTY_FIN_SERVICE": {
+      "api_format": "NSE:NIFTY FIN SERVICE",
+      "description": "Financial services including banks, NBFCs, insurance",
+      "exchange": "NSE",
+      "maps_to_sector": "FINANCIALS",
+      "segment": "INDICES",
+      "symbol": "NIFTY FIN SERVICE",
+      "zerodha_symbol": "NIFTY FIN SERVICE"
+    },
+    "NIFTY_FMCG": {
+      "api_format": "NSE:NIFTY FMCG",
+      "description": "Fast Moving Consumer Goods",
+      "exchange": "NSE",
+      "instrument_token": 261897,
+      "maps_to_sector": "CONSUMER_STAPLES",
+      "segment": "INDICES",
+      "symbol": "NIFTY FMCG",
+      "zerodha_symbol": "NIFTY FMCG"
+    },
+    "NIFTY_INFRA": {
+      "api_format": "NSE:NIFTY INFRA",
+      "description": "Infrastructure sector",
+      "exchange": "NSE",
+      "maps_to_sector": "INDUSTRIALS",
+      "segment": "INDICES",
+      "symbol": "NIFTY INFRA",
+      "zerodha_symbol": "NIFTY INFRA"
+    },
+    "NIFTY_IT": {
+      "api_format": "NSE:NIFTY IT",
+      "description": "Information Technology sector",
+      "exchange": "NSE",
+      "instrument_token": 259849,
+      "maps_to_sector": "INFORMATION_TECHNOLOGY",
+      "segment": "INDICES",
+      "symbol": "NIFTY IT",
+      "zerodha_symbol": "NIFTY IT"
+    },
+    "NIFTY_MEDIA": {
+      "api_format": "NSE:NIFTY MEDIA",
+      "description": "Media and entertainment",
+      "exchange": "NSE",
+      "instrument_token": 263945,
+      "maps_to_sector": "TELECOM",
+      "segment": "INDICES",
+      "symbol": "NIFTY MEDIA",
+      "zerodha_symbol": "NIFTY MEDIA"
+    },
+    "NIFTY_METAL": {
+      "api_format": "NSE:NIFTY METAL",
+      "description": "Metals and mining sector",
+      "exchange": "NSE",
+      "instrument_token": 263689,
+      "maps_to_sector": "METALS_MINING",
+      "segment": "INDICES",
+      "symbol": "NIFTY METAL",
+      "zerodha_symbol": "NIFTY METAL"
+    },
+    "NIFTY_PHARMA": {
+      "api_format": "NSE:NIFTY PHARMA",
+      "description": "Pharmaceutical sector",
+      "exchange": "NSE",
+      "instrument_token": 262409,
+      "maps_to_sector": "HEALTHCARE",
+      "segment": "INDICES",
+      "symbol": "NIFTY PHARMA",
+      "zerodha_symbol": "NIFTY PHARMA"
+    },
+    "NIFTY_PSE": {
+      "api_format": "NSE:NIFTY PSE",
+      "description": "Public sector enterprises",
+      "exchange": "NSE",
+      "instrument_token": 262665,
+      "segment": "INDICES",
+      "symbol": "NIFTY PSE",
+      "zerodha_symbol": "NIFTY PSE"
+    },
+    "NIFTY_PSU_BANK": {
+      "api_format": "NSE:NIFTY PSU BANK",
+      "description": "Public sector banks",
+      "exchange": "NSE",
+      "instrument_token": 262921,
+      "maps_to_sector": "FINANCIALS",
+      "segment": "INDICES",
+      "symbol": "NIFTY PSU BANK",
+      "zerodha_symbol": "NIFTY PSU BANK"
+    },
+    "NIFTY_REALTY": {
+      "api_format": "NSE:NIFTY REALTY",
+      "description": "Real estate sector",
+      "exchange": "NSE",
+      "instrument_token": 261129,
+      "maps_to_sector": "REAL_ESTATE",
+      "segment": "INDICES",
+      "symbol": "NIFTY REALTY",
+      "zerodha_symbol": "NIFTY REALTY"
+    },
+    "NIFTY_SERV_SECTOR": {
+      "api_format": "NSE:NIFTY SERV SECTOR",
+      "description": "Services sector",
+      "exchange": "NSE",
+      "instrument_token": 263177,
+      "maps_to_sector": "INFRASTRUCTURE",
+      "segment": "INDICES",
+      "symbol": "NIFTY SERV SECTOR",
+      "zerodha_symbol": "NIFTY SERV SECTOR"
+    }
+  }
+}
