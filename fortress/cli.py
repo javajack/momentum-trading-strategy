@@ -1818,58 +1818,39 @@ class FortressApp:
         console.print(f"\n[bold]Backtest: {start_date.date()} to {end_date.date()}[/bold]")
         console.print(f"[dim]Rebalance every {rebalance_days} trading days[/dim]\n")
 
-        # Use cache manager - load and update if stale
-        historical_data = self.cache.load()
+        # Invariant: backtest uses nse-universe parquet (survivorship-free,
+        # 20-year coverage, split-adjusted). Kite is reserved for live paths.
+        from .nse_data_loader import load_historical_for_backtest
+
+        # NMS lookback (252d) + 200-SMA + 52-week high ⇒ ~15 months warmup
+        required_data_start = (start_date - relativedelta(months=15)).date()
+        rank_range = tuple(self.config.universe.rank_range)
+
+        console.print(
+            f"[cyan]Loading backtest data from nse-universe parquet "
+            f"({required_data_start} → {end_date.date()}, rank {rank_range}) …[/cyan]"
+        )
+        with console.status("[bold green]Querying parquet archive..."):
+            historical_data = load_historical_for_backtest(
+                start=required_data_start,
+                end=end_date.date(),
+                rank_range=rank_range,
+            )
 
         if len(historical_data) < 50:
             console.print(
-                f"[yellow]Insufficient cached data ({len(historical_data)} symbols).[/yellow]"
+                f"[red]nse-universe returned too few symbols "
+                f"({len(historical_data)}). Ensure ~/work/nse500 is synced.[/red]"
             )
-            if self.cache.market_data:
-                historical_data = self.cache.load_and_update()
-            else:
-                console.print(
-                    "[yellow]Login first to fetch data, or run Rebalance to populate cache.[/yellow]"
-                )
-                return
-
-        if len(historical_data) < 50:
-            console.print("[red]Failed to load sufficient data[/red]")
             return
 
-        console.print(f"[green]Using {len(historical_data)} symbols[/green]")
-
-        # Check earliest data point; backfill if needed for full backtest coverage
         non_empty = {s: df for s, df in historical_data.items() if len(df) > 0}
-        if non_empty:
-            earliest = min(df.index[0] for df in non_empty.values())
-            latest = max(df.index[-1] for df in non_empty.values())
-            console.print(f"Data range: {earliest.date()} to {latest.date()}")
-
-            # NMS 257-day + 200-SMA + 52-week high warmup ≈ 15 months before bt start
-            required_data_start = (start_date - relativedelta(months=15)).date()
-
-            if earliest.date() > required_data_start:
-                if self.cache.market_data:
-                    console.print(
-                        f"[cyan]Data starts {earliest.date()} but need "
-                        f"{required_data_start} — backfilling …[/cyan]"
-                    )
-                    backfilled = self.cache.backfill_history(required_data_start)
-                    if backfilled > 0:
-                        historical_data = self.cache.data
-                        earliest = min(
-                            df.index[0] for df in historical_data.values() if len(df) > 0
-                        )
-                        console.print(f"[green]Data now starts {earliest.date()}[/green]")
-                else:
-                    console.print(
-                        f"[yellow]Data only starts {earliest.date()}; "
-                        f"login (Option 1) to auto-fetch older history back to "
-                        f"{required_data_start} for better backtest coverage.[/yellow]"
-                    )
-
-        console.print()
+        earliest = min(df.index[0] for df in non_empty.values())
+        latest = max(df.index[-1] for df in non_empty.values())
+        console.print(
+            f"[green]Loaded {len(historical_data)} symbols from nse-universe[/green]"
+        )
+        console.print(f"Data range: {earliest.date()} to {latest.date()}\n")
 
         # Run backtest with selected strategy
         console.print(f"[cyan]Using strategy: {self.active_strategy}[/cyan]\n")
