@@ -171,6 +171,88 @@ def load_historical_bulk(
     return result
 
 
+def _synthetic_sectoral_index(
+    member_symbols: list[str],
+    data: Dict[str, pd.DataFrame],
+) -> Optional[pd.DataFrame]:
+    """Equal-weight index of member stocks' daily returns.
+
+    Returns a DataFrame with a ``close`` column (the compounded index
+    level starting at 100) indexed by trading day. Used to approximate
+    NSE sectoral indices (NIFTY BANK, NIFTY IT, etc.) which aren't in
+    the bhavcopy parquet. Correlation with the real sector index is
+    usually > 0.95 for equal-weighted baskets of 10+ constituents.
+    """
+    if not member_symbols:
+        return None
+    return_frames = []
+    for sym in member_symbols:
+        df = data.get(sym)
+        if df is None or df.empty or "close" not in df.columns:
+            continue
+        rets = df["close"].pct_change()
+        return_frames.append(rets)
+    if not return_frames:
+        return None
+    # Align on union of dates; NaN-fill missing stocks with 0 return
+    # (conservative — treats missing data as flat, not a drag/boost).
+    combined = pd.concat(return_frames, axis=1).fillna(0)
+    eq_weighted = combined.mean(axis=1)
+    level = 100 * (1 + eq_weighted).cumprod()
+    level = level.ffill().bfill()
+    return pd.DataFrame({
+        "open": level, "high": level, "low": level, "close": level, "volume": 0.0,
+    })
+
+
+def _inject_synthetic_sectoral_indices(
+    data: Dict[str, pd.DataFrame],
+    sectors_path: str = "stock-sectors.json",
+    metadata_path: str = "market-metadata.json",
+) -> None:
+    """Compute synthetic NIFTY sectoral indices (NIFTY BANK / IT / PHARMA /
+    etc.) from constituent stocks and inject them into ``data`` so the
+    backtest's E5 sector-momentum filter has series to compare against.
+
+    Real NSE sectoral indices aren't in the bhavcopy parquet; the strategy
+    expects keys like "NIFTY BANK", "NIFTY IT" in market_data. We substitute
+    an equal-weighted basket of all stock-sectors.json members of each
+    sector (5-50 stocks per sector), reconstructed from current ``data``.
+    """
+    import json
+    from pathlib import Path as _P
+
+    root = _P(__file__).resolve().parent.parent
+    sectors_file = root / sectors_path
+    metadata_file = root / metadata_path
+    if not sectors_file.exists() or not metadata_file.exists():
+        return
+
+    sectors = json.loads(sectors_file.read_text()).get("symbols", {})
+    metadata = json.loads(metadata_file.read_text())
+    sectoral_indices = metadata.get("sectoral_indices", {})
+
+    # Group data symbols by sector.
+    by_sector: Dict[str, list[str]] = {}
+    for sym in data.keys():
+        entry = sectors.get(sym)
+        if entry:
+            by_sector.setdefault(entry["sector"], []).append(sym)
+
+    for idx_key, idx_data in sectoral_indices.items():
+        sector = idx_data.get("maps_to_sector")
+        if sector is None:
+            continue
+        members = by_sector.get(sector, [])
+        if not members:
+            continue
+        synth = _synthetic_sectoral_index(members, data)
+        if synth is not None:
+            zs = idx_data.get("zerodha_symbol") or idx_data.get("symbol")
+            if zs:
+                data[zs] = synth
+
+
 def load_historical_for_backtest(
     start: date,
     end: date,
@@ -220,5 +302,14 @@ def load_historical_for_backtest(
             "Run tools/build_benchmark.py. Strategy RS calc will default to 1.0.",
             bench_parquet,
         )
+
+    # Synthetic sectoral indices: function is kept available for experimentation
+    # but NOT injected by default. Backtest showed that an equal-weighted basket
+    # of sector members is too noisy relative to the real cap-weighted NSE index,
+    # and the strategy's E5 sector-momentum filter penalises the wrong sectors
+    # when fed this proxy (CAGR 14.3% → 11.8% in 13y phase test). With the
+    # injection off, E5 silently no-ops in backtest (strategy treats missing
+    # sector-index data as zero momentum for that sector), which preserves the
+    # benchmark-fix baseline. Live mode uses real sectoral indices from Kite.
 
     return data

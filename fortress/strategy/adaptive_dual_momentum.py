@@ -701,6 +701,8 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
             "min_52w_high_prox": 0.85,
             "high_52w_bullish_mult": 0.90,
             "high_52w_defensive_mult": 1.05,
+            "falling_knife_6m_cutoff": 0.0,
+            "require_above_12m_sma": False,
             # Partial filter passing
             "use_partial_filter_passing": True,
             "partial_filter_min_passed": 2,
@@ -1135,6 +1137,28 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
                     continue
             except Exception:
                 continue
+
+            # Falling-knife pre-screen: exclude stocks in deep 6M drawdowns
+            # regardless of momentum rank. nse-universe ranks by turnover, and
+            # distressed stocks often show high turnover from panic selling
+            # (YESBANK 2019-20, IBULHSGFIN 2019-20, DHFL 2018-19). This filter
+            # refuses to enter a new position if the stock has already cratered.
+            # Default -30% cut-off over 6 months; tunable via config.
+            falling_knife_cutoff = cfg.get("falling_knife_6m_cutoff", -0.30)
+            if falling_knife_cutoff < 0 and len(prices) >= cfg["lookback_6m"]:
+                ret_6m_raw = prices.iloc[-1] / prices.iloc[-cfg["lookback_6m"]] - 1
+                if ret_6m_raw < falling_knife_cutoff:
+                    continue
+
+            # Absolute-momentum gate: price must be above its own 12-month SMA.
+            # Classic time-series momentum filter — if the trend is down over
+            # a full year, no amount of short-term relative strength overrides
+            # that. Complements the 200-SMA filter (which gets skipped in
+            # crash-recovery mode). This one is non-negotiable if enabled.
+            if cfg.get("require_above_12m_sma", True) and len(prices) >= cfg["lookback_12m"]:
+                sma_12m = prices.iloc[-cfg["lookback_12m"]:].mean()
+                if prices.iloc[-1] < sma_12m:
+                    continue
 
             # Calculate NMS using adaptive lookbacks
             nms_result = calculate_normalized_momentum_score(

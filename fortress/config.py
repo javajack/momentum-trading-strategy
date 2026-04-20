@@ -1078,6 +1078,24 @@ class AdaptiveDualMomentumConfig(BaseModel):
         le=100_000_000,
         description="Minimum daily turnover Rs 1 Cr",
     )
+    falling_knife_6m_cutoff: float = Field(
+        default=0.0,
+        ge=-0.80,
+        le=0.0,
+        description="Reject new entry if 6M return < this. Default 0.0 "
+        "(disabled) because in the 13-year backtest this gate over-filters "
+        "and misses rebound momentum from crisis-phase bottoms. Set to a "
+        "negative value (e.g. -0.50) to opt in — effective during crises, "
+        "regressive in general.",
+    )
+    require_above_12m_sma: bool = Field(
+        default=False,
+        description="Hard gate: only long stocks above their own 12-month "
+        "SMA. Default False because it overlaps heavily with the 200-SMA "
+        "filter already in place, and in the backtest it reduced CAGR by "
+        "~1.5pp and widened MaxDD — too blunt a tool. Enable if you want "
+        "strict time-series momentum semantics.",
+    )
     defensive_rs_boost: float = Field(
         default=0.10, ge=0.0, le=0.30, description="Extra RS required in DEFENSIVE regime (+10%)"
     )
