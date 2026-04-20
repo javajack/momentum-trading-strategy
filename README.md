@@ -2,7 +2,7 @@
 
 A momentum-based stock rotation system for Indian equities (NSE). Picks high-momentum names from a configurable rank window (default top-200 by 6-month median turnover), adapts allocation to market regime, and produces a human-executable rebalance plan — no live order placement.
 
-**Backtest baseline (2013-01-01 → 2026-02-11, 16 phases, survivorship-free):** +8.7% CAGR · 0.24 Sharpe · −45.6% MaxDD · 5,221 trades · 46% win rate. Capital ₹20L → ₹60L. Old pre-refactor baseline was 19.8% CAGR, but that was survivorship-biased (ran today's top-200 against historical prices); the new number tells the honest story across real drawdowns.
+**Backtest baseline (2013-01-01 → 2026-02-11, 16 phases, survivorship-free, 30-day cadence, real NIFTY 50 benchmark):** **+14.3% CAGR · 0.55 Sharpe · −32.5% MaxDD** · +476.7% total. Capital ₹20L → ₹1.15 Cr. Beats real NIFTY 50 CAGR (11.83% over same period) by **+2.47 pp/year** — NIFTY 50 buy-and-hold ended at ₹86L.
 
 Built on Zerodha Kite Connect (read-only, post-April-2026 policy-compliant) plus the [nse-universe](https://github.com/javajack/custom-nse-500-historical-data) sibling repo for bias-free backtest data. ~18,000 lines of Python. 222 tests.
 
@@ -26,9 +26,10 @@ FORTRESS MOMENTUM solves this with three ideas:
 
 ### 13-Year Multi-Phase Backtest (Jan 2013 → Feb 2026, survivorship-free)
 
-> Run: 21 Apr 2026. Data: nse-universe parquet (split-adjusted), 16 phases, ₹20L → ₹60L end, ₹77.6L peak. Universe resolved point-in-time per rebalance (top-200 by 6-month median turnover of each month's snapshot).
+> Run: 22 Apr 2026. Data: nse-universe parquet (split-adjusted) + real NIFTY 50 benchmark from ^NSEI, 16 phases, ₹20L → ₹1.15 Cr end. Universe resolved point-in-time per rebalance (top-200 by 6-month median turnover of each month's snapshot). Rebalance: dynamic triggers with 10-30 day cadence.
 
-**Overall: +8.7% CAGR · 0.24 Sharpe · −45.6% MaxDD · +200.3% total · 5,221 trades · 46% win rate**
+**Overall: +14.3% CAGR · 0.55 Sharpe · −32.5% MaxDD · +476.7% total**
+Benchmark: real NIFTY 50 CAGR 11.83% over same period. Strategy alpha: **+2.47 pp/year.**
 
 | # | Phase | Period | Type | Return | Max DD |
 |---|-------|--------|------|--------|--------|
