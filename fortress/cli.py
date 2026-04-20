@@ -369,9 +369,9 @@ class FortressApp:
 
             console.print(table)
 
-            # Position details
+            # Managed positions (in strategy universe + hedges)
             if snapshot.positions:
-                pos_table = Table(title="Current Positions")
+                pos_table = Table(title="Managed Positions")
                 pos_table.add_column("Symbol", style="cyan")
                 pos_table.add_column("Qty", justify="right")
                 pos_table.add_column("Avg Price", justify="right")
@@ -391,6 +391,23 @@ class FortressApp:
                     )
 
                 console.print(pos_table)
+
+            # External positions — visible but never traded by the strategy.
+            if snapshot.external_positions:
+                ext_value = sum(p.value for p in snapshot.external_positions.values())
+                console.print(
+                    f"\n[dim]External holdings (ignored by strategy, "
+                    f"total {format_currency(ext_value)}):[/dim]"
+                )
+                ext_table = Table(show_header=False, box=None, padding=(0, 2))
+                ext_table.add_column("Symbol", style="dim")
+                ext_table.add_column("Qty", justify="right", style="dim")
+                ext_table.add_column("Value", justify="right", style="dim")
+                for symbol, pos in sorted(
+                    snapshot.external_positions.items(), key=lambda x: x[1].value, reverse=True
+                ):
+                    ext_table.add_row(symbol, str(pos.quantity), format_currency(pos.value))
+                console.print(ext_table)
 
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
@@ -540,52 +557,22 @@ class FortressApp:
             )
 
             # Load combined holdings + today's positions for complete current state
-            # This makes rebalance stateless and idempotent
+            # This makes rebalance stateless and idempotent. Portfolio has already
+            # split strategy-managed symbols (in universe or a registered hedge)
+            # from external holdings (stray ETFs, non-universe stocks user owns).
             snapshot = self.portfolio.load_combined_positions()
 
-            # Identify which symbols are managed by the strategy
-            universe_symbols = {s.zerodha_symbol for s in self.universe.get_all_stocks()}
+            defensive_symbols = {self.config.regime.cash_symbol}
             max_gold = self.config.regime.max_gold_allocation
-            if max_gold is not None and max_gold == 0.0:
-                defensive_symbols = set()
-            else:
-                defensive_symbols = {self.config.regime.gold_symbol}
-            defensive_symbols.add(self.config.regime.cash_symbol)
-            strategy_managed_symbols = universe_symbols | defensive_symbols
+            if max_gold is None or max_gold > 0.0:
+                defensive_symbols.add(self.config.regime.gold_symbol)
 
-            # ETFs/funds NOT managed by strategy (user's external holdings)
-            external_etfs = {
-                "NIFTYBEES",
-                "JUNIORBEES",
-                "MID150BEES",
-                "HDFCSML250",
-                "HANGSENGBEES",
-                "HNGSNGBEES",
-                "LIQUIDCASE",
-            }
-
-            # Filter current holdings to only strategy-managed positions
-            # LIQUIDBEES (cash_symbol) and GOLDBEES (gold_symbol) are ALWAYS managed
-            # when present — they are the strategy's capital pool and hedge instrument
-            managed_holdings: Dict[str, Position] = {}
-            external_holdings: Dict[str, Position] = {}
+            managed_holdings: Dict[str, Position] = dict(snapshot.positions)
+            external_holdings: Dict[str, Position] = dict(snapshot.external_positions)
 
             # Load strategy state to identify peak prices
             strategy_state = self._load_strategy_state()
             peak_prices = strategy_state.get("peak_prices", {})
-
-            for symbol, pos in snapshot.positions.items():
-                if symbol in external_etfs:
-                    external_holdings[symbol] = pos
-                elif symbol in defensive_symbols:
-                    # Defensive assets (LIQUIDBEES, GOLDBEES) are always managed
-                    managed_holdings[symbol] = pos
-                elif symbol in universe_symbols:
-                    # Equity stocks in universe are strategy-managed
-                    managed_holdings[symbol] = pos
-                else:
-                    # Unknown symbol - treat as external
-                    external_holdings[symbol] = pos
 
             # Calculate current value of equity positions (definitely strategy-managed)
             equity_holdings = {
@@ -1522,8 +1509,9 @@ class FortressApp:
             # Load current portfolio state
             snapshot = self.portfolio.load_combined_positions()
 
-            # Identify managed equity positions (same pattern as _do_rebalance)
-            universe_symbols = {s.zerodha_symbol for s in self.universe.get_all_stocks()}
+            # Portfolio snapshot is already pre-filtered to managed symbols
+            # (in universe or a registered hedge). Drop the hedges — exit-all
+            # means equity only; LIQUIDBEES/GOLDBEES stay.
             cash_symbol = self.config.regime.cash_symbol
             gold_symbol = self.config.regime.gold_symbol
 
@@ -1534,25 +1522,11 @@ class FortressApp:
                 defensive_symbols = {gold_symbol}
             defensive_symbols.add(cash_symbol)
 
-            external_etfs = {
-                "NIFTYBEES",
-                "JUNIORBEES",
-                "MID150BEES",
-                "HDFCSML250",
-                "HANGSENGBEES",
-                "HNGSNGBEES",
-                "LIQUIDCASE",
+            equity_positions: Dict[str, Position] = {
+                symbol: pos
+                for symbol, pos in snapshot.positions.items()
+                if symbol not in defensive_symbols
             }
-
-            # Collect equity positions only (exclude defensive + external)
-            equity_positions: Dict[str, Position] = {}
-            for symbol, pos in snapshot.positions.items():
-                if symbol in external_etfs:
-                    continue
-                if symbol in defensive_symbols:
-                    continue
-                if symbol in universe_symbols:
-                    equity_positions[symbol] = pos
 
             if not equity_positions:
                 console.print("[yellow]No managed equity positions to exit.[/yellow]")

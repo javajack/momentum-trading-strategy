@@ -360,6 +360,19 @@ class Universe:
         """
         return self._data.get("hedges", {}).get(hedge_type)
 
+    @property
+    def hedge_symbols(self) -> set:
+        """Tradingsymbols of every registered hedge (e.g. GOLDBEES, LIQUIDBEES)."""
+        return {
+            h["symbol"]
+            for h in self._data.get("hedges", {}).values()
+            if h.get("symbol")
+        }
+
+    def is_managed_symbol(self, symbol: str) -> bool:
+        """True if symbol is in the tradable universe or a registered hedge."""
+        return symbol in self._stocks_cache or symbol in self.hedge_symbols
+
     def get_stock(self, ticker: str) -> Optional[Stock]:
         """
         Get stock by ticker.

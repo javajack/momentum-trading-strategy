@@ -5,10 +5,17 @@ Enforces invariant:
 - R6: Margin check before buy orders
 """
 
+import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from .universe import Universe
+
+logger = logging.getLogger(__name__)
+
+# Kite's RMS/margins endpoint is unavailable post-April 2026 policy for
+# non-whitelisted IPs. Warn once per process, not every refresh.
+_MARGINS_WARNED = False
 
 
 @dataclass
@@ -57,7 +64,13 @@ class MergeDiagnostic:
 
 @dataclass
 class PortfolioSnapshot:
-    """Point-in-time snapshot of portfolio state."""
+    """Point-in-time snapshot of portfolio state.
+
+    `positions` holds only strategy-managed symbols (in universe or a registered
+    hedge like GOLDBEES/LIQUIDBEES). `external_positions` holds everything else
+    the user happens to own (stray ETFs, stocks outside the universe, etc.).
+    The strategy never trades or rebalances external symbols.
+    """
 
     positions: Dict[str, Position]
     cash: float
@@ -65,6 +78,7 @@ class PortfolioSnapshot:
     unrealized_pnl: float
     day_start_value: float = 0.0
     merge_diagnostics: Dict[str, MergeDiagnostic] = field(default_factory=dict)
+    external_positions: Dict[str, Position] = field(default_factory=dict)
 
     @property
     def invested_value(self) -> float:
@@ -116,15 +130,64 @@ class Portfolio:
         self.universe = universe
         self._snapshot: Optional[PortfolioSnapshot] = None
 
+    def _safe_margins_cash(self) -> float:
+        """Return broker's live cash balance, or 0 if RMS endpoint is unavailable.
+
+        Zerodha's margins/RMS endpoint returns `UNKNOWN_REQUEST` for non-whitelisted
+        IPs post-April 2026. The strategy's capital pool is LIQUIDBEES, not demat
+        cash, so a 0 fallback is functionally safe — it just means `total_value`
+        won't include any uninvested broker balance.
+        """
+        global _MARGINS_WARNED
+        try:
+            margins = self.kite.margins()
+            equity = margins.get("equity", {})
+            available = equity.get("available", {})
+            return float(available.get("live_balance", 0) or 0)
+        except Exception as e:
+            if not _MARGINS_WARNED:
+                logger.warning(
+                    "Kite margins() unavailable (%s); using cash=0. "
+                    "Strategy uses LIQUIDBEES as its capital pool.", str(e)[:120]
+                )
+                _MARGINS_WARNED = True
+            return 0.0
+
+    def _build_position(self, symbol: str, qty: int, avg_price: float, ltp: float) -> Position:
+        """Construct a Position with the correct sector label from the universe."""
+        stock = self.universe.get_stock(symbol)
+        sector = stock.sector if stock else "UNKNOWN"
+        return Position(
+            symbol=symbol,
+            quantity=qty,
+            average_price=avg_price,
+            sector=sector,
+            current_price=ltp,
+        )
+
+    def _place_position(
+        self,
+        symbol: str,
+        pos: Position,
+        managed: Dict[str, Position],
+        external: Dict[str, Position],
+    ) -> None:
+        """Route a position into the managed or external bucket based on universe membership."""
+        if self.universe.is_managed_symbol(symbol):
+            managed[symbol] = pos
+        else:
+            external[symbol] = pos
+
     def load_holdings(self) -> PortfolioSnapshot:
         """
-        Load current holdings from Zerodha.
+        Load current holdings from Zerodha, split into managed vs external.
 
         Returns:
             Current PortfolioSnapshot
         """
         holdings = self.kite.holdings()
-        positions_dict: Dict[str, Position] = {}
+        managed: Dict[str, Position] = {}
+        external: Dict[str, Position] = {}
 
         for h in holdings:
             symbol = h["tradingsymbol"]
@@ -134,32 +197,23 @@ class Portfolio:
             if total_qty == 0:
                 continue
 
-            # Get sector from universe
-            stock = self.universe.get_stock(symbol)
-            sector = stock.sector if stock else "UNKNOWN"
+            pos = self._build_position(symbol, total_qty, h["average_price"], h["last_price"])
+            self._place_position(symbol, pos, managed, external)
 
-            positions_dict[symbol] = Position(
-                symbol=symbol,
-                quantity=total_qty,
-                average_price=h["average_price"],
-                sector=sector,
-                current_price=h["last_price"],
-            )
+        cash = self._safe_margins_cash()
 
-        # Get margin/cash
-        margins = self.kite.margins()
-        equity = margins.get("equity", {})
-        available = equity.get("available", {})
-        cash = available.get("live_balance", 0)
-
-        total_value = cash + sum(p.value for p in positions_dict.values())
-        unrealized_pnl = sum(p.unrealized_pnl for p in positions_dict.values())
+        invested_total = sum(p.value for p in managed.values()) + sum(
+            p.value for p in external.values()
+        )
+        total_value = cash + invested_total
+        unrealized_pnl = sum(p.unrealized_pnl for p in managed.values())
 
         self._snapshot = PortfolioSnapshot(
-            positions=positions_dict,
+            positions=managed,
             cash=cash,
             total_value=total_value,
             unrealized_pnl=unrealized_pnl,
+            external_positions=external,
         )
 
         return self._snapshot
@@ -181,17 +235,20 @@ class Portfolio:
 
         Enforces R6: Margin check before buy orders.
 
+        Post-April-2026 Zerodha policy hides RMS margins from non-whitelisted
+        IPs. When margins() fails, this degrades to (True, 0.0) so callers
+        don't error — the strategy no longer places orders anyway, and any
+        surviving callers just receive advisory output.
+
         Args:
             required_amount: Amount needed for the buy order
 
         Returns:
             Tuple of (has_margin, available_margin)
         """
-        margins = self.kite.margins()
-        equity = margins.get("equity", {})
-        available = equity.get("available", {})
-        live_balance = available.get("live_balance", 0)
-
+        live_balance = self._safe_margins_cash()
+        if live_balance == 0:
+            return (True, 0.0)
         return (live_balance >= required_amount, live_balance)
 
     def get_position(self, symbol: str) -> Optional[Position]:
@@ -245,39 +302,28 @@ class Portfolio:
         Holdings = settled (T+1) positions
         Positions = today's trades (unsettled)
 
-        Combines both to get actual current state, making rebalance
-        stateless and idempotent.
+        Combines both and then classifies into strategy-managed vs external
+        so downstream code never has to re-filter.
         """
-        # Get delivered holdings
         holdings = self.kite.holdings()
-
-        # Get today's positions (includes intraday CNC trades)
         day_positions = self.kite.positions()
         net_positions = day_positions.get("net", [])
 
-        positions_dict: Dict[str, Position] = {}
+        # Single working dict during merge — split into managed/external at the end.
+        merged: Dict[str, Position] = {}
 
-        # First, load all holdings (settled + T1 unsettled)
         for h in holdings:
             symbol = h["tradingsymbol"]
             total_qty = h["quantity"] + h.get("t1_quantity", 0)
             if total_qty == 0:
                 continue
-            stock = self.universe.get_stock(symbol)
-            sector = stock.sector if stock else "UNKNOWN"
-            positions_dict[symbol] = Position(
-                symbol=symbol,
-                quantity=total_qty,
-                average_price=h["average_price"],
-                sector=sector,
-                current_price=h["last_price"],
+            merged[symbol] = self._build_position(
+                symbol, total_qty, h["average_price"], h["last_price"]
             )
 
         merge_diagnostics: Dict[str, MergeDiagnostic] = {}
 
-        # Then, overlay today's CNC positions
-        # Use day_buy_quantity / day_sell_quantity (unambiguous, no double-counting)
-        # because positions "quantity" already includes overnight holdings
+        # Overlay today's CNC positions (intraday delta on top of settled holdings).
         for p in net_positions:
             if p["product"] != "CNC":
                 continue
@@ -287,9 +333,8 @@ class Portfolio:
             day_sold = p.get("day_sell_quantity", 0)
             day_change = day_bought  # day_sold already reflected in holdings quantity
 
-            if symbol in positions_dict:
-                # Stock in holdings AND traded today — apply only today's delta
-                existing = positions_dict[symbol]
+            if symbol in merged:
+                existing = merged[symbol]
                 new_qty = existing.quantity + day_change
                 merge_diagnostics[symbol] = MergeDiagnostic(
                     holdings_qty=existing.quantity,
@@ -299,7 +344,7 @@ class Portfolio:
                     value=new_qty * p["last_price"] if new_qty > 0 else 0,
                 )
                 if new_qty > 0:
-                    positions_dict[symbol] = Position(
+                    merged[symbol] = Position(
                         symbol=symbol,
                         quantity=new_qty,
                         average_price=existing.average_price,
@@ -307,17 +352,10 @@ class Portfolio:
                         current_price=p["last_price"],
                     )
                 else:
-                    del positions_dict[symbol]  # Fully sold today
+                    del merged[symbol]
             elif day_change > 0:
-                # New position bought today (not in holdings yet)
-                stock = self.universe.get_stock(symbol)
-                sector = stock.sector if stock else "UNKNOWN"
-                positions_dict[symbol] = Position(
-                    symbol=symbol,
-                    quantity=day_change,
-                    average_price=p.get("average_price", 0),
-                    sector=sector,
-                    current_price=p["last_price"],
+                merged[symbol] = self._build_position(
+                    symbol, day_change, p.get("average_price", 0), p["last_price"]
                 )
                 merge_diagnostics[symbol] = MergeDiagnostic(
                     holdings_qty=0,
@@ -327,8 +365,7 @@ class Portfolio:
                     value=day_change * p["last_price"],
                 )
 
-        # Add diagnostics for holdings-only symbols (no positions activity today)
-        for symbol, pos in positions_dict.items():
+        for symbol, pos in merged.items():
             if symbol not in merge_diagnostics:
                 merge_diagnostics[symbol] = MergeDiagnostic(
                     holdings_qty=pos.quantity,
@@ -338,21 +375,27 @@ class Portfolio:
                     value=pos.value,
                 )
 
-        # Get cash
-        margins = self.kite.margins()
-        equity = margins.get("equity", {})
-        available = equity.get("available", {})
-        cash = available.get("live_balance", 0)
+        # Classify: strategy-managed symbols go into `positions`; everything else
+        # (stray ETFs, non-universe stocks the user holds) goes into `external_positions`.
+        managed: Dict[str, Position] = {}
+        external: Dict[str, Position] = {}
+        for symbol, pos in merged.items():
+            self._place_position(symbol, pos, managed, external)
 
-        total_value = cash + sum(p.value for p in positions_dict.values())
-        unrealized_pnl = sum(p.unrealized_pnl for p in positions_dict.values())
+        cash = self._safe_margins_cash()
+
+        total_value = cash + sum(p.value for p in managed.values()) + sum(
+            p.value for p in external.values()
+        )
+        unrealized_pnl = sum(p.unrealized_pnl for p in managed.values())
 
         self._snapshot = PortfolioSnapshot(
-            positions=positions_dict,
+            positions=managed,
             cash=cash,
             total_value=total_value,
             unrealized_pnl=unrealized_pnl,
             merge_diagnostics=merge_diagnostics,
+            external_positions=external,
         )
         return self._snapshot
 

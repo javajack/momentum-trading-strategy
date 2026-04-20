@@ -153,6 +153,29 @@ class TestETFAndHedges:
         assert cash["symbol"] == "LIQUIDBEES"
 
 
+class TestManagedFilter:
+    """is_managed_symbol / hedge_symbols — foundation for skipping stray holdings."""
+
+    def test_hedge_symbols_include_gold_and_cash(self, universe):
+        assert "GOLDBEES" in universe.hedge_symbols
+        assert "LIQUIDBEES" in universe.hedge_symbols
+
+    def test_is_managed_for_universe_stock(self, universe):
+        assert universe.is_managed_symbol("RELIANCE") is True
+
+    def test_is_managed_for_hedge(self, universe):
+        assert universe.is_managed_symbol("GOLDBEES") is True
+        assert universe.is_managed_symbol("LIQUIDBEES") is True
+
+    def test_not_managed_for_stray_etf(self, universe):
+        # NIFTYBEES isn't in the strategy universe and isn't a hedge — it's
+        # the kind of symbol the user might own that the strategy should ignore.
+        assert universe.is_managed_symbol("NIFTYBEES") is False
+
+    def test_not_managed_for_unknown_symbol(self, universe):
+        assert universe.is_managed_symbol("SOMETHING_INVENTED") is False
+
+
 class TestAPIFormat:
     """Test API format conversion."""
 

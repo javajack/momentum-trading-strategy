@@ -79,6 +79,10 @@ class CacheManager:
         self._api_timestamps: List[float] = []
         self._api_lock = Lock()
 
+        # Per-call fetch error capture so failures don't silently disappear
+        # behind a green "Backfilled 0/N" line.
+        self._fetch_errors: Dict[str, str] = {}
+
         # Manifest file tracks last update attempt (handles market holidays)
         self._manifest_file = self.cache_dir / ".cache_manifest.json"
 
@@ -275,7 +279,9 @@ class CacheManager:
             merged.to_parquet(cache_file)
 
             return (symbol, merged)
-        except Exception:
+        except Exception as e:
+            with self._api_lock:
+                self._fetch_errors[symbol] = f"{type(e).__name__}: {str(e)[:160]}"
             return None
 
     def _fetch_full(
@@ -302,7 +308,11 @@ class CacheManager:
             df.to_parquet(cache_file)
 
             return (symbol, df)
-        except Exception:
+        except Exception as e:
+            # Capture — emitted as a compact summary by the calling method so
+            # the progress bar stays clean but errors don't vanish.
+            with self._api_lock:
+                self._fetch_errors[symbol] = f"{type(e).__name__}: {str(e)[:160]}"
             return None
 
     def update(self, lookback_days: int = 400) -> Dict[str, pd.DataFrame]:
@@ -342,6 +352,7 @@ class CacheManager:
         to_date = datetime.combine(target, datetime.max.time())
         from_date_full = to_date - timedelta(days=lookback_days)
 
+        self._fetch_errors.clear()
         updated_count = 0
 
         with Progress(
@@ -403,6 +414,9 @@ class CacheManager:
                 for symbol, _ in stale:
                     if _SESSION_LAST_DATES.get(symbol, date.min) < target:
                         _SESSION_LAST_DATES[symbol] = target
+
+        if self._fetch_errors:
+            self._report_fetch_errors(operation="Update")
 
         console.print(
             f"[dim]Cache updated ({len(self._data)} symbols, {updated_count} refreshed)[/dim]"
@@ -485,6 +499,7 @@ class CacheManager:
 
         console.print(f"[cyan]Backfilling {len(to_backfill)} symbols to {required_start} …[/cyan]")
 
+        self._fetch_errors.clear()
         from_dt = datetime.combine(required_start, datetime.min.time())
         backfilled = 0
 
@@ -532,10 +547,38 @@ class CacheManager:
                         backfilled += 1
                     progress.update(task, advance=1)
 
-        console.print(
-            f"[green]Backfilled {backfilled}/{len(to_backfill)} symbols to {required_start}[/green]"
-        )
+        if self._fetch_errors:
+            self._report_fetch_errors(operation="Backfill")
+
+        if backfilled == 0 and to_backfill:
+            console.print(
+                f"[red]Backfill produced zero data for {len(to_backfill)} symbols. "
+                "See errors above — historical_data likely blocked by broker.[/red]"
+            )
+        else:
+            console.print(
+                f"[green]Backfilled {backfilled}/{len(to_backfill)} symbols to {required_start}[/green]"
+            )
         return backfilled
+
+    def _report_fetch_errors(self, operation: str) -> None:
+        """Print a compact summary of fetch errors captured during this operation."""
+        if not self._fetch_errors:
+            return
+        errors = self._fetch_errors
+        total = len(errors)
+        # Group by error message prefix so repeated API failures collapse.
+        from collections import Counter
+        kinds = Counter(msg.split(":", 1)[0] for msg in errors.values())
+        summary = ", ".join(f"{k}×{v}" for k, v in kinds.most_common())
+        console.print(
+            f"[red]{operation} failures: {total} symbol(s) — {summary}[/red]"
+        )
+        # Show up to 3 concrete examples so the cause is visible without flooding.
+        for sym, msg in list(errors.items())[:3]:
+            console.print(f"[red]  • {sym}: {msg}[/red]")
+        if total > 3:
+            console.print(f"[red]  • …and {total - 3} more[/red]")
 
     def get_earliest_date(self) -> Optional[date]:
         """Return the earliest date across all cached symbols, or None."""
