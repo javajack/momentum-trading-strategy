@@ -1802,21 +1802,47 @@ class FortressApp:
                 console.print("[red]Invalid input[/red]")
                 return
 
-        rebal_input = Prompt.ask(
-            "Rebalance days (5=weekly, 21=monthly)",
-            default=str(self.config.rebalancing.rebalance_days),
+        # Rebalance mode: Fixed (every N days) vs Dynamic (event triggers).
+        # Default tracks config.yaml so headline numbers are reproducible.
+        default_mode = "2" if self.config.dynamic_rebalance.enabled else "1"
+        console.print("\n[bold]Rebalance mode[/bold]")
+        console.print("  [bold bright_cyan]1[/bold bright_cyan] [dim]─[/dim] Fixed interval   [dim](every N trading days)[/dim]")
+        console.print(
+            "  [bold bright_cyan]2[/bold bright_cyan] [dim]─[/dim] Dynamic triggers [dim]"
+            "(regime / VIX / drawdown / crash / breadth, "
+            f"{self.config.dynamic_rebalance.min_days_between}-"
+            f"{self.config.dynamic_rebalance.max_days_between}d cadence)[/dim]"
         )
-        try:
-            rebalance_days = int(rebal_input)
-            if rebalance_days < 1:
-                console.print("[red]Rebalance days must be at least 1[/red]")
+        mode_choice = Prompt.ask("Mode", choices=["1", "2"], default=default_mode)
+        use_dynamic = mode_choice == "2"
+
+        # Stash original dynamic_rebalance.enabled so it can be restored.
+        _original_dynamic = self.config.dynamic_rebalance.enabled
+        self.config.dynamic_rebalance.enabled = use_dynamic
+
+        if use_dynamic:
+            rebalance_days = self.config.dynamic_rebalance.max_days_between
+        else:
+            rebal_input = Prompt.ask(
+                "Rebalance days (5=weekly, 21=monthly)",
+                default=str(self.config.rebalancing.rebalance_days),
+            )
+            try:
+                rebalance_days = int(rebal_input)
+                if rebalance_days < 1:
+                    console.print("[red]Rebalance days must be at least 1[/red]")
+                    self.config.dynamic_rebalance.enabled = _original_dynamic
+                    return
+            except ValueError:
+                console.print("[red]Invalid input[/red]")
+                self.config.dynamic_rebalance.enabled = _original_dynamic
                 return
-        except ValueError:
-            console.print("[red]Invalid input[/red]")
-            return
 
         console.print(f"\n[bold]Backtest: {start_date.date()} to {end_date.date()}[/bold]")
-        console.print(f"[dim]Rebalance every {rebalance_days} trading days[/dim]\n")
+        if use_dynamic:
+            console.print("[dim]Dynamic triggers (regime/VIX/drawdown/crash/breadth)[/dim]\n")
+        else:
+            console.print(f"[dim]Fixed: rebalance every {rebalance_days} trading days[/dim]\n")
 
         # Invariant: backtest uses nse-universe parquet (survivorship-free,
         # 20-year coverage, split-adjusted). Kite is reserved for live paths.
@@ -1880,10 +1906,14 @@ class FortressApp:
             strategy_name=self.active_strategy,
         )
 
-        with console.status(f"[bold green]Running backtest ({self.active_strategy})..."):
-            result = engine.run()
-
-        self._display_backtest_result(result)
+        try:
+            with console.status(f"[bold green]Running backtest ({self.active_strategy})..."):
+                result = engine.run()
+            self._display_backtest_result(result)
+        finally:
+            # Restore the session-level dynamic-rebalance toggle so subsequent
+            # menu actions see whatever config.yaml originally declared.
+            self.config.dynamic_rebalance.enabled = _original_dynamic
 
     def _display_rebalance_trail(self, trail: list):
         """Print compact rebalance-by-rebalance trail log."""
