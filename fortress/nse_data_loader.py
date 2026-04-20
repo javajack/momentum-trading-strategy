@@ -200,17 +200,25 @@ def load_historical_for_backtest(
     )
     data = load_historical_bulk(start, end, symbols=symbols, apply_adj=True)
 
-    # Inject NIFTYBEES as a proxy for "NIFTY 50" so the strategy's relative-
-    # strength filter has a benchmark series. NIFTYBEES tracks NIFTY 50
-    # within ~0.01% and is in the parquet as a regular EQ instrument — the
-    # index itself isn't (parquet is bhavcopy EQ only). Without this, the
-    # strategy defaults RS to 1.0 and rejects every stock at the RS gate.
-    bench_sym = "NIFTYBEES"
-    if bench_sym not in data:
-        bench = load_historical_bulk(start, end, symbols=[bench_sym], apply_adj=True)
-        if bench_sym in bench:
-            data[bench_sym] = bench[bench_sym]
-    if bench_sym in data:
-        data["NIFTY 50"] = data[bench_sym]
+    # Inject real NIFTY 50 index from the cached yfinance download for the
+    # strategy's relative-strength filter. Previous design used NIFTYBEES
+    # as a proxy, but its raw bhavcopy series understates NIFTY 50 returns
+    # by ~30% over 13 years because ETF dividends aren't captured. The real
+    # ^NSEI index from Yahoo tracks constituent re-investment properly.
+    from pathlib import Path as _P
+    bench_parquet = _P(__file__).resolve().parent.parent / "data" / "benchmarks" / "nifty_50.parquet"
+    if bench_parquet.exists():
+        bench_df = pd.read_parquet(bench_parquet)
+        # Filter to the requested window.
+        mask = (bench_df.index >= pd.Timestamp(start)) & (bench_df.index <= pd.Timestamp(end))
+        sliced = bench_df.loc[mask]
+        if not sliced.empty:
+            data["NIFTY 50"] = sliced
+    else:
+        logger.warning(
+            "NIFTY 50 benchmark parquet missing at %s. "
+            "Run tools/build_benchmark.py. Strategy RS calc will default to 1.0.",
+            bench_parquet,
+        )
 
     return data
