@@ -271,6 +271,10 @@ class BacktestEngine:
             strategy_name: Strategy to use (overrides config.strategy_name)
         """
         self.universe = universe
+        # Point-in-time Universe cache keyed by rebalance date — lets
+        # the backtest see survivorship-bias-free membership without
+        # reconstructing from scratch every rebalance.
+        self._universe_by_date: Dict[date, Universe] = {}
         self.data = historical_data
         # Default end_date to T-1 (yesterday, skip weekends) to avoid live data
         if config is None:
@@ -1052,6 +1056,22 @@ class BacktestEngine:
 
         return cached_result
 
+    def _universe_at(self, as_of_date: datetime) -> Universe:
+        """Return a point-in-time Universe for this rebalance date.
+
+        Cached by date so a 20-year backtest reuses the same Universe
+        across intra-month rebalances. Rank window inherits from the
+        backtest's bootstrap universe so a user-configured (1,200) or
+        (101,250) propagates through correctly.
+        """
+        d = as_of_date.date() if hasattr(as_of_date, "date") else as_of_date
+        cached = self._universe_by_date.get(d)
+        if cached is not None:
+            return cached
+        u = Universe(as_of=d, rank_range=self.universe.rank_range)
+        self._universe_by_date[d] = u
+        return u
+
     def _select_momentum_portfolio(
         self,
         as_of_date: datetime,
@@ -1072,7 +1092,8 @@ class BacktestEngine:
         Returns:
             Dict mapping ticker to target weight
         """
-        all_stocks = self.universe.get_all_stocks()
+        # Point-in-time universe — avoids survivorship bias.
+        all_stocks = self._universe_at(as_of_date).get_all_stocks()
 
         # Excluded symbols
         excluded = set(self.app_config.excluded_symbols)
@@ -1290,10 +1311,10 @@ class BacktestEngine:
         # Get current positions for the strategy
         current_positions: Dict[str, float] = {}
 
-        # Rank stocks using the strategy
+        # Rank stocks using the strategy, against point-in-time membership.
         ranked_stocks = self.strategy.rank_stocks(
             as_of_date=as_of_date,
-            universe=self.universe,
+            universe=self._universe_at(as_of_date),
             market_data=self._market_data_adapter,
             filter_entry=True,
         )

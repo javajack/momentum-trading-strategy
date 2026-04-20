@@ -218,25 +218,24 @@ class FortressApp:
             console.print(f"[yellow]Warning: Could not save strategy state: {e}[/yellow]")
 
     def _load_universe(self):
-        """Load stock universe and initialize cache manager.
+        """Load today's tradable universe and initialize cache manager.
 
-        Creates two Universe instances:
-        - self._cache_universe: unfiltered (all stocks) — used for cache so all symbols get cached
-        - self.universe: primary profile filtered — used for strategy operations
+        Live mode uses today's top-N rank window (default top-200 by 6-month
+        median turnover). Rank window is configurable via `universe.rank_range`
+        in config.yaml — e.g. (101, 250) for mid-cap-focused strategy.
         """
         try:
-            universe_path = self.config.paths.universe_file
+            # Rank window from config, falling back to top-200 if unset.
+            u_cfg = getattr(self.config, "universe", None)
+            rank_range = tuple(u_cfg.rank_range) if u_cfg else (1, 200)
 
-            # Unfiltered universe for cache (all ~200 stocks)
-            self._cache_universe = Universe(universe_path)
-
-            # Primary universe for strategy operations
-            self.universe = Universe(universe_path)
+            self.universe = Universe(rank_range=rank_range)
+            self._cache_universe = self.universe  # one source of truth now
 
             console.print(
-                f"[green]Universe loaded: {len(self.universe.get_all_stocks())} stocks[/green]"
+                f"[green]Universe loaded: {len(self.universe.get_all_stocks())} stocks "
+                f"(top-{rank_range[1]}, as-of {self.universe.as_of})[/green]"
             )
-            # Initialize cache manager with UNFILTERED universe (all symbols cached)
             self.cache = CacheManager(self.config, self._cache_universe)
         except Exception as e:
             console.print(f"[red]Failed to load universe: {e}[/red]")

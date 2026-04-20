@@ -173,9 +173,16 @@ regime:
 
 # Paths
 paths:
-  universe_file: "stock-universe.json"
+  universe_file: "stock-universe.json"  # legacy, unused after Phase 4
   log_dir: "logs"
   data_cache: ".cache"
+  sectors_file: "stock-sectors.json"
+  market_metadata_file: "market-metadata.json"
+
+# Tradable universe — rank window from nse-universe's 6-month median turnover ranking.
+# Default top-200 (nifty_200 equivalent). For a mid-cap strategy, use [101, 250].
+universe:
+  rank_range: [1, 200]
 
 # ============================================================================
 # NEW: Dynamic Rebalancing Configuration

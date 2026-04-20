@@ -79,6 +79,24 @@ def _as_of_default() -> date:
     return date.today()
 
 
+# Process-wide caches for the static artifacts — they don't change within
+# a single run, and backtests build hundreds of Universe instances.
+_SECTOR_MAP_CACHE: Dict[str, Dict[str, Dict[str, str]]] = {}
+_METADATA_CACHE: Dict[str, Dict[str, dict]] = {}
+
+
+def _nse_universe_singleton():
+    """Reuse one NSEUniverse instance across all Universe constructions.
+
+    Opening a DuckDB connection + loading indices.yml per instance is
+    ~50 ms each; amortizing across a 240-rebalance backtest matters.
+    """
+    if not hasattr(_nse_universe_singleton, "_instance"):
+        from nse_universe import Universe as NSEUniverse
+        _nse_universe_singleton._instance = NSEUniverse()
+    return _nse_universe_singleton._instance
+
+
 class Universe:
     """Tradable stock universe, resolved at a point in time.
 
@@ -129,31 +147,31 @@ class Universe:
 
     @staticmethod
     def _load_sector_map(path: str) -> Dict[str, Dict[str, str]]:
+        if path in _SECTOR_MAP_CACHE:
+            return _SECTOR_MAP_CACHE[path]
         p = Path(path)
         if not p.exists():
             raise FileNotFoundError(
                 f"Sector map not found: {p}. Run tools/build_sectors.py to generate it."
             )
-        doc = json.loads(p.read_text())
-        return doc.get("symbols", {})
+        doc = json.loads(p.read_text()).get("symbols", {})
+        _SECTOR_MAP_CACHE[path] = doc
+        return doc
 
     @staticmethod
     def _load_metadata(path: str) -> Dict[str, dict]:
+        if path in _METADATA_CACHE:
+            return _METADATA_CACHE[path]
         p = Path(path)
         if not p.exists():
             raise FileNotFoundError(f"Market metadata not found: {p}")
-        return json.loads(p.read_text())
+        doc = json.loads(p.read_text())
+        _METADATA_CACHE[path] = doc
+        return doc
 
     def _load_members(self) -> List[str]:
         """Return point-in-time members within ``rank_range`` as of ``as_of``."""
-        try:
-            from nse_universe import Universe as NSEUniverse
-        except ImportError as e:  # pragma: no cover
-            raise RuntimeError(
-                "nse-universe not installed. Run `pip install -e ~/work/nse500`."
-            ) from e
-
-        nse = NSEUniverse()
+        nse = _nse_universe_singleton()
         df = nse.universe_at(self.as_of)
         lo, hi = self.rank_range
         filtered = df[(df["rank"] >= lo) & (df["rank"] <= hi)]

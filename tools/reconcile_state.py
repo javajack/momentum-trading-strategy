@@ -54,10 +54,11 @@ def main():
         print(f"ERROR: Token invalid: {e}")
         sys.exit(1)
 
-    # Load universe
-    universe = Universe(config.paths.universe_file)
+    # Load today's universe (configurable rank window)
+    rank_range = tuple(config.universe.rank_range)
+    universe = Universe(rank_range=rank_range)
     universe_symbols = {s.zerodha_symbol for s in universe.get_all_stocks()}
-    print(f"Universe stocks: {len(universe_symbols)}")
+    print(f"Universe stocks: {len(universe_symbols)} (top-{rank_range[1]}, as-of {universe.as_of})")
 
     # Defensive symbols
     gold_symbol = config.regime.gold_symbol

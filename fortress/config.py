@@ -160,8 +160,21 @@ class CostsConfig(BaseModel):
 class PathsConfig(BaseModel):
     """File path settings."""
 
-    universe_file: str = Field(default="stock-universe.json")
+    universe_file: str = Field(default="stock-universe.json")  # legacy, unused after Phase 4
     data_cache: str = Field(default=".cache")
+    sectors_file: str = Field(default="stock-sectors.json")
+    market_metadata_file: str = Field(default="market-metadata.json")
+
+
+class UniverseConfig(BaseModel):
+    """Tradable universe selector — rank window from nse-universe.
+
+    Default (1, 200) gives the top-200 by 6-month median turnover (nifty_200
+    equivalent). Change to (101, 250) for mid-150, (251, 500) for
+    smallcap_250, or any custom rank band.
+    """
+
+    rank_range: List[int] = Field(default_factory=lambda: [1, 200])
 
 
 class RegimeConfig(BaseModel):
@@ -1245,6 +1258,7 @@ class Config(BaseModel):
     risk: RiskConfig = Field(default_factory=RiskConfig)
     costs: CostsConfig = Field(default_factory=CostsConfig)
     paths: PathsConfig = Field(default_factory=PathsConfig)
+    universe: UniverseConfig = Field(default_factory=UniverseConfig)
     regime: RegimeConfig = Field(default_factory=RegimeConfig)
 
     # Dynamic rebalancing and adaptive lookback configs (NEW)
