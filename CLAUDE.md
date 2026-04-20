@@ -8,9 +8,11 @@
 
 ## Key Rules
 - Never change strategy logic without running a full phase backtest (Option 8) before and after
-- **Current baseline** (survivorship-free, nse-universe data, run 2026-04-21,
-  2013-01-01 → 2026-02-11): **+8.7% CAGR, 0.24 Sharpe, −45.6% MaxDD, 5,221 trades,
-  46% win rate. Best phase Post-COVID Rally +144.8%, worst NBFC/IL&FS −29.0%.**
+- **Current baseline** (survivorship-free, nse-universe data, 30-day cadence,
+  2013-01-01 → 2026-02-11, re-baselined after rebalance-interval sweep
+  2026-04-21): **+9.7% CAGR, 0.30 Sharpe, −33.4% MaxDD, +238.4% total.**
+  Improvement over the 15-day baseline came mostly from MaxDD reduction
+  (−45.6% → −33.4%); lower turnover dampens whipsaw in crisis phases.
   Old pre-refactor baseline (19.8% CAGR / 0.87 Sharpe / −27.3% MaxDD) was
   survivorship-biased — it ran today's 200-stock winners against historical
   prices, which is the classic "picked the survivors" trap.
