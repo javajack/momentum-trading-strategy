@@ -1,12 +1,13 @@
 {
-  "coverage_pct": 47.05,
+  "coverage_pct": 47.07,
   "generated_at": "2026-04-22",
   "source_counts": {
-    "heuristic": 684,
-    "llm_map": 517,
-    "nse_authoritative": 554,
-    "unclassified": 2206,
-    "universe_json": 205
+    "heuristic": 662,
+    "known_etf": 59,
+    "llm_map": 487,
+    "nse_authoritative": 553,
+    "unclassified": 2205,
+    "universe_json": 200
   },
   "symbols": {
     "20MICRONS": {
@@ -1785,9 +1786,9 @@
       "sub_sector": "AUTO"
     },
     "AUTOBEES": {
-      "sector": "AUTOMOBILES",
-      "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sector": "DEFENSIVE",
+      "source": "known_etf",
+      "sub_sector": "EQUITY_ETF"
     },
     "AUTOIETF": {
       "sector": "AUTOMOBILES",
@@ -1920,9 +1921,9 @@
       "sub_sector": "EQUITY_ETF"
     },
     "AXISGOLD": {
-      "sector": "CONSUMER_DISCRETIONARY",
-      "source": "heuristic",
-      "sub_sector": "GEMS_JEWELLERY"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "AXISHCETF": {
       "sector": "DEFENSIVE",
@@ -1931,7 +1932,7 @@
     },
     "AXISILVER": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "AXISNIFTY": {
@@ -2200,9 +2201,9 @@
       "sub_sector": "BANKING_PSU"
     },
     "BANKBEES": {
-      "sector": "FINANCIALS",
-      "source": "llm_map",
-      "sub_sector": "BANKING"
+      "sector": "DEFENSIVE",
+      "source": "known_etf",
+      "sub_sector": "EQUITY_ETF"
     },
     "BANKBETA": {
       "sector": "UNCLASSIFIED",
@@ -3015,9 +3016,9 @@
       "sub_sector": "UNCLASSIFIED"
     },
     "BSLGOLDETF": {
-      "sector": "DEFENSIVE",
-      "source": "heuristic",
-      "sub_sector": "EQUITY_ETF"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "BSLIMITED": {
       "sector": "UNCLASSIFIED",
@@ -3221,7 +3222,7 @@
     },
     "CASHIETF": {
       "sector": "DEBT",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "CASTEXTECH": {
@@ -3916,8 +3917,8 @@
     },
     "CPSEETF": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
-      "sub_sector": "INDEX_ETF"
+      "source": "known_etf",
+      "sub_sector": "EQUITY_ETF"
     },
     "CRAFTSMAN": {
       "sector": "AUTOMOBILES",
@@ -5321,7 +5322,7 @@
     },
     "ESILVER": {
       "sector": "COMMODITIES",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "ESL": {
@@ -5746,7 +5747,7 @@
     },
     "FMCGIETF": {
       "sector": "DEFENSIVE",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "FMGOETZE": {
@@ -6526,7 +6527,7 @@
     },
     "GOLD1": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "GOLD_ETF"
     },
     "GOLD360": {
@@ -6541,7 +6542,7 @@
     },
     "GOLDBEES": {
       "sector": "COMMODITIES",
-      "source": "universe_json",
+      "source": "known_etf",
       "sub_sector": "GOLD_ETF"
     },
     "GOLDBETA": {
@@ -6556,7 +6557,7 @@
     },
     "GOLDCASE": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "GOLD_ETF"
     },
     "GOLDENTOBC": {
@@ -6566,7 +6567,7 @@
     },
     "GOLDETF": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "GOLD_ETF"
     },
     "GOLDETFADD": {
@@ -6581,7 +6582,7 @@
     },
     "GOLDIETF": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "GOLD_ETF"
     },
     "GOLDINFRA": {
@@ -6596,7 +6597,7 @@
     },
     "GOLDSHARE": {
       "sector": "COMMODITIES",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "GOLD_ETF"
     },
     "GOLDTECH": {
@@ -6785,9 +6786,9 @@
       "sub_sector": "UNCLASSIFIED"
     },
     "GROWWGOLD": {
-      "sector": "CONSUMER_DISCRETIONARY",
-      "source": "heuristic",
-      "sub_sector": "GEMS_JEWELLERY"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "GROWWHOSPI": {
       "sector": "HEALTHCARE",
@@ -6871,7 +6872,7 @@
     },
     "GROWWSLVR": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "GRPLTD": {
@@ -7305,9 +7306,9 @@
       "sub_sector": "UNCLASSIFIED"
     },
     "HDFCGOLD": {
-      "sector": "CONSUMER_DISCRETIONARY",
-      "source": "heuristic",
-      "sub_sector": "GEMS_JEWELLERY"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "HDFCGROWTH": {
       "sector": "UNCLASSIFIED",
@@ -7401,12 +7402,12 @@
     },
     "HDFCSILVER": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "HDFCSML250": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "HDFCVALUE": {
@@ -7770,9 +7771,9 @@
       "sub_sector": "UNCLASSIFIED"
     },
     "HNGSNGBEES": {
-      "sector": "DEFENSIVE",
-      "source": "heuristic",
-      "sub_sector": "EQUITY_ETF"
+      "sector": "INTERNATIONAL",
+      "source": "known_etf",
+      "sub_sector": "INTERNATIONAL_ETF"
     },
     "HOCL": {
       "sector": "UNCLASSIFIED",
@@ -8971,7 +8972,7 @@
     },
     "ITBEES": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "ITBETA": {
@@ -9571,7 +9572,7 @@
     },
     "JUNIORBEES": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "JUNIPER": {
@@ -10625,9 +10626,9 @@
       "sub_sector": "INSURANCE_LIFE"
     },
     "LICMFGOLD": {
-      "sector": "FINANCIALS",
-      "source": "heuristic",
-      "sub_sector": "INSURANCE"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "LICNETFGSC": {
       "sector": "FINANCIALS",
@@ -10690,53 +10691,53 @@
       "sub_sector": "CHEMICALS"
     },
     "LIQGRWBEES": {
-      "sector": "DEFENSIVE",
-      "source": "heuristic",
-      "sub_sector": "EQUITY_ETF"
+      "sector": "DEBT",
+      "source": "known_etf",
+      "sub_sector": "LIQUID_ETF"
     },
     "LIQUID": {
       "sector": "DEBT",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUID1": {
       "sector": "DEBT",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUIDADD": {
       "sector": "DEBT",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUIDBEES": {
       "sector": "DEBT",
-      "source": "universe_json",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUIDBETF": {
       "sector": "DEBT",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUIDCASE": {
       "sector": "DEBT",
-      "source": "universe_json",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUIDETF": {
       "sector": "DEBT",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUIDIETF": {
       "sector": "DEBT",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUIDPLUS": {
       "sector": "DEBT",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "LIQUID_ETF"
     },
     "LIQUIDSBI": {
@@ -10885,9 +10886,9 @@
       "sub_sector": "FMCG"
     },
     "LTGILTBEES": {
-      "sector": "DEFENSIVE",
-      "source": "heuristic",
-      "sub_sector": "EQUITY_ETF"
+      "sector": "DEBT",
+      "source": "known_etf",
+      "sub_sector": "LIQUID_ETF"
     },
     "LTGILTCASE": {
       "sector": "UNCLASSIFIED",
@@ -11691,7 +11692,7 @@
     },
     "METALIETF": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "METKORE": {
@@ -11796,7 +11797,7 @@
     },
     "MID150BEES": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "MID150CASE": {
@@ -11821,7 +11822,7 @@
     },
     "MIDCAPETF": {
       "sector": "DEFENSIVE",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "MIDCAPIETF": {
@@ -12010,9 +12011,9 @@
       "sub_sector": "POWER"
     },
     "MOGOLD": {
-      "sector": "CONSUMER_DISCRETIONARY",
-      "source": "heuristic",
-      "sub_sector": "GEMS_JEWELLERY"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "MOGSEC": {
       "sector": "UNCLASSIFIED",
@@ -12131,7 +12132,7 @@
     },
     "MON100": {
       "sector": "INTERNATIONAL",
-      "source": "universe_json",
+      "source": "known_etf",
       "sub_sector": "INTERNATIONAL_ETF"
     },
     "MON50EQUAL": {
@@ -12246,7 +12247,7 @@
     },
     "MOSILVER": {
       "sector": "COMMODITIES",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "MOSMALL250": {
@@ -12480,9 +12481,9 @@
       "sub_sector": "CEMENT"
     },
     "N100": {
-      "sector": "UNCLASSIFIED",
-      "source": "unclassified",
-      "sub_sector": "UNCLASSIFIED"
+      "sector": "INTERNATIONAL",
+      "source": "known_etf",
+      "sub_sector": "INTERNATIONAL_ETF"
     },
     "NACLIND": {
       "sector": "UNCLASSIFIED",
@@ -12946,7 +12947,7 @@
     },
     "NEXT50IETF": {
       "sector": "DEFENSIVE",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "NEXTMEDIA": {
@@ -13081,8 +13082,8 @@
     },
     "NIFTYBEES": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
-      "sub_sector": "INDEX_ETF"
+      "source": "known_etf",
+      "sub_sector": "EQUITY_ETF"
     },
     "NIFTYBETA": {
       "sector": "UNCLASSIFIED",
@@ -13106,12 +13107,12 @@
     },
     "NIFTYETF": {
       "sector": "DEFENSIVE",
-      "source": "heuristic",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "NIFTYIETF": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "NIFTYIWIN": {
@@ -14220,9 +14221,9 @@
       "sub_sector": "TEXTILES"
     },
     "PHARMABEES": {
-      "sector": "HEALTHCARE",
-      "source": "heuristic",
-      "sub_sector": "PHARMACEUTICALS"
+      "sector": "DEFENSIVE",
+      "source": "known_etf",
+      "sub_sector": "EQUITY_ETF"
     },
     "PHARMACIA": {
       "sector": "HEALTHCARE",
@@ -14836,7 +14837,7 @@
     },
     "PSUBNKBEES": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "PSUBNKIETF": {
@@ -16336,7 +16337,7 @@
     },
     "SBISILVER": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "SBT": {
@@ -16585,13 +16586,13 @@
       "sub_sector": "BANKING"
     },
     "SETFGOLD": {
-      "sector": "CONSUMER_DISCRETIONARY",
-      "source": "heuristic",
-      "sub_sector": "GEMS_JEWELLERY"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "SETFNIF50": {
       "sector": "DEFENSIVE",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "EQUITY_ETF"
     },
     "SETFNIFBK": {
@@ -17141,12 +17142,12 @@
     },
     "SILVER": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "SILVER1": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "SILVER360": {
@@ -17156,7 +17157,7 @@
     },
     "SILVERADD": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "SILVERAG": {
@@ -17166,7 +17167,7 @@
     },
     "SILVERBEES": {
       "sector": "COMMODITIES",
-      "source": "universe_json",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "SILVERBETA": {
@@ -17181,7 +17182,7 @@
     },
     "SILVERCASE": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "SILVERETF": {
@@ -17191,7 +17192,7 @@
     },
     "SILVERIETF": {
       "sector": "COMMODITIES",
-      "source": "llm_map",
+      "source": "known_etf",
       "sub_sector": "SILVER_ETF"
     },
     "SILVERTUC": {
@@ -17340,9 +17341,9 @@
       "sub_sector": "TEXTILES"
     },
     "SKYGOLD": {
-      "sector": "CONSUMER_DISCRETIONARY",
-      "source": "nse_authoritative",
-      "sub_sector": "CONSUMER_DURABLES"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "SMALL250": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -18555,9 +18556,9 @@
       "sub_sector": "FMCG"
     },
     "TATAGOLD": {
-      "sector": "CONSUMER_DISCRETIONARY",
-      "source": "heuristic",
-      "sub_sector": "GEMS_JEWELLERY"
+      "sector": "COMMODITIES",
+      "source": "known_etf",
+      "sub_sector": "GOLD_ETF"
     },
     "TATAHONEY": {
       "sector": "UNCLASSIFIED",

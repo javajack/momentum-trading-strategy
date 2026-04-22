@@ -60,6 +60,82 @@ SECTORS = {
 }
 
 
+# Known ETFs / fund units / non-equity instruments. Highest-priority
+# classification — checked BEFORE universe_json / NSE / LLM / heuristic.
+# This guarantees no ETF ever slips into the eligible-stocks filter via a
+# misclassification by downstream sources. The strategy's
+# _NON_EQUITY_SECTORS = {DEFENSIVE, COMMODITIES, DEBT, INTERNATIONAL} filter
+# in fortress/universe.py rejects anything tagged below. Registered hedges
+# (GOLDBEES, LIQUIDBEES, LIQUIDCASE) are separately re-added via
+# market-metadata.json → safe to tag aggressively here.
+_KNOWN_ETFS: Dict[str, Tuple[str, str]] = {
+    # Gold ETFs
+    "GOLDBEES":    ("COMMODITIES", "GOLD_ETF"),
+    "GOLDETF":     ("COMMODITIES", "GOLD_ETF"),
+    "GOLDIETF":    ("COMMODITIES", "GOLD_ETF"),
+    "GOLD1":       ("COMMODITIES", "GOLD_ETF"),
+    "GOLDCASE":    ("COMMODITIES", "GOLD_ETF"),
+    "GOLDSHARE":   ("COMMODITIES", "GOLD_ETF"),
+    "SETFGOLD":    ("COMMODITIES", "GOLD_ETF"),
+    "TATAGOLD":    ("COMMODITIES", "GOLD_ETF"),
+    "HDFCGOLD":    ("COMMODITIES", "GOLD_ETF"),
+    "AXISGOLD":    ("COMMODITIES", "GOLD_ETF"),
+    "SKYGOLD":     ("COMMODITIES", "GOLD_ETF"),
+    "MOGOLD":      ("COMMODITIES", "GOLD_ETF"),
+    "LICMFGOLD":   ("COMMODITIES", "GOLD_ETF"),
+    "BSLGOLDETF":  ("COMMODITIES", "GOLD_ETF"),
+    "GROWWGOLD":   ("COMMODITIES", "GOLD_ETF"),
+    # Silver ETFs
+    "SILVERBEES":  ("COMMODITIES", "SILVER_ETF"),
+    "SILVER":      ("COMMODITIES", "SILVER_ETF"),
+    "SILVER1":     ("COMMODITIES", "SILVER_ETF"),
+    "SILVERIETF":  ("COMMODITIES", "SILVER_ETF"),
+    "SILVERCASE":  ("COMMODITIES", "SILVER_ETF"),
+    "SILVERADD":   ("COMMODITIES", "SILVER_ETF"),
+    "HDFCSILVER":  ("COMMODITIES", "SILVER_ETF"),
+    "SBISILVER":   ("COMMODITIES", "SILVER_ETF"),
+    "AXISILVER":   ("COMMODITIES", "SILVER_ETF"),
+    "MOSILVER":    ("COMMODITIES", "SILVER_ETF"),
+    "ESILVER":     ("COMMODITIES", "SILVER_ETF"),
+    "GROWWSLVR":   ("COMMODITIES", "SILVER_ETF"),
+    # Liquid / cash ETFs
+    "LIQUIDBEES":  ("DEBT", "LIQUID_ETF"),
+    "LIQUIDCASE":  ("DEBT", "LIQUID_ETF"),
+    "LIQUIDETF":   ("DEBT", "LIQUID_ETF"),
+    "LIQUIDIETF":  ("DEBT", "LIQUID_ETF"),
+    "LIQUIDBETF":  ("DEBT", "LIQUID_ETF"),
+    "LIQUIDADD":   ("DEBT", "LIQUID_ETF"),
+    "LIQUIDPLUS":  ("DEBT", "LIQUID_ETF"),
+    "LIQUID":      ("DEBT", "LIQUID_ETF"),
+    "LIQUID1":     ("DEBT", "LIQUID_ETF"),
+    "LIQGRWBEES":  ("DEBT", "LIQUID_ETF"),
+    "LTGILTBEES":  ("DEBT", "LIQUID_ETF"),
+    "CASHIETF":    ("DEBT", "LIQUID_ETF"),
+    # Equity index ETFs
+    "NIFTYBEES":   ("DEFENSIVE", "EQUITY_ETF"),
+    "NIFTYIETF":   ("DEFENSIVE", "EQUITY_ETF"),
+    "NIFTYETF":    ("DEFENSIVE", "EQUITY_ETF"),
+    "SETFNIF50":   ("DEFENSIVE", "EQUITY_ETF"),
+    "JUNIORBEES":  ("DEFENSIVE", "EQUITY_ETF"),
+    "MID150BEES":  ("DEFENSIVE", "EQUITY_ETF"),
+    "MIDCAPETF":   ("DEFENSIVE", "EQUITY_ETF"),
+    "HDFCSML250":  ("DEFENSIVE", "EQUITY_ETF"),
+    "NEXT50IETF":  ("DEFENSIVE", "EQUITY_ETF"),
+    "ITBEES":      ("DEFENSIVE", "EQUITY_ETF"),
+    "BANKBEES":    ("DEFENSIVE", "EQUITY_ETF"),
+    "PSUBNKBEES":  ("DEFENSIVE", "EQUITY_ETF"),
+    "PHARMABEES":  ("DEFENSIVE", "EQUITY_ETF"),
+    "AUTOBEES":    ("DEFENSIVE", "EQUITY_ETF"),
+    "CPSEETF":     ("DEFENSIVE", "EQUITY_ETF"),
+    "METALIETF":   ("DEFENSIVE", "EQUITY_ETF"),
+    "FMCGIETF":    ("DEFENSIVE", "EQUITY_ETF"),
+    # International ETFs
+    "HNGSNGBEES":  ("INTERNATIONAL", "INTERNATIONAL_ETF"),
+    "MON100":      ("INTERNATIONAL", "INTERNATIONAL_ETF"),
+    "N100":        ("INTERNATIONAL", "INTERNATIONAL_ETF"),
+}
+
+
 # Explicit LLM classifications — entries are (SECTOR, SUB_SECTOR).
 # The sub_sector is an opinionated refinement used by the E5 sector-momentum
 # signal and reporting; falls back to sector when unknown.
@@ -1499,6 +1575,7 @@ def build(output: Path = OUTPUT_PATH) -> None:
 
     out: Dict[str, dict] = {}
     source_counts = {
+        "known_etf": 0,
         "universe_json": 0,
         "nse_authoritative": 0,
         "llm_map": 0,
@@ -1506,12 +1583,15 @@ def build(output: Path = OUTPUT_PATH) -> None:
         "unclassified": 0,
     }
 
-    # Priority: universe_json (hand-curated core) > NSE authoritative > LLM map > heuristics.
-    # Hand-curated wins for our 205 core names because they're tuned for the
-    # strategy's sector caps. NSE covers the next ~750. LLM+heuristics for the
-    # rest (~3200 deep tail + historical delisted names NSE doesn't carry).
+    # Priority: known_etf (guarantees non-equity ETFs can never slip into
+    # eligible universe) > universe_json (hand-curated core) > NSE authoritative
+    # > LLM map > heuristics. NSE covers the ~754 equity names; LLM+heuristics
+    # fill the deep tail and historical delisted names NSE doesn't carry.
     for sym in all_symbols:
-        if sym in authoritative:
+        if sym in _KNOWN_ETFS:
+            sec, sub = _KNOWN_ETFS[sym]
+            src = "known_etf"
+        elif sym in authoritative:
             sec, sub = authoritative[sym]
             src = "universe_json"
         elif sym in nse_sectors:

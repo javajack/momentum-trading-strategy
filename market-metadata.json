@@ -95,29 +95,6 @@
       "segment": "EQ",
       "symbol": "GOLDBEES",
       "zerodha_symbol": "GOLDBEES"
-    },
-    "international": {
-      "alternate_symbols": [
-        "N100"
-      ],
-      "api_format": "NSE:MON100",
-      "description": "NASDAQ 100 ETF - US tech exposure",
-      "exchange": "NSE",
-      "fund_house": "Motilal Oswal",
-      "instrument_type": "EQ",
-      "segment": "EQ",
-      "symbol": "MON100",
-      "zerodha_symbol": "MON100"
-    },
-    "silver": {
-      "api_format": "NSE:SILVERBEES",
-      "description": "Silver ETF",
-      "exchange": "NSE",
-      "fund_house": "Nippon India",
-      "instrument_type": "EQ",
-      "segment": "EQ",
-      "symbol": "SILVERBEES",
-      "zerodha_symbol": "SILVERBEES"
     }
   },
   "metadata": {
