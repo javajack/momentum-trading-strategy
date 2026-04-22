@@ -232,9 +232,11 @@ class FortressApp:
             self.universe = Universe(rank_range=rank_range)
             self._cache_universe = self.universe  # one source of truth now
 
+            lo, hi = rank_range
+            band_label = f"top-{hi}" if lo == 1 else f"ranks {lo}-{hi}"
             console.print(
                 f"[green]Universe loaded: {len(self.universe.get_all_stocks())} stocks "
-                f"(top-{rank_range[1]}, as-of {self.universe.as_of})[/green]"
+                f"({band_label}, as-of {self.universe.as_of})[/green]"
             )
             self.cache = CacheManager(self.config, self._cache_universe)
         except Exception as e:
