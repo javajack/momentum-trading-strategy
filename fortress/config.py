@@ -458,9 +458,9 @@ class RegimeConfig(BaseModel):
     )
     max_gold_allocation: float = Field(
         default=0.15,
-        ge=0.1,
+        ge=0.0,
         le=0.35,
-        description="Maximum gold allocation at max stress",
+        description="Maximum gold allocation at max stress (0 = skip gold, route to cash)",
     )
     max_cash_allocation: float = Field(
         default=0.0,
