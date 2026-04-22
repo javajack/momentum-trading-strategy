@@ -40,9 +40,9 @@ position_sizing:
   max_single_position: 0.10 # 10% max per position (allow conviction bets)
   min_single_position: 0.04 # 4% min per position (meaningful positions)
   max_sector_exposure: 0.30 # 30% max per sector
-  target_positions: 12 # Target 12 positions (quality focus)
-  min_positions: 10 # Maintain at least 10 positions
-  max_positions: 15 # Never exceed 15 positions
+  target_positions: 15 # Target 15 positions (swept 10/12/15/18 — 15 best Sharpe)
+  min_positions: 12 # Maintain at least 12 positions (was 10, scaled with target)
+  max_positions: 18 # Never exceed 18 positions (was 15, scaled with target)
 
 # Rebalancing schedule (monthly proven optimal)
 # Sweep across Pre-COVID 2015-2020 + Post-COVID 2020-2026 showed 30 trading days
@@ -184,9 +184,16 @@ paths:
   market_metadata_file: "market-metadata.json"
 
 # Tradable universe — rank window from nse-universe's 6-month median turnover ranking.
-# Default top-200 (nifty_200 equivalent). For a mid-cap strategy, use [101, 250].
+# Full small-to-mid-small spread [201, 600] picked after sweep across windows:
+# CAGR 25.6%, Sharpe 1.06, MaxDD -33.4%, +1551% alpha vs NIFTY 50 over 13yr backtest.
+# Wider pool gives the 85th-percentile NMS filter ~60 candidates to pick 15 from,
+# letting cap-tier leadership rotate naturally (mid-cap '14-'17, deep-small '20-'21,
+# both '23-'24). min_daily_turnover filter still gates out illiquid names.
+# Alternatives tested: [1,200] large-cap 14.3%/0.55 · [101,250] mid 18.7%/0.81 ·
+# [251,500] small 20.6%/0.87 (shallowest DD -30.2%) · [401,600] deep-small 25.1%/1.12
+# (academic best but capacity-constrained beyond ~₹1 Cr).
 universe:
-  rank_range: [1, 200]
+  rank_range: [201, 600]
 
 # ============================================================================
 # NEW: Dynamic Rebalancing Configuration

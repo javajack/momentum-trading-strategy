@@ -1139,6 +1139,213 @@ _LLM_SECTOR_MAP: Dict[str, Tuple[str, str]] = {
     "WELSPUNIND": ("CONSUMER_DISCRETIONARY", "TEXTILES"),
     "ZEETELE": ("MEDIA", "MEDIA"),
     "ZENTEC": ("INDUSTRIALS", "DEFENCE"),
+
+    # === SMALL/MID-CAP DEEP TAIL EXTENSIONS (for rank [201, 600]) ===
+    # Curated to cover names appearing in live scan & 13-yr backtest window.
+    # FINANCIALS
+    "APTUS": ("FINANCIALS", "HOUSING_FIN"),
+    "CARERATING": ("FINANCIALS", "FIN_SERVICES"),
+    "CHOICEIN": ("FINANCIALS", "BROKING"),
+    "CHOLAHLDNG": ("FINANCIALS", "DIVERSIFIED_FIN"),
+    "FEDFINA": ("FINANCIALS", "NBFC"),
+    "HDBFS": ("FINANCIALS", "NBFC"),
+    "IIFLCAPS": ("FINANCIALS", "BROKING"),
+    "NUVAMA": ("FINANCIALS", "WEALTH_MGMT"),
+    "PROTEAN": ("INFORMATION_TECHNOLOGY", "IT_SERVICES"),
+    "SBC": ("FINANCIALS", "NBFC"),
+    "TATAINVEST": ("FINANCIALS", "DIVERSIFIED_FIN"),
+    "TFCILTD": ("FINANCIALS", "NBFC"),
+    "ZAGGLE": ("FINANCIALS", "FIN_SERVICES"),
+
+    # HEALTHCARE / PHARMA
+    "BLISSGVS": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "BLUEJET": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "COHANCE": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "EMCURE": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "HIKAL": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "IKS": ("HEALTHCARE", "HEALTHCARE_SVCS"),
+    "MERCK": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "NH": ("HEALTHCARE", "HOSPITALS"),
+    "ONESOURCE": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "SENORES": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "SEQUENT": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "SHARONBIO": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "SUPRIYA": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "TARSONS": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "YATHARTH": ("HEALTHCARE", "HOSPITALS"),
+
+    # INFORMATION_TECHNOLOGY
+    "AURIONPRO": ("INFORMATION_TECHNOLOGY", "IT_SERVICES"),
+    "AVALON": ("INFORMATION_TECHNOLOGY", "EMS"),
+    "AVANTEL": ("INFORMATION_TECHNOLOGY", "IT_SERVICES"),
+    "BBOX": ("INFORMATION_TECHNOLOGY", "IT_SERVICES"),
+    "CMSINFO": ("INFORMATION_TECHNOLOGY", "IT_SERVICES"),
+    "E2E": ("INFORMATION_TECHNOLOGY", "INTERNET"),
+    "HEXT": ("INFORMATION_TECHNOLOGY", "IT_SERVICES"),
+    "MAPMYINDIA": ("INFORMATION_TECHNOLOGY", "INTERNET"),
+    "MSTCLTD": ("INFORMATION_TECHNOLOGY", "IT_SERVICES"),
+
+    # AUTOMOBILES / AUTO ANCILLARIES
+    "CRAFTSMAN": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "ENDURANCE": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "JBMA": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "JTEKTINDIA": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "MSUMI": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "PRICOLLTD": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "SANSERA": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "SHRIPISTON": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "SJS": ("AUTOMOBILES", "AUTO_ANCILLARY"),
+    "MAHSCOOTER": ("AUTOMOBILES", "AUTO"),
+
+    # INDUSTRIALS
+    "BANCOINDIA": ("INDUSTRIALS", "AUTO_ANCILLARY"),
+    "BALUFORGE": ("INDUSTRIALS", "FORGING"),
+    "BLACKBUCK": ("INDUSTRIALS", "LOGISTICS"),
+    "CPPLUS": ("INDUSTRIALS", "ELECTRONICS"),
+    "DIACABS": ("INDUSTRIALS", "CABLES"),
+    "ELECON": ("INDUSTRIALS", "CAPITAL_GOODS"),
+    "ELGIEQUIP": ("INDUSTRIALS", "CAPITAL_GOODS"),
+    "GARUDA": ("INDUSTRIALS", "CONSTRUCTION"),
+    "HONAUT": ("INDUSTRIALS", "CAPITAL_GOODS"),
+    "INOXINDIA": ("INDUSTRIALS", "CAPITAL_GOODS"),
+    "INTERARCH": ("INDUSTRIALS", "CONSTRUCTION"),
+    "JYOTICNC": ("INDUSTRIALS", "MACHINE_TOOLS"),
+    "KECL": ("INDUSTRIALS", "CAPITAL_GOODS"),
+    "KERNEX": ("INDUSTRIALS", "RAILWAYS"),
+    "KRN": ("INDUSTRIALS", "CAPITAL_GOODS"),
+    "KSB": ("INDUSTRIALS", "PUMPS"),
+    "LAXMIMACH": ("INDUSTRIALS", "MACHINE_TOOLS"),
+    "MAHINDFORG": ("INDUSTRIALS", "FORGING"),
+    "NAVKARCORP": ("INDUSTRIALS", "LOGISTICS"),
+    "NRBBEARING": ("INDUSTRIALS", "BEARINGS"),
+    "OSWALPUMPS": ("INDUSTRIALS", "PUMPS"),
+    "PRECWIRE": ("INDUSTRIALS", "CAPITAL_GOODS"),
+    "QUESS": ("INDUSTRIALS", "BUSINESS_SVCS"),
+    "RKFORGE": ("INDUSTRIALS", "FORGING"),
+    "RRKABEL": ("INDUSTRIALS", "CABLES"),
+    "SHAKTIPUMP": ("INDUSTRIALS", "PUMPS"),
+    "SIS": ("INDUSTRIALS", "BUSINESS_SVCS"),
+    "SKIPPER": ("INDUSTRIALS", "TRANSMISSION_TOWERS"),
+    "TARIL": ("INDUSTRIALS", "TRANSFORMERS"),
+    "TEAMLEASE": ("INDUSTRIALS", "BUSINESS_SVCS"),
+    "TECHNOE": ("INDUSTRIALS", "EPC"),
+    "TEGA": ("INDUSTRIALS", "MINING_EQUIPMENT"),
+    "TI": ("INDUSTRIALS", "DIVERSIFIED"),
+    "VIKRAN": ("INDUSTRIALS", "EPC"),
+    "WABAG": ("INDUSTRIALS", "WATER_TREATMENT"),
+
+    # MATERIALS / CHEMICALS
+    "AETHER": ("MATERIALS", "CHEMICALS"),
+    "ALKYLAMINE": ("MATERIALS", "CHEMICALS"),
+    "AMIORG": ("MATERIALS", "CHEMICALS"),
+    "ASAHIINDIA": ("MATERIALS", "GLASS"),
+    "CENTURYPLY": ("MATERIALS", "BUILDING_MATERIALS"),
+    "DHANUKA": ("MATERIALS", "AGROCHEMICALS"),
+    "ESSELPACK": ("MATERIALS", "PACKAGING"),
+    "EVERESTIND": ("MATERIALS", "BUILDING_MATERIALS"),
+    "EXCELCROP": ("MATERIALS", "AGROCHEMICALS"),
+    "HERANBA": ("MATERIALS", "AGROCHEMICALS"),
+    "INDIAGLYCO": ("MATERIALS", "CHEMICALS"),
+    "INSECTICID": ("MATERIALS", "AGROCHEMICALS"),
+    "IONEXCHANG": ("MATERIALS", "CHEMICALS"),
+    "LINDEINDIA": ("MATERIALS", "INDUSTRIAL_GASES"),
+    "MOLDTKPAC": ("MATERIALS", "PACKAGING"),
+    "NEOGEN": ("MATERIALS", "CHEMICALS"),
+    "NUVOCO": ("MATERIALS", "CEMENT"),
+    "PRIVISCL": ("MATERIALS", "CHEMICALS"),
+    "RALLIS": ("MATERIALS", "AGROCHEMICALS"),
+    "RHIM": ("MATERIALS", "REFRACTORIES"),
+    "SHAILY": ("MATERIALS", "PLASTICS"),
+    "SHARDACROP": ("MATERIALS", "AGROCHEMICALS"),
+    "SIRCA": ("MATERIALS", "PAINTS"),
+    "SOMANYCERA": ("MATERIALS", "CERAMICS"),
+    "VALIANTORG": ("MATERIALS", "CHEMICALS"),
+
+    # METALS_MINING
+    "IMFA": ("METALS_MINING", "FERRO_ALLOYS"),
+    "JAYNECOIND": ("METALS_MINING", "COAL"),
+    "MAITHANALL": ("METALS_MINING", "FERRO_ALLOYS"),
+    "NAVA": ("METALS_MINING", "FERRO_ALLOYS"),
+    "NSLNISP": ("METALS_MINING", "STEEL_IRON"),
+    "POCL": ("METALS_MINING", "NON_FERROUS"),
+    "SARDAEN": ("METALS_MINING", "FERRO_ALLOYS"),
+    "SUNFLAG": ("METALS_MINING", "STEEL_IRON"),
+
+    # ENERGY
+    "AEGISLOG": ("ENERGY", "OIL_GAS_STORAGE"),
+    "AEGISVOPAK": ("ENERGY", "OIL_GAS_STORAGE"),
+    "SWANCORP": ("ENERGY", "LNG"),
+
+    # UTILITIES
+    "BORORENEW": ("UTILITIES", "POWER"),
+    "VIKRAMSOLR": ("UTILITIES", "POWER"),
+    "WAAREERTL": ("UTILITIES", "POWER"),
+
+    # REAL_ESTATE
+    "ABREL": ("REAL_ESTATE", "REAL_ESTATE"),
+    "HUBTOWN": ("REAL_ESTATE", "REAL_ESTATE"),
+    "LOTUSDEV": ("REAL_ESTATE", "REAL_ESTATE"),
+    "NESCO": ("REAL_ESTATE", "REAL_ESTATE"),
+    "SAMHI": ("CONSUMER_DISCRETIONARY", "HOTELS"),
+
+    # CONSUMER_DISCRETIONARY
+    "BIKAJI": ("CONSUMER_STAPLES", "FMCG"),
+    "EPACK": ("CONSUMER_DISCRETIONARY", "CONSUMER_DURABLES"),
+    "FIRSTCRY": ("CONSUMER_DISCRETIONARY", "RETAIL"),
+    "GMBREW": ("CONSUMER_STAPLES", "BREWERIES"),
+    "GOKEX": ("CONSUMER_DISCRETIONARY", "TEXTILES"),
+    "HONASA": ("CONSUMER_DISCRETIONARY", "PERSONAL_CARE"),
+    "IGIL": ("CONSUMER_DISCRETIONARY", "GEMS_JEWELLERY"),
+    "IXIGO": ("CONSUMER_DISCRETIONARY", "TRAVEL"),
+    "MANYAVAR": ("CONSUMER_DISCRETIONARY", "RETAIL"),
+    "RAYMONDLSL": ("CONSUMER_DISCRETIONARY", "TEXTILES"),
+    "RBA": ("CONSUMER_DISCRETIONARY", "QSR"),
+    "SENCO": ("CONSUMER_DISCRETIONARY", "GEMS_JEWELLERY"),
+    "SHREEJISPG": ("CONSUMER_DISCRETIONARY", "TEXTILES"),
+    "SHRINGARMS": ("CONSUMER_DISCRETIONARY", "GEMS_JEWELLERY"),
+    "SUMEETINDS": ("CONSUMER_DISCRETIONARY", "TEXTILES"),
+    "THANGAMAYL": ("CONSUMER_DISCRETIONARY", "GEMS_JEWELLERY"),
+    "URBANCO": ("CONSUMER_DISCRETIONARY", "SERVICES"),
+    "VSTIND": ("CONSUMER_STAPLES", "TOBACCO"),
+    "WELSPUNLIV": ("CONSUMER_DISCRETIONARY", "HOME_TEXTILES"),
+    "YATRA": ("CONSUMER_DISCRETIONARY", "TRAVEL"),
+
+    # DEFENSIVE / ETFs / INSTRUMENT TICKERS
+    "CASHIETF": ("DEBT", "LIQUID_ETF"),
+    "GOLD1": ("COMMODITIES", "GOLD_ETF"),
+    "GOLDCASE": ("COMMODITIES", "GOLD_ETF"),
+    "GOLDETF": ("COMMODITIES", "GOLD_ETF"),
+    "GROWWSLVR": ("COMMODITIES", "SILVER_ETF"),
+    "HDFCSML250": ("DEFENSIVE", "EQUITY_ETF"),
+    "ITBEES": ("DEFENSIVE", "EQUITY_ETF"),
+    "JUNIORBEES": ("DEFENSIVE", "EQUITY_ETF"),
+    "LIQUID1": ("DEBT", "LIQUID_ETF"),
+    "LIQUIDADD": ("DEBT", "LIQUID_ETF"),
+    "LIQUIDBETF": ("DEBT", "LIQUID_ETF"),
+    "LIQUIDIETF": ("DEBT", "LIQUID_ETF"),
+    "LIQUIDPLUS": ("DEBT", "LIQUID_ETF"),
+    "METALIETF": ("DEFENSIVE", "EQUITY_ETF"),
+    "MID150BEES": ("DEFENSIVE", "EQUITY_ETF"),
+    "NIFTYIETF": ("DEFENSIVE", "EQUITY_ETF"),
+    "PSUBNKBEES": ("DEFENSIVE", "EQUITY_ETF"),
+    "SBISILVER": ("COMMODITIES", "SILVER_ETF"),
+    "SETFNIF50": ("DEFENSIVE", "EQUITY_ETF"),
+    "SILVER": ("COMMODITIES", "SILVER_ETF"),
+    "SILVER1": ("COMMODITIES", "SILVER_ETF"),
+    "SILVERADD": ("COMMODITIES", "SILVER_ETF"),
+    "SILVERCASE": ("COMMODITIES", "SILVER_ETF"),
+    "AXISILVER": ("COMMODITIES", "SILVER_ETF"),
+
+    # Additional tail names
+    "ABDL": ("CONSUMER_STAPLES", "ALCOHOL"),
+    "ACUTAAS": ("MATERIALS", "CHEMICALS"),
+    "AGIIL": ("MATERIALS", "GLASS"),
+    "ANTHEM": ("HEALTHCARE", "PHARMACEUTICALS"),
+    "ANURAS": ("MATERIALS", "CHEMICALS"),
+    "ASHAPURMIN": ("METALS_MINING", "MINING"),
+    "AZAD": ("INDUSTRIALS", "AEROSPACE"),
+    "CCL": ("CONSUMER_STAPLES", "FMCG"),
+    "GRMOVER": ("CONSUMER_STAPLES", "FMCG"),
 }
 
 
@@ -1189,6 +1396,20 @@ _HEURISTIC_RULES = [
     (r"JEWEL|GOLD$|DIAMOND|GEMS", "CONSUMER_DISCRETIONARY", "GEMS_JEWELLERY"),
     (r"FOOTWEAR|SHOE", "CONSUMER_DISCRETIONARY", "FOOTWEAR"),
     (r"LUGGAGE|BAGS", "CONSUMER_DISCRETIONARY", "LUGGAGE"),
+
+    # Extended small-cap patterns
+    (r"FORGE?$|FORGING|FORGINGS$", "INDUSTRIALS", "FORGING"),
+    (r"BEARING", "INDUSTRIALS", "BEARINGS"),
+    (r"ISPAT|STEELS?$", "METALS_MINING", "STEEL_IRON"),
+    (r"GLASS$|GLASSES$", "MATERIALS", "GLASS"),
+    (r"PUMPS?$", "INDUSTRIALS", "PUMPS"),
+    (r"SPINNING|SPG$|YARN", "CONSUMER_DISCRETIONARY", "TEXTILES"),
+    (r"HOSPITAL|HEALTHCARES?$", "HEALTHCARE", "HOSPITALS"),
+    (r"TRANSFORM|TRANSFORMR", "INDUSTRIALS", "TRANSFORMERS"),
+    (r"^GOLD(?:ETF|CASE|SHARE|BEES|1)?$|GOLDBEES", "COMMODITIES", "GOLD_ETF"),
+    (r"SILVER(?:ETF|CASE|BEES|1|ADD)?$", "COMMODITIES", "SILVER_ETF"),
+    (r"LIQUID(?:BEES|ETF|CASE|BETF|IETF|PLUS|ADD|1)?$", "DEBT", "LIQUID_ETF"),
+    (r"BEES$|IETF$|ETF$", "DEFENSIVE", "EQUITY_ETF"),
 ]
 
 
@@ -1247,17 +1468,55 @@ def _enumerate_all_nse_symbols() -> list[str]:
     return df["symbol"].tolist()
 
 
+def _load_nse_universe_sectors() -> Dict[str, Tuple[str, str]]:
+    """Load NSE's authoritative sector data from nse-universe's sectors.parquet.
+
+    Falls back to empty dict if the sectors module isn't available or the
+    parquet file hasn't been generated yet. Run
+    `python -c "from nse_universe import sectors; sectors.fetch_and_store()"`
+    in the nse-universe repo to regenerate.
+    """
+    try:
+        from nse_universe import sectors as _sectors
+    except ImportError:
+        print("[info] nse_universe.sectors not available — skipping NSE source", file=sys.stderr)
+        return {}
+    df = _sectors.all_classifications()
+    if df.empty:
+        print("[info] NSE sectors parquet empty — run sectors.fetch_and_store()", file=sys.stderr)
+        return {}
+    return {
+        row["symbol"]: (row["sector"], row["sub_sector"])
+        for _, row in df.iterrows()
+        if row["sector"] != "UNCLASSIFIED"
+    }
+
+
 def build(output: Path = OUTPUT_PATH) -> None:
     authoritative = _load_universe_json_sectors()
+    nse_sectors = _load_nse_universe_sectors()
     all_symbols = _enumerate_all_nse_symbols()
 
     out: Dict[str, dict] = {}
-    source_counts = {"universe_json": 0, "llm_map": 0, "heuristic": 0, "unclassified": 0}
+    source_counts = {
+        "universe_json": 0,
+        "nse_authoritative": 0,
+        "llm_map": 0,
+        "heuristic": 0,
+        "unclassified": 0,
+    }
 
+    # Priority: universe_json (hand-curated core) > NSE authoritative > LLM map > heuristics.
+    # Hand-curated wins for our 205 core names because they're tuned for the
+    # strategy's sector caps. NSE covers the next ~750. LLM+heuristics for the
+    # rest (~3200 deep tail + historical delisted names NSE doesn't carry).
     for sym in all_symbols:
         if sym in authoritative:
             sec, sub = authoritative[sym]
             src = "universe_json"
+        elif sym in nse_sectors:
+            sec, sub = nse_sectors[sym]
+            src = "nse_authoritative"
         elif sym in _LLM_SECTOR_MAP:
             sec, sub = _LLM_SECTOR_MAP[sym]
             src = "llm_map"

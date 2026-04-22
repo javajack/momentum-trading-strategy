@@ -9,14 +9,19 @@
 ## Key Rules
 - Never change strategy logic without running a full phase backtest (Option 8) before and after
 - **Current baseline** (survivorship-free, nse-universe data, 30-day cadence,
-  real NIFTY 50 benchmark, run 2026-04-22 on f_custom):
-  **+14.3% CAGR, 0.55 Sharpe, −32.5% MaxDD, +476.7% total** (2013-01-01 →
+  real NIFTY 50 benchmark, `rank_range: [201, 600]` with NSE-authoritative
+  sector classification, run 2026-04-22 on f_custom):
+  **+26.8% CAGR, 1.14 Sharpe, −29.4% MaxDD, +2159% total** (2013-01-01 →
   2026-02-11, 16 phases). vs real NIFTY 50 CAGR 11.83% over same period —
-  strategy beats by **+2.47 pp/yr**. ₹20L end value: strategy ₹1.15 Cr,
+  strategy beats by **+15 pp/yr**. ₹20L end value: strategy ₹4.5 Cr,
   NIFTY 50 buy-and-hold ₹86L.
-  Old pre-refactor baseline (19.8% CAGR / 0.87 Sharpe / −27.3% MaxDD) was
-  survivorship-biased — it ran today's 200-stock winners against historical
-  prices, which is the classic "picked the survivors" trap.
+  Prior baseline at `rank_range: [1, 200]` was +14.3% CAGR / 0.55 Sharpe /
+  −32.5% MaxDD — dominated on every metric by the mid-small shift once
+  NSE sector labels were wired in (without those, [201, 600] sector caps
+  leaked and drawdown was −35pp worse).
+  Pre-refactor survivorship-biased baseline (19.8% CAGR / 0.87 Sharpe /
+  −27.3% MaxDD) ran today's 200-stock winners against historical prices —
+  classic "picked the survivors" trap, ignore for honest comparison.
 - `config.yaml` is tracked (see config.example.yaml for the reference template).
 - Only one strategy exists: `dual_momentum` — no profiles, no multi-strategy
 - Orders are not placed by code (Zerodha IP-whitelist policy, April 2026).
@@ -25,12 +30,16 @@
   flags anywhere any more.
 
 ## Architecture
-- **Universe**: point-in-time from nse-universe. Default `rank_range: (1, 200)` =
-  top-200 by 6-month median turnover (nifty_200 equivalent). Configurable
-  via `universe.rank_range` in `config.yaml` — use `(101, 250)` for mid-cap-focused.
+- **Universe**: point-in-time from nse-universe. Default `rank_range: [201, 600]`
+  picked by sweep — small/mid-cap spread by 6mo median turnover. Filter-pipeline
+  has ~400 candidates to pick 15 from, no cap-tier concentration. Other tested
+  bands: `[1, 200]` large-cap (14.3% CAGR), `[101, 250]` mid (18.7%), `[251, 500]`
+  small (20.6%), `[201, 1000]` too-wide (22.1% — deep tail dilutes).
 - **Sector classification**: `stock-sectors.json` built offline by
-  `tools/build_sectors.py` — covers all 4,166 NSE EQ symbols. 100% of current
-  top-200 classified, 97% of historical top-200 union.
+  `tools/build_sectors.py` — covers all 4,166 NSE EQ symbols. Primary source:
+  `nse_universe.sectors` (NSE authoritative, 754 symbols, 100% of the
+  `[201, 600]` window). Fallback: hand-curated LLM map + heuristic rules for
+  deep-tail / delisted names NSE's sectoral CSVs don't cover.
 - **Market metadata**: `market-metadata.json` carries benchmark / sectoral
   indices / VIX / hedges (GOLDBEES/LIQUIDBEES/LIQUIDCASE).
 - **Capital model**: LIQUIDBEES is the single source/sink of strategy capital.

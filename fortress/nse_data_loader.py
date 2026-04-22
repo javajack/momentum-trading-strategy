@@ -269,9 +269,12 @@ def load_historical_for_backtest(
     from nse_universe import Universe as NSEUniverse
 
     nse = NSEUniverse()
-    members_df = nse.members_df(start, end, "nifty_500")
     lo, hi = rank_range
-    # Widen the window to nifty_500 so drop-outs mid-window stay priced.
+    # Use nifty_1000 ceiling when the requested window reaches past 500,
+    # otherwise stay on nifty_500 (same behavior as before for existing configs).
+    ceiling_index = "nifty_1000" if hi > 500 else "nifty_500"
+    members_df = nse.members_df(start, end, ceiling_index)
+    # Widen the window so drop-outs mid-window stay priced.
     wide_lo = max(1, lo)
     wide_hi = max(hi + 100, 500)
     in_window = members_df[(members_df["rank"] >= wide_lo) & (members_df["rank"] <= wide_hi)]
