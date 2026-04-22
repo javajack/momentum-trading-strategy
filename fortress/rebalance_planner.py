@@ -167,170 +167,116 @@ class RebalancePlanner:
         plan = RebalancePlan()
         plan.available_cash = self.portfolio.get_snapshot().cash
 
-        target_symbols = set(target_weights.keys())
-        current_symbols = set(current_holdings.keys())
+        from . import rebalance_logic as _rl
 
-        # Phase 1: SELL orders (exits and reductions)
-        for symbol in current_symbols:
-            pos = current_holdings[symbol]
-            price = current_prices.get(symbol, pos.current_price)
+        # Input projection — shared logic consumes primitives, not Position objects.
+        all_symbols = set(current_holdings.keys()) | set(target_weights.keys())
+        current_qtys = {s: current_holdings[s].quantity for s in current_holdings}
+        current_values = {s: current_holdings[s].value for s in current_holdings}
+        lot_sizes = {s: self.mapper.get_lot_size(s) for s in all_symbols}
+
+        def _sector_for(symbol: str) -> str:
+            if symbol in current_holdings:
+                return current_holdings[symbol].sector
+            stock = self.universe.get_stock(symbol)
+            return stock.sector if stock else "UNKNOWN"
+
+        # Phase 1: SELL orders (exits + reductions)
+        sell_intents = _rl.compute_sell_intents(
+            current_qtys=current_qtys,
+            current_values=current_values,
+            target_weights=target_weights,
+            managed_capital=managed_capital,
+            prices=current_prices,
+            lot_sizes=lot_sizes,
+        )
+        for s in sell_intents:
+            pos = current_holdings[s.symbol]
+            price = current_prices.get(s.symbol, pos.current_price)
+            action = TradeAction.SELL_EXIT if s.is_exit else TradeAction.SELL_REDUCE
             current_weight = pos.value / managed_capital if managed_capital > 0 else 0
+            plan.trades.append(PlannedTrade(
+                symbol=s.symbol,
+                action=action,
+                quantity=s.quantity,
+                price=price,
+                value=s.quantity * price,
+                sector=pos.sector,
+                current_qty=pos.quantity,
+                current_weight=current_weight,
+                target_weight=s.target_weight,
+                reason=s.reason,
+                entry_price=pos.average_price,
+            ))
+            plan.total_sell_value += s.quantity * price
 
-            if symbol not in target_symbols:
-                # Full exit
-                trade = PlannedTrade(
-                    symbol=symbol,
-                    action=TradeAction.SELL_EXIT,
-                    quantity=pos.quantity,
-                    price=price,
-                    value=pos.quantity * price,
-                    sector=pos.sector,
-                    current_qty=pos.quantity,
-                    current_weight=current_weight,
-                    reason="Exit: Not in target",
-                    entry_price=pos.average_price,
-                )
-                plan.trades.append(trade)
-                plan.total_sell_value += trade.value
-            else:
-                # Check for reduction (10% tolerance)
-                target_weight = target_weights[symbol]
-                if current_weight > target_weight * 1.10:
-                    target_value = managed_capital * target_weight
-                    reduce_value = pos.value - target_value
-                    lot_size = self.mapper.get_lot_size(symbol)
-                    reduce_qty, _ = calculate_order_quantity(reduce_value, price, lot_size)
-                    if reduce_qty > 0:
-                        trade = PlannedTrade(
-                            symbol=symbol,
-                            action=TradeAction.SELL_REDUCE,
-                            quantity=reduce_qty,
-                            price=price,
-                            value=reduce_qty * price,
-                            sector=pos.sector,
-                            current_qty=pos.quantity,
-                            current_weight=current_weight,
-                            target_weight=target_weight,
-                            reason=f"Reduce: {current_weight:.1%}->{target_weight:.1%}",
-                            entry_price=pos.average_price,
-                        )
-                        plan.trades.append(trade)
-                        plan.total_sell_value += trade.value
+        # Phase 2: BUY orders (new positions + increases)
+        buy_intents, buy_warnings = _rl.compute_buy_intents(
+            current_qtys=current_qtys,
+            current_values=current_values,
+            target_weights=target_weights,
+            managed_capital=managed_capital,
+            prices=current_prices,
+            lot_sizes=lot_sizes,
+            hard_max_position=self.risk_config.hard_max_position,
+        )
+        plan.warnings.extend(buy_warnings)
+        for b in buy_intents:
+            price = current_prices[b.symbol]
+            rounded_price = self.mapper.round_to_tick(price, b.symbol)
+            sector = _sector_for(b.symbol)
+            cq = current_qtys.get(b.symbol, 0)
+            cw = (current_values.get(b.symbol, 0.0) / managed_capital) if managed_capital > 0 else 0.0
+            plan.trades.append(PlannedTrade(
+                symbol=b.symbol,
+                action=(TradeAction.BUY_NEW if b.is_new else TradeAction.BUY_INCREASE),
+                quantity=b.quantity,
+                price=rounded_price,
+                value=b.value,
+                sector=sector,
+                current_qty=cq,
+                current_weight=cw,
+                target_weight=b.target_weight,
+                reason=b.reason,
+            ))
+            plan.total_buy_value += b.value
 
-        # Phase 2: BUY orders (new positions and increases)
-        for symbol in target_symbols:
-            target_weight = target_weights[symbol]
-            target_value = managed_capital * target_weight
-            price = current_prices.get(symbol)
-
-            if price is None or price <= 0:
-                plan.warnings.append(f"No price for {symbol}, skipping")
-                continue
-
-            lot_size = self.mapper.get_lot_size(symbol)
-            rounded_price = self.mapper.round_to_tick(price, symbol)
-
-            if symbol not in current_symbols:
-                # New position
-                qty, _ = calculate_order_quantity(target_value, price, lot_size)
-                if qty > 0:
-                    stock = self.universe.get_stock(symbol)
-                    sector = stock.sector if stock else "UNKNOWN"
-                    trade = PlannedTrade(
-                        symbol=symbol,
-                        action=TradeAction.BUY_NEW,
-                        quantity=qty,
-                        price=rounded_price,
-                        value=qty * price,
-                        sector=sector,
-                        target_weight=target_weight,
-                        reason="New position",
-                    )
-                    plan.trades.append(trade)
-                    plan.total_buy_value += trade.value
-            else:
-                # Check for increase (10% tolerance)
-                pos = current_holdings[symbol]
-                current_weight = pos.value / managed_capital if managed_capital > 0 else 0
-
-                # Enforce hard limit on target weight
-                hard_limit = self.risk_config.hard_max_position
-                effective_target_weight = target_weight
-                if target_weight > hard_limit:
-                    effective_target_weight = hard_limit
-                    plan.warnings.append(
-                        f"{symbol}: Target {target_weight:.1%} exceeds hard limit "
-                        f"{hard_limit:.0%}, capping to {effective_target_weight:.1%}"
-                    )
-
-                if effective_target_weight > current_weight * 1.10:
-                    effective_target_value = effective_target_weight * managed_capital
-                    increase_value = effective_target_value - pos.value
-                    qty, _ = calculate_order_quantity(increase_value, price, lot_size)
-                    if qty > 0:
-                        trade = PlannedTrade(
-                            symbol=symbol,
-                            action=TradeAction.BUY_INCREASE,
-                            quantity=qty,
-                            price=rounded_price,
-                            value=qty * price,
-                            sector=pos.sector,
-                            current_qty=pos.quantity,
-                            current_weight=current_weight,
-                            target_weight=effective_target_weight,
-                            reason=f"Increase: {current_weight:.1%}->{effective_target_weight:.1%}",
-                        )
-                        plan.trades.append(trade)
-                        plan.total_buy_value += trade.value
-
-        # Self-funding: buys funded entirely from sell proceeds (LIQUIDBEES + exits + reductions)
+        # Self-funding: buys funded entirely from sell proceeds
         available_for_buys = plan.total_sell_value
-
-        scaled = False
-        if plan.total_buy_value > available_for_buys and plan.total_buy_value > 0:
-            scaled = True
-            scale_factor = available_for_buys / plan.total_buy_value
+        scaled_buys, scale_factor = _rl.scale_buys_to_budget(
+            buy_intents, available_for_buys, current_prices, lot_sizes,
+        )
+        scaled = scale_factor is not None
+        if scaled:
             plan.warnings.append(
                 f"Scaling buys to {scale_factor:.0%} to fit available funds "
                 f"({format_currency(available_for_buys)})"
             )
-
-            # Scale down each buy trade
+            # Rewrite quantities/values on the PlannedTrade buy rows to match scaled_buys.
+            scaled_map = {b.symbol: b for b in scaled_buys}
+            kept: List[PlannedTrade] = []
             new_total_buy = 0.0
             for trade in plan.trades:
-                if trade.is_buy:
-                    # Scale quantity down
-                    original_qty = trade.quantity
-                    scaled_qty = int(trade.quantity * scale_factor)
-                    # Ensure at least 1 share if scale is meaningful (>= 10%)
-                    if scaled_qty == 0 and original_qty > 0 and scale_factor >= 0.10:
-                        scaled_qty = 1
-                    # Round to lot size
-                    lot_size = self.mapper.get_lot_size(trade.symbol)
-                    scaled_qty = (scaled_qty // lot_size) * lot_size
-
-                    if scaled_qty > 0:
-                        trade.quantity = scaled_qty
-                        trade.value = scaled_qty * trade.price
-                        new_total_buy += trade.value
-                    else:
-                        # Remove trades with 0 quantity
-                        trade.quantity = 0
-                        trade.value = 0
-
-            # Remove zero-quantity trades
-            plan.trades = [t for t in plan.trades if t.quantity > 0]
+                if not trade.is_buy:
+                    kept.append(trade)
+                    continue
+                scaled_b = scaled_map.get(trade.symbol)
+                if scaled_b is None:
+                    continue  # dropped by scaler (qty went to 0)
+                trade.quantity = scaled_b.quantity
+                trade.value = scaled_b.quantity * trade.price
+                kept.append(trade)
+                new_total_buy += trade.value
+            plan.trades = kept
             plan.total_buy_value = new_total_buy
 
         # Phase 3: Deploy surplus to keep capital fully allocated
         # Priority: equity top-ups → gold top-up → cash_symbol sweep
         surplus = available_for_buys - plan.total_buy_value
         if surplus > 0 and cash_symbol and managed_capital > 0:
-            # Symbols that already have buy trades from Phase 2
-            phase2_buy_symbols = {t.symbol for t in plan.trades if t.is_buy}
-
-            # Compute effective current values after planned Phase 1-2 trades
-            def _effective_value(sym: str) -> float:
+            # Effective values AFTER Phase 1-2 trades — used to compute deficits.
+            effective_values: Dict[str, float] = {}
+            for sym in (set(current_holdings.keys()) | set(target_weights.keys())):
                 val = current_holdings[sym].value if sym in current_holdings else 0.0
                 for t in plan.trades:
                     if t.symbol == sym:
@@ -338,150 +284,51 @@ class RebalancePlanner:
                             val += t.value
                         elif t.is_sell:
                             val -= t.value
-                return max(0.0, val)
+                effective_values[sym] = max(0.0, val)
 
-            # Step 1: Top up underweight equity positions pro-rata
-            equity_deficits = []
-            for symbol, tw in target_weights.items():
-                if symbol in (gold_symbol, cash_symbol):
-                    continue
-                if symbol in phase2_buy_symbols:
-                    continue  # Phase 2 already handled this
-                price = current_prices.get(symbol)
-                if not price or price <= 0:
-                    continue
-                eff_value = _effective_value(symbol)
-                target_value = managed_capital * tw
-                deficit = target_value - eff_value
-                if deficit > 0:
-                    equity_deficits.append((symbol, deficit, price, tw))
-
-            if equity_deficits:
-                total_deficit = sum(d for _, d, _, _ in equity_deficits)
-                # Cap total deployment to surplus (deploy pro-rata by deficit)
-                deploy_pool = min(surplus, total_deficit)
-                for symbol, deficit, price, tw in equity_deficits:
-                    if surplus <= 0:
-                        break
-                    alloc = deploy_pool * (deficit / total_deficit)
-                    lot_size = self.mapper.get_lot_size(symbol)
-                    qty, _ = calculate_order_quantity(alloc, price, lot_size)
-                    if qty > 0:
-                        cost = qty * price
-                        rounded_price = self.mapper.round_to_tick(price, symbol)
-                        if symbol in current_holdings:
-                            pos = current_holdings[symbol]
-                            sector = pos.sector
-                            cq = pos.quantity
-                            cw = pos.value / managed_capital
-                        else:
-                            stock = self.universe.get_stock(symbol)
-                            sector = stock.sector if stock else "UNKNOWN"
-                            cq = 0
-                            cw = 0.0
-                        action = (
-                            TradeAction.BUY_INCREASE
-                            if symbol in current_holdings
-                            else TradeAction.BUY_NEW
-                        )
-                        plan.trades.append(
-                            PlannedTrade(
-                                symbol=symbol,
-                                action=action,
-                                quantity=qty,
-                                price=rounded_price,
-                                value=cost,
-                                sector=sector,
-                                current_qty=cq,
-                                current_weight=cw,
-                                target_weight=tw,
-                                reason="Surplus deploy",
-                            )
-                        )
-                        plan.total_buy_value += cost
-                        surplus -= cost
-
-            # Step 2: Top up underweight gold
-            if surplus > 0 and gold_symbol and gold_symbol in target_weights:
-                if gold_symbol not in phase2_buy_symbols:
-                    gold_price = current_prices.get(gold_symbol)
-                    if gold_price and gold_price > 0:
-                        eff_gold = _effective_value(gold_symbol)
-                        gold_target = managed_capital * target_weights[gold_symbol]
-                        gold_deficit = gold_target - eff_gold
-                        if gold_deficit > 0:
-                            alloc = min(surplus, gold_deficit)
-                            lot_size = self.mapper.get_lot_size(gold_symbol)
-                            qty, _ = calculate_order_quantity(alloc, gold_price, lot_size)
-                            if qty > 0:
-                                cost = qty * gold_price
-                                rounded_price = self.mapper.round_to_tick(gold_price, gold_symbol)
-                                if gold_symbol in current_holdings:
-                                    pos = current_holdings[gold_symbol]
-                                    sector, cq, cw = (
-                                        pos.sector,
-                                        pos.quantity,
-                                        pos.value / managed_capital,
-                                    )
-                                else:
-                                    sector, cq, cw = "Hedge", 0, 0.0
-                                action = (
-                                    TradeAction.BUY_INCREASE
-                                    if gold_symbol in current_holdings
-                                    else TradeAction.BUY_NEW
-                                )
-                                plan.trades.append(
-                                    PlannedTrade(
-                                        symbol=gold_symbol,
-                                        action=action,
-                                        quantity=qty,
-                                        price=rounded_price,
-                                        value=cost,
-                                        sector=sector,
-                                        current_qty=cq,
-                                        current_weight=cw,
-                                        target_weight=target_weights[gold_symbol],
-                                        reason="Surplus deploy",
-                                    )
-                                )
-                                plan.total_buy_value += cost
-                                surplus -= cost
-
-            # Step 3: Sweep remainder to cash_symbol (LIQUIDBEES)
-            if surplus > 0:
-                cash_price = current_prices.get(cash_symbol)
-                if cash_price and cash_price > 0:
-                    lot_size = self.mapper.get_lot_size(cash_symbol)
-                    qty, _ = calculate_order_quantity(surplus, cash_price, lot_size)
-                    if qty > 0:
-                        cost = qty * cash_price
-                        rounded_price = self.mapper.round_to_tick(cash_price, cash_symbol)
-                        if cash_symbol in current_holdings:
-                            pos = current_holdings[cash_symbol]
-                            sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
-                        else:
-                            sector, cq, cw = "Cash", 0, 0.0
-                        action = (
-                            TradeAction.BUY_INCREASE
-                            if cash_symbol in current_holdings
-                            else TradeAction.BUY_NEW
-                        )
-                        plan.trades.append(
-                            PlannedTrade(
-                                symbol=cash_symbol,
-                                action=action,
-                                quantity=qty,
-                                price=rounded_price,
-                                value=cost,
-                                sector=sector,
-                                current_qty=cq,
-                                current_weight=cw,
-                                target_weight=0.0,
-                                reason="Cash sweep",
-                            )
-                        )
-                        plan.total_buy_value += cost
-                        surplus -= cost
+            phase2_buy_symbols = {t.symbol for t in plan.trades if t.is_buy}
+            extras, surplus = _rl.compute_surplus_deploy(
+                surplus=surplus,
+                managed_capital=managed_capital,
+                target_weights=target_weights,
+                effective_values=effective_values,
+                prices=current_prices,
+                lot_sizes=lot_sizes,
+                gold_symbol=gold_symbol,
+                cash_symbol=cash_symbol,
+                exclude_symbols=phase2_buy_symbols,
+            )
+            for e in extras:
+                price = current_prices[e.symbol]
+                rounded_price = self.mapper.round_to_tick(price, e.symbol)
+                if e.symbol in current_holdings:
+                    pos = current_holdings[e.symbol]
+                    sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
+                elif e.symbol == gold_symbol:
+                    sector, cq, cw = "Hedge", 0, 0.0
+                elif e.symbol == cash_symbol:
+                    sector, cq, cw = "Cash", 0, 0.0
+                else:
+                    sector = _sector_for(e.symbol)
+                    cq, cw = 0, 0.0
+                action = (
+                    TradeAction.BUY_INCREASE
+                    if e.symbol in current_holdings
+                    else TradeAction.BUY_NEW
+                )
+                plan.trades.append(PlannedTrade(
+                    symbol=e.symbol,
+                    action=action,
+                    quantity=e.quantity,
+                    price=rounded_price,
+                    value=e.value,
+                    sector=sector,
+                    current_qty=cq,
+                    current_weight=cw,
+                    target_weight=e.target_weight,
+                    reason=e.reason,
+                ))
+                plan.total_buy_value += e.value
 
         # Policy: demat cash is OFF-LIMITS to the strategy. To increase
         # exposure, user manually buys LIQUIDBEES — next rebalance then

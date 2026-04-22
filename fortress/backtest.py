@@ -2114,37 +2114,56 @@ class BacktestEngine:
                                 )
                             )
 
-            # Execute buys
+            # Compute deltas (desired incremental buys) first, then apply
+            # proportional scaling if the total buy cost (incl. tx costs) would
+            # exceed available cash — parity with live planner's scaling step.
+            pending_buys: List[Tuple[str, int, float, str]] = []  # (ticker, delta, price, sector)
+            total_buy_value = 0.0
             for ticker, target_qty in target_positions.items():
                 current_qty = 0
                 if ticker in portfolio.positions:
                     current_qty = portfolio.positions[ticker].quantity
-
                 delta = target_qty - current_qty
-                if delta > 0 and ticker in prices:
+                if delta > 0 and ticker in prices and prices[ticker] > 0:
                     price = prices[ticker]
                     stock = self.universe.get_stock(ticker)
                     sector = stock.sector if stock else "UNKNOWN"
-                    cost = delta * price * self.config.transaction_cost
+                    pending_buys.append((ticker, delta, price, sector))
+                    total_buy_value += delta * price * (1 + self.config.transaction_cost)
 
-                    if portfolio.buy(ticker, delta, price, sector):
-                        portfolio.cash -= cost
-                        trades.append(
-                            Trade(
-                                date=date,
-                                symbol=ticker,
-                                sector=sector,
-                                action="BUY",
-                                quantity=delta,
-                                price=price,
-                                value=delta * price,
-                                cost=cost,
-                            )
+            # Proportional scaling when buys would exceed available cash
+            if total_buy_value > portfolio.cash and total_buy_value > 0 and portfolio.cash > 0:
+                scale = portfolio.cash / total_buy_value
+                scaled: List[Tuple[str, int, float, str]] = []
+                for ticker, delta, price, sector in pending_buys:
+                    scaled_qty = int(delta * scale)
+                    if scaled_qty == 0 and delta > 0 and scale >= 0.10:
+                        scaled_qty = 1
+                    if scaled_qty > 0:
+                        scaled.append((ticker, scaled_qty, price, sector))
+                pending_buys = scaled
+
+            # Execute buys
+            for ticker, delta, price, sector in pending_buys:
+                cost = delta * price * self.config.transaction_cost
+                if portfolio.buy(ticker, delta, price, sector):
+                    portfolio.cash -= cost
+                    trades.append(
+                        Trade(
+                            date=date,
+                            symbol=ticker,
+                            sector=sector,
+                            action="BUY",
+                            quantity=delta,
+                            price=price,
+                            value=delta * price,
+                            cost=cost,
                         )
-                        # Track for stop loss (entry_price, peak_price, entry_day_idx)
-                        if self.config.use_stop_loss:
-                            if ticker not in stop_loss_entries:
-                                stop_loss_entries[ticker] = (price, price, trading_day_index[date])
+                    )
+                    # Track for stop loss (entry_price, peak_price, entry_day_idx)
+                    if self.config.use_stop_loss:
+                        if ticker not in stop_loss_entries:
+                            stop_loss_entries[ticker] = (price, price, trading_day_index[date])
 
             # Sweep residual cash to cash_symbol (parity with live executor)
             cash_sym = self.app_config.regime.cash_symbol

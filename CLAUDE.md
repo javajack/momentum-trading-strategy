@@ -10,16 +10,20 @@
 - Never change strategy logic without running a full phase backtest (Option 8) before and after
 - **Current baseline** (survivorship-free, nse-universe data, 30-day cadence,
   real NIFTY 50 benchmark, `rank_range: [201, 600]` with NSE-authoritative
-  sector classification + comprehensive ETF filter, run 2026-04-23 on f_custom):
-  **+21.3% CAGR, 0.87 Sharpe, −36.1% MaxDD, +1157% total** (2013-01-01 →
+  sector classification + ETF filter + live-parity scaling via
+  `rebalance_logic.py`, run 2026-04-23 on f_custom):
+  **+22.1% CAGR, 0.90 Sharpe, −41.0% MaxDD, +1272% total** (2013-01-01 →
   2026-02-11, 16 phases). vs real NIFTY 50 CAGR 11.83% over same period —
-  strategy beats by **+9.5 pp/yr**. ₹20L end value: strategy ₹2.5 Cr,
+  strategy beats by **+10.3 pp/yr**. ₹20L end value: strategy ₹2.73 Cr,
   NIFTY 50 buy-and-hold ₹86L.
-  Prior inflated baseline of +26.8% CAGR was artifact: before ETF cleanup
-  commit 87cb165, the strategy could pick high-turnover ETFs (LIQUIDCASE,
-  HDFCSML250, etc.) as "momentum stocks" — inflating CAGR by ~5pp.
-  The +21.3% figure is the honest post-ETF-filter number. Do not compare
-  against the earlier 26.8% claim — it was polluted.
+  Earlier baseline +21.3% / 0.87 / −36.1% (pre-parity) was under-deploying
+  capital because backtest silently dropped unaffordable buys due to tx
+  costs. Post-parity adopts the same proportional-scaling logic as the live
+  planner — higher CAGR because no trade silently skipped, wider DD because
+  the book now holds more marginal positions through crashes. The +22.1%
+  figure is closer to what live execution would actually produce.
+  Prior inflated baseline of +26.8% CAGR was ETF-contamination artifact
+  (pre-ETF-cleanup commit 87cb165); ignore for comparison.
   `rank_range: [1, 200]` large-cap comparison: +14.3% CAGR / 0.55 Sharpe —
   post-ETF-cleanup numbers still strongly favour the [201, 600] mid-small tilt.
   Pre-refactor survivorship-biased baseline (19.8% CAGR / 0.87 Sharpe /
