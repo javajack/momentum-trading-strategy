@@ -150,8 +150,8 @@ regime:
   # Graduated allocation settings (NEW - smooth transitions)
   use_graduated_allocation: true # Use smooth stress-based allocation (BULLISH=100% equity)
   min_equity_allocation: 0.50 # Minimum equity at max stress
-  max_gold_allocation: 0.10 # Maximum gold allocation
-  max_cash_allocation: 0.25 # Maximum cash allocation
+  max_gold_allocation: 0.15 # DD-opt #2: thicker gold buffer in stress (was 0.10)
+  max_cash_allocation: 0.30 # DD-opt #2: thicker cash buffer in stress (was 0.25)
 
   # Gold exhaustion scaling (GE1): reduce gold when overextended above 200-SMA
   use_gold_exhaustion_scaling: true

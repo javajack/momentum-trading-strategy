@@ -9,21 +9,22 @@
 ## Key Rules
 - Never change strategy logic without running a full phase backtest (Option 8) before and after
 - **Current baseline** (survivorship-free, nse-universe data, 30-day cadence,
-  real NIFTY 50 benchmark, `rank_range: [201, 600]` with NSE-authoritative
-  sector classification + ETF filter + live-parity scaling via
-  `rebalance_logic.py`, run 2026-04-23 on f_custom):
-  **+22.1% CAGR, 0.90 Sharpe, −41.0% MaxDD, +1272% total** (2013-01-01 →
+  real NIFTY 50 benchmark, `rank_range: [201, 600]`, live-parity scaling,
+  **thicker defensive buffer** (max_gold 0.15 + max_cash 0.30 in stress),
+  run 2026-04-23 on f_custom):
+  **+24.1% CAGR, 1.02 Sharpe, −28.1% MaxDD, +1603% total** (2013-01-01 →
   2026-02-11, 16 phases). vs real NIFTY 50 CAGR 11.83% over same period —
-  strategy beats by **+10.3 pp/yr**. ₹20L end value: strategy ₹2.73 Cr,
+  strategy beats by **+12.3 pp/yr**. ₹20L end value: strategy ₹3.40 Cr,
   NIFTY 50 buy-and-hold ₹86L.
-  Earlier baseline +21.3% / 0.87 / −36.1% (pre-parity) was under-deploying
-  capital because backtest silently dropped unaffordable buys due to tx
-  costs. Post-parity adopts the same proportional-scaling logic as the live
-  planner — higher CAGR because no trade silently skipped, wider DD because
-  the book now holds more marginal positions through crashes. The +22.1%
-  figure is closer to what live execution would actually produce.
-  Prior inflated baseline of +26.8% CAGR was ETF-contamination artifact
-  (pre-ETF-cleanup commit 87cb165); ignore for comparison.
+  Earlier baseline +22.1% / 0.90 / −41.0% improved via DD-opt sweep: of 8
+  tested levers (threshold tightening, bigger defensive buffer, tighter
+  sector caps, position-count reduction, stricter entry filters, DD
+  circuit breaker, tighter stops, aggressive crash scale), **only bigger
+  defensive buffer** survived empirical validation. Every other lever
+  either forced premature exit at local bottoms, killed compounding, or
+  concentrated risk — all reverted. Lesson: the strategy benefits from
+  MORE defensive allocation at stress peak, not from firing defensive
+  mode earlier or more aggressively.
   `rank_range: [1, 200]` large-cap comparison: +14.3% CAGR / 0.55 Sharpe —
   post-ETF-cleanup numbers still strongly favour the [201, 600] mid-small tilt.
   Pre-refactor survivorship-biased baseline (19.8% CAGR / 0.87 Sharpe /
