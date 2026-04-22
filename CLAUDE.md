@@ -40,9 +40,26 @@
 ## Architecture
 - **Universe**: point-in-time from nse-universe. Default `rank_range: [201, 600]`
   picked by sweep — small/mid-cap spread by 6mo median turnover. Filter-pipeline
-  has ~400 candidates to pick 15 from, no cap-tier concentration. Other tested
-  bands: `[1, 200]` large-cap (14.3% CAGR), `[101, 250]` mid (18.7%), `[251, 500]`
-  small (20.6%), `[201, 1000]` too-wide (22.1% — deep tail dilutes).
+  has ~400 candidates to pick 15 from, no cap-tier concentration.
+  100-rank slice sweep (2026-04-23, with current strategy incl. DD-opt #2 and
+  live-parity scaling) confirms [201, 600] is optimal and **beats every
+  narrower sub-slice** on all three metrics (CAGR / Sharpe / MaxDD):
+    `[1, 100]`   large-cap:   8.9% / 0.26 / −35.4% (momentum-free zone)
+    `[101, 200]` upper-mid:  12.5% / 0.47 / −40.9% (crowded, correlated)
+    `[201, 300]` mid-small:  19.5% / 0.86 / −27.7% (shallowest DD of any slice)
+    `[301, 400]` small top:  20.5% / 0.91 / −34.2% (best single-slice CAGR)
+    `[401, 500]` small mid:  21.5% / 0.96 / −34.4% (best single-slice Sharpe)
+    `[501, 600]` small tail: 17.6% / 0.79 / −32.1% (deep-tail noise on its own)
+    `[201, 500]` (drop tail): 22.3% / 0.95 / −34.8% — worse DD than full band
+    **`[201, 600]` combined: 24.1% / 1.02 / −28.1%**
+  Why combined beats any slice: (a) 400-symbol pool gives the 85th-percentile
+  filter more to pick from, higher picks on average, (b) cap-tier leadership
+  rotates across phases (mid-cap-heavy '14-'17, deep-small '20-'21, both
+  '23-'24), (c) [501, 600] is noisy alone but adds uncorrelated diversification
+  when combined with [201, 400] core.
+  Also falsified as too-wide: `[201, 750]` (−42.3% DD), `[201, 1000]` (deep-tail
+  dilution, CAGR 22.1%). Also falsified as too-narrow: `[1, 200]` large-cap
+  (14.3% CAGR).
 - **Sector classification**: `stock-sectors.json` built offline by
   `tools/build_sectors.py` — covers all 4,166 NSE EQ symbols. Primary source:
   `nse_universe.sectors` (NSE authoritative, 754 symbols, 100% of the
