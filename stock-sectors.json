@@ -23,7 +23,7 @@
     "360ONE": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "ASSET_MANAGEMENT"
+      "sub_sector": "FIN_SERVICES"
     },
     "3BBLACKBIO": {
       "sector": "UNCLASSIFIED",
@@ -43,7 +43,7 @@
     "3MINDIA": {
       "sector": "INDUSTRIALS",
       "source": "nse_authoritative",
-      "sub_sector": "DIVERSIFIED"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "3PLAND": {
       "sector": "UNCLASSIFIED",
@@ -188,7 +188,7 @@
     "ABCAPITAL": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "FINANCIAL_HOLDING"
+      "sub_sector": "FIN_SERVICES"
     },
     "ABCIL": {
       "sector": "UNCLASSIFIED",
@@ -208,7 +208,7 @@
     "ABFRL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "ABGSEC": {
       "sector": "UNCLASSIFIED",
@@ -233,12 +233,12 @@
     "ABIRLANUVO": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "ABLBL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "ABMINTLLTD": {
       "sector": "UNCLASSIFIED",
@@ -383,7 +383,7 @@
     "ADANIENT": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "DIVERSIFIED_RESOURCES"
+      "sub_sector": "MINING"
     },
     "ADANIEXPO": {
       "sector": "INDUSTRIALS",
@@ -393,22 +393,22 @@
     "ADANIGAS": {
       "sector": "ENERGY",
       "source": "llm_map",
-      "sub_sector": "GAS"
+      "sub_sector": "OIL_GAS"
     },
     "ADANIGREEN": {
       "sector": "UTILITIES",
       "source": "universe_json",
-      "sub_sector": "RENEWABLE_POWER"
+      "sub_sector": "POWER"
     },
     "ADANIPORTS": {
       "sector": "INFRASTRUCTURE",
       "source": "universe_json",
-      "sub_sector": "PORTS"
+      "sub_sector": "AIRPORTS_PORTS"
     },
     "ADANIPOWER": {
       "sector": "UTILITIES",
       "source": "universe_json",
-      "sub_sector": "POWER_THERMAL"
+      "sub_sector": "POWER"
     },
     "ADANITRANS": {
       "sector": "UTILITIES",
@@ -723,7 +723,7 @@
     "AIRDECCAN": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "AIRLINES"
+      "sub_sector": "TRAVEL"
     },
     "AIROLAM": {
       "sector": "UNCLASSIFIED",
@@ -863,7 +863,7 @@
     "ALKEM": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_FORMULATIONS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "ALKYLAMINE": {
       "sector": "MATERIALS",
@@ -883,7 +883,7 @@
     "ALLSEC": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "llm_map",
-      "sub_sector": "BPO"
+      "sub_sector": "IT_SERVICES"
     },
     "ALLTIME": {
       "sector": "UNCLASSIFIED",
@@ -1113,7 +1113,7 @@
     "ANGAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ANGELBRKG": {
       "sector": "FINANCIALS",
@@ -1263,7 +1263,7 @@
     "APLAPOLLO": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "STEEL_PIPES"
+      "sub_sector": "PIPES"
     },
     "APLLTD": {
       "sector": "HEALTHCARE",
@@ -1293,7 +1293,7 @@
     "APOLLOTYRE": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "APOLSINHOT": {
       "sector": "UNCLASSIFIED",
@@ -1308,7 +1308,7 @@
     "APTECHT": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "EDUCATION"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "APTUS": {
       "sector": "FINANCIALS",
@@ -1343,7 +1343,7 @@
     "ARE&M": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ARENTERP": {
       "sector": "UNCLASSIFIED",
@@ -1478,7 +1478,7 @@
     "ARVINDFASN": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "ARVINDMILL": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -1503,7 +1503,7 @@
     "ASAHIINDIA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ASAHISONG": {
       "sector": "UNCLASSIFIED",
@@ -1523,7 +1523,7 @@
     "ASHAPURMIN": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "ASHCO": {
       "sector": "UNCLASSIFIED",
@@ -1563,7 +1563,7 @@
     "ASHOKLEY": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "COMMERCIAL_VEHICLES"
+      "sub_sector": "AUTO_OEM"
     },
     "ASIANELEC": {
       "sector": "UTILITIES",
@@ -1588,7 +1588,7 @@
     "ASIANPAINT": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "PAINTS_COATINGS"
+      "sub_sector": "PAINTS"
     },
     "ASIANTILES": {
       "sector": "UNCLASSIFIED",
@@ -1603,7 +1603,7 @@
     "ASKAUTOLTD": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ASMS": {
       "sector": "UNCLASSIFIED",
@@ -1648,7 +1648,7 @@
     "ASTRAL": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "PLASTIC_PIPES"
+      "sub_sector": "PIPES"
     },
     "ASTRAMICRO": {
       "sector": "INDUSTRIALS",
@@ -1688,12 +1688,12 @@
     "ATGL": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "CITY_GAS_DISTRIBUTION"
+      "sub_sector": "CITY_GAS"
     },
     "ATHERENERG": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ATL": {
       "sector": "UNCLASSIFIED",
@@ -1738,7 +1738,7 @@
     "ATULAUTO": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ATULPROD": {
       "sector": "UNCLASSIFIED",
@@ -1748,7 +1748,7 @@
     "AUBANK": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "SMALL_FINANCE_BANK"
+      "sub_sector": "BANKING"
     },
     "AURIGROW": {
       "sector": "UNCLASSIFIED",
@@ -1763,7 +1763,7 @@
     "AUROPHARMA": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_GENERIC"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "AURUM": {
       "sector": "UNCLASSIFIED",
@@ -1783,7 +1783,7 @@
     "AUTOAXLES": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "AUTOBEES": {
       "sector": "DEFENSIVE",
@@ -1793,17 +1793,17 @@
     "AUTOIETF": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "AUTOIND": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "AUTOLITIND": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "AUTORIDFIN": {
       "sector": "FINANCIALS",
@@ -1858,7 +1858,7 @@
     "AVL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "AVONMORE": {
       "sector": "UNCLASSIFIED",
@@ -2013,12 +2013,12 @@
     "BAJAJ-AUTO": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "TWO_WHEELERS"
+      "sub_sector": "AUTO_OEM"
     },
     "BAJAJAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "BAJAJCON": {
       "sector": "CONSUMER_STAPLES",
@@ -2038,7 +2038,7 @@
     "BAJAJFINSV": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "FINANCIAL_HOLDING"
+      "sub_sector": "FIN_SERVICES"
     },
     "BAJAJHCARE": {
       "sector": "UNCLASSIFIED",
@@ -2048,7 +2048,7 @@
     "BAJAJHFL": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "HOUSING_FINANCE"
+      "sub_sector": "HOUSING_FIN"
     },
     "BAJAJHIND": {
       "sector": "CONSUMER_STAPLES",
@@ -2058,7 +2058,7 @@
     "BAJAJHLDNG": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "FINANCIAL_HOLDING"
+      "sub_sector": "FIN_SERVICES"
     },
     "BAJAJINDEF": {
       "sector": "INDUSTRIALS",
@@ -2088,7 +2088,7 @@
     "BAJFINANCE": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_RETAIL"
+      "sub_sector": "NBFC"
     },
     "BALAJEE": {
       "sector": "UNCLASSIFIED",
@@ -2128,7 +2128,7 @@
     "BALKRISIND": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "BALLARPUR": {
       "sector": "UNCLASSIFIED",
@@ -2168,7 +2168,7 @@
     "BANCOINDIA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "BANDHANBNK": {
       "sector": "FINANCIALS",
@@ -2368,7 +2368,7 @@
     "BDL": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "DEFENCE_MISSILES"
+      "sub_sector": "DEFENCE"
     },
     "BEARDSELL": {
       "sector": "UNCLASSIFIED",
@@ -2398,7 +2398,7 @@
     "BEL": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "DEFENCE_ELECTRONICS"
+      "sub_sector": "DEFENCE"
     },
     "BELCERAMIC": {
       "sector": "UNCLASSIFIED",
@@ -2418,7 +2418,7 @@
     "BELRISE": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "BEML": {
       "sector": "INDUSTRIALS",
@@ -2528,7 +2528,7 @@
     "BHARATFORG": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "AUTO_COMPONENTS_FORGING"
+      "sub_sector": "AUTO_ANCILLARY"
     },
     "BHARATGEAR": {
       "sector": "UNCLASSIFIED",
@@ -2568,12 +2568,12 @@
     "BHARTIARTL": {
       "sector": "TELECOM",
       "source": "universe_json",
-      "sub_sector": "TELECOM_SERVICES"
+      "sub_sector": "TELECOM_SVCS"
     },
     "BHARTIHEXA": {
       "sector": "TELECOM",
       "source": "universe_json",
-      "sub_sector": "TELECOM_SERVICES"
+      "sub_sector": "TELECOM_SVCS"
     },
     "BHARTISHIP": {
       "sector": "INDUSTRIALS",
@@ -2583,7 +2583,7 @@
     "BHEL": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "HEAVY_ENGINEERING"
+      "sub_sector": "ENGINEERING"
     },
     "BHUSANSTL": {
       "sector": "METALS_MINING",
@@ -2653,7 +2653,7 @@
     "BIOCON": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "BIOTECHNOLOGY_BIOSIMILARS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "BIOFILCHEM": {
       "sector": "MATERIALS",
@@ -2663,7 +2663,7 @@
     "BIRLACABLE": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "BIRLACORPN": {
       "sector": "MATERIALS",
@@ -2708,7 +2708,7 @@
     "BIRLATYRE": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "BKMINDST": {
       "sector": "UNCLASSIFIED",
@@ -2758,7 +2758,7 @@
     "BLS": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "BLSE": {
       "sector": "UNCLASSIFIED",
@@ -2798,7 +2798,7 @@
     "BLUESTARCO": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "CONSUMER_DURABLES_AC"
+      "sub_sector": "CONSUMER_DURABLES"
     },
     "BLUESTINFO": {
       "sector": "UNCLASSIFIED",
@@ -2858,7 +2858,7 @@
     "BONGAIREFN": {
       "sector": "ENERGY",
       "source": "llm_map",
-      "sub_sector": "REFINING"
+      "sub_sector": "OIL_GAS"
     },
     "BONLON": {
       "sector": "UNCLASSIFIED",
@@ -2903,12 +2903,12 @@
     "BOSCHLTD": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "AUTO_COMPONENTS"
+      "sub_sector": "AUTO_ANCILLARY"
     },
     "BPCL": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "OIL_REFINING_MARKETING"
+      "sub_sector": "OIL_GAS"
     },
     "BPL": {
       "sector": "UNCLASSIFIED",
@@ -2948,7 +2948,7 @@
     "BRFL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "BRIGADE": {
       "sector": "REAL_ESTATE",
@@ -2963,7 +2963,7 @@
     "BRITANNIA": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_PACKAGED_FOOD"
+      "sub_sector": "FMCG"
     },
     "BRNL": {
       "sector": "UNCLASSIFIED",
@@ -2993,7 +2993,7 @@
     "BSE": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "STOCK_EXCHANGE"
+      "sub_sector": "FIN_SERVICES"
     },
     "BSE500IETF": {
       "sector": "DEFENSIVE",
@@ -3213,7 +3213,7 @@
     "CARTRADE": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "CARYSIL": {
       "sector": "UNCLASSIFIED",
@@ -3273,7 +3273,7 @@
     "CEATLTD": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "CEBBCO": {
       "sector": "UNCLASSIFIED",
@@ -3398,7 +3398,7 @@
     "CHALET": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "CHAMBLFERT": {
       "sector": "MATERIALS",
@@ -3498,7 +3498,7 @@
     "CHOLAFIN": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_RETAIL"
+      "sub_sector": "NBFC"
     },
     "CHOLAHLDNG": {
       "sector": "FINANCIALS",
@@ -3518,7 +3518,7 @@
     "CIEINDIA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "CIFL": {
       "sector": "UNCLASSIFIED",
@@ -3578,7 +3578,7 @@
     "CIPLA": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_FORMULATIONS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "CKFSL": {
       "sector": "UNCLASSIFIED",
@@ -3623,7 +3623,7 @@
     "CLUTCHAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "CMAHENDRA": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -3638,7 +3638,7 @@
     "CMICABLES": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "CMPDI": {
       "sector": "UNCLASSIFIED",
@@ -3663,7 +3663,7 @@
     "COALINDIA": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "COAL_MINING"
+      "sub_sector": "COAL"
     },
     "COASTCORP": {
       "sector": "UNCLASSIFIED",
@@ -3673,12 +3673,12 @@
     "COCHINREFN": {
       "sector": "ENERGY",
       "source": "llm_map",
-      "sub_sector": "REFINING"
+      "sub_sector": "OIL_GAS"
     },
     "COCHINSHIP": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "DEFENCE_SHIPBUILDING"
+      "sub_sector": "DEFENCE"
     },
     "COCKERILL": {
       "sector": "UNCLASSIFIED",
@@ -3693,7 +3693,7 @@
     "COFORGE": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "MID_TIER_IT"
+      "sub_sector": "IT_SERVICES"
     },
     "COHANCE": {
       "sector": "HEALTHCARE",
@@ -3718,7 +3718,7 @@
     "COLPAL": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_PERSONAL_HOME"
+      "sub_sector": "FMCG"
     },
     "COMFINTE": {
       "sector": "UNCLASSIFIED",
@@ -3763,7 +3763,7 @@
     "CONCOR": {
       "sector": "INFRASTRUCTURE",
       "source": "universe_json",
-      "sub_sector": "RAIL_LOGISTICS"
+      "sub_sector": "LOGISTICS"
     },
     "CONCORDBIO": {
       "sector": "HEALTHCARE",
@@ -3828,7 +3828,7 @@
     "CORDSCABLE": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "COREEDUTEC": {
       "sector": "UNCLASSIFIED",
@@ -3858,12 +3858,12 @@
     "COROMANDEL": {
       "sector": "MATERIALS",
       "source": "universe_json",
-      "sub_sector": "AGROCHEMICALS_FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "COROMNFERT": {
       "sector": "MATERIALS",
       "source": "heuristic",
-      "sub_sector": "FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "CORONA": {
       "sector": "HEALTHCARE",
@@ -3908,7 +3908,7 @@
     "CPIL": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "CPPLUS": {
       "sector": "INDUSTRIALS",
@@ -3923,7 +3923,7 @@
     "CRAFTSMAN": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "CRAMC": {
       "sector": "FINANCIALS",
@@ -3968,7 +3968,7 @@
     "CREWBOS": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "CRISIL": {
       "sector": "FINANCIALS",
@@ -3978,7 +3978,7 @@
     "CRIZAC": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "CRMFGETF": {
       "sector": "DEFENSIVE",
@@ -4033,7 +4033,7 @@
     "CUMMINSIND": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "INDUSTRIAL_ENGINES"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "CUPID": {
       "sector": "CONSUMER_STAPLES",
@@ -4083,7 +4083,7 @@
     "DABUR": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_AYURVEDA"
+      "sub_sector": "FMCG"
     },
     "DABURPHARM": {
       "sector": "HEALTHCARE",
@@ -4233,7 +4233,7 @@
     "DCMSHRIRAM": {
       "sector": "INDUSTRIALS",
       "source": "nse_authoritative",
-      "sub_sector": "DIVERSIFIED"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "DCMSIL": {
       "sector": "UNCLASSIFIED",
@@ -4328,7 +4328,7 @@
     "DELTACORP": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "ENTERTAINMENT"
+      "sub_sector": "MEDIA"
     },
     "DELTAMAGNT": {
       "sector": "UNCLASSIFIED",
@@ -4373,7 +4373,7 @@
     "DEVYANI": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "DEWANHOUS": {
       "sector": "FINANCIALS",
@@ -4543,7 +4543,7 @@
     "DIVISLAB": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_APIS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "DIVOPPBEES": {
       "sector": "DEFENSIVE",
@@ -4553,7 +4553,7 @@
     "DIXON": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "ELECTRONICS_MANUFACTURING"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "DJML": {
       "sector": "UNCLASSIFIED",
@@ -4563,7 +4563,7 @@
     "DLF": {
       "sector": "REAL_ESTATE",
       "source": "universe_json",
-      "sub_sector": "RESIDENTIAL_COMMERCIAL"
+      "sub_sector": "REAL_ESTATE"
     },
     "DLINKINDIA": {
       "sector": "UNCLASSIFIED",
@@ -4573,7 +4573,7 @@
     "DMART": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "RETAIL_HYPERMARKET"
+      "sub_sector": "RETAIL"
     },
     "DMCC": {
       "sector": "UNCLASSIFIED",
@@ -4678,12 +4678,12 @@
     "DREDGECORP": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "SHIPPING"
+      "sub_sector": "LOGISTICS"
     },
     "DRREDDY": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_FORMULATIONS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "DSFCL": {
       "sector": "UNCLASSIFIED",
@@ -4913,7 +4913,7 @@
     "EDUCOMP": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "EDUCATION"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "EFCIL": {
       "sector": "UNCLASSIFIED",
@@ -4928,12 +4928,12 @@
     "EICHER": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "EICHERMOT": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "TWO_WHEELERS_PREMIUM"
+      "sub_sector": "AUTO_OEM"
     },
     "EIDPARRY": {
       "sector": "CONSUMER_STAPLES",
@@ -4943,7 +4943,7 @@
     "EIEL": {
       "sector": "UTILITIES",
       "source": "nse_authoritative",
-      "sub_sector": "UTILITIES"
+      "sub_sector": "POWER"
     },
     "EIFFL": {
       "sector": "UNCLASSIFIED",
@@ -4958,7 +4958,7 @@
     "EIHOTEL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "EIMCOELECO": {
       "sector": "UNCLASSIFIED",
@@ -5033,7 +5033,7 @@
     "ELGITYRE": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ELIN": {
       "sector": "UNCLASSIFIED",
@@ -5113,7 +5113,7 @@
     "EMIL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "EMKAY": {
       "sector": "UNCLASSIFIED",
@@ -5158,7 +5158,7 @@
     "ENDURANCE": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ENERGY": {
       "sector": "UTILITIES",
@@ -5198,7 +5198,7 @@
     "ENRIN": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "ENERGY_EQUIPMENT"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "ENTEGRA": {
       "sector": "UNCLASSIFIED",
@@ -5208,7 +5208,7 @@
     "ENTERO": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "EON": {
       "sector": "UNCLASSIFIED",
@@ -5358,7 +5358,7 @@
     "ESSDEE": {
       "sector": "METALS_MINING",
       "source": "llm_map",
-      "sub_sector": "ALUMINIUM"
+      "sub_sector": "NON_FERROUS"
     },
     "ESSELPACK": {
       "sector": "MATERIALS",
@@ -5393,7 +5393,7 @@
     "ETERNAL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "FOOD_DELIVERY"
+      "sub_sector": "QSR"
     },
     "ETERNEVRST": {
       "sector": "UNCLASSIFIED",
@@ -5448,7 +5448,7 @@
     "EVERONN": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "EDUCATION"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "EVIETF": {
       "sector": "DEFENSIVE",
@@ -5498,7 +5498,7 @@
     "EXIDEIND": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "AUTO_COMPONENTS_BATTERIES"
+      "sub_sector": "AUTO_ANCILLARY"
     },
     "EXPLEOSOL": {
       "sector": "UNCLASSIFIED",
@@ -5523,7 +5523,7 @@
     "FAGBEARING": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "BEARINGS"
+      "sub_sector": "FORGING"
     },
     "FAIRCHEM": {
       "sector": "MATERIALS",
@@ -5628,7 +5628,7 @@
     "FIEMIND": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "FILATEX": {
       "sector": "UNCLASSIFIED",
@@ -5678,7 +5678,7 @@
     "FIRSTCRY": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "FIRSTLEASE": {
       "sector": "UNCLASSIFIED",
@@ -5773,7 +5773,7 @@
     "FORCEMOT": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "FORTIS": {
       "sector": "HEALTHCARE",
@@ -5898,7 +5898,7 @@
     "GABRIEL": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "GAEL": {
       "sector": "CONSUMER_STAPLES",
@@ -5908,7 +5908,7 @@
     "GAIL": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "GAS_TRANSMISSION"
+      "sub_sector": "OIL_GAS"
     },
     "GAL": {
       "sector": "UNCLASSIFIED",
@@ -6308,7 +6308,7 @@
     "GLENMARK": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_RESEARCH"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "GLFL": {
       "sector": "UNCLASSIFIED",
@@ -6383,12 +6383,12 @@
     "GMBREW": {
       "sector": "CONSUMER_STAPLES",
       "source": "llm_map",
-      "sub_sector": "BREWERIES"
+      "sub_sector": "ALCOHOL"
     },
     "GMDCLTD": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "GMMPFAUDLR": {
       "sector": "INDUSTRIALS",
@@ -6398,7 +6398,7 @@
     "GMRAIRPORT": {
       "sector": "INFRASTRUCTURE",
       "source": "universe_json",
-      "sub_sector": "AIRPORTS"
+      "sub_sector": "AIRPORTS_PORTS"
     },
     "GMRFER": {
       "sector": "UNCLASSIFIED",
@@ -6418,7 +6418,7 @@
     "GMRINFRA": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "AIRPORTS"
+      "sub_sector": "AIRPORTS_PORTS"
     },
     "GMRP&UI": {
       "sector": "UTILITIES",
@@ -6453,7 +6453,7 @@
     "GOCOLORS": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "GODAVARIB": {
       "sector": "UNCLASSIFIED",
@@ -6463,12 +6463,12 @@
     "GODAVRFERT": {
       "sector": "MATERIALS",
       "source": "heuristic",
-      "sub_sector": "FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "GODFRYPHLP": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_TOBACCO"
+      "sub_sector": "TOBACCO"
     },
     "GODHA": {
       "sector": "UNCLASSIFIED",
@@ -6488,17 +6488,17 @@
     "GODREJCP": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_PERSONAL_HOME"
+      "sub_sector": "FMCG"
     },
     "GODREJIND": {
       "sector": "INDUSTRIALS",
       "source": "nse_authoritative",
-      "sub_sector": "DIVERSIFIED"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "GODREJPROP": {
       "sector": "REAL_ESTATE",
       "source": "universe_json",
-      "sub_sector": "RESIDENTIAL"
+      "sub_sector": "REAL_ESTATE"
     },
     "GOENKA": {
       "sector": "UNCLASSIFIED",
@@ -6688,7 +6688,7 @@
     "GRASIM": {
       "sector": "MATERIALS",
       "source": "universe_json",
-      "sub_sector": "DIVERSIFIED_MATERIALS"
+      "sub_sector": "CHEMICALS"
     },
     "GRAUWEIL": {
       "sector": "UNCLASSIFIED",
@@ -6703,7 +6703,7 @@
     "GRAVITA": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "GREAVESCOT": {
       "sector": "INDUSTRIALS",
@@ -6738,7 +6738,7 @@
     "GRINDWELL": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "ABRASIVES"
+      "sub_sector": "INDUSTRIAL_AUTOMATION"
     },
     "GRINFRA": {
       "sector": "INFRASTRUCTURE",
@@ -7038,7 +7038,7 @@
     "GUJGASLTD": {
       "sector": "ENERGY",
       "source": "llm_map",
-      "sub_sector": "GAS"
+      "sub_sector": "OIL_GAS"
     },
     "GUJGLASS": {
       "sector": "MATERIALS",
@@ -7103,7 +7103,7 @@
     "GVKPIL": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "GVPIL": {
       "sector": "UNCLASSIFIED",
@@ -7128,7 +7128,7 @@
     "HAL": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "DEFENCE_AEROSPACE"
+      "sub_sector": "DEFENCE"
     },
     "HALDER": {
       "sector": "UNCLASSIFIED",
@@ -7213,7 +7213,7 @@
     "HAVELLS": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "CONSUMER_DURABLES_ELECTRICAL"
+      "sub_sector": "CONSUMER_DURABLES"
     },
     "HAVISHA": {
       "sector": "UNCLASSIFIED",
@@ -7278,7 +7278,7 @@
     "HCLTECH": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "IT_SERVICES_LARGE_CAP"
+      "sub_sector": "IT_SERVICES"
     },
     "HDBFS": {
       "sector": "FINANCIALS",
@@ -7293,7 +7293,7 @@
     "HDFCAMC": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "ASSET_MANAGEMENT"
+      "sub_sector": "FIN_SERVICES"
     },
     "HDFCBANK": {
       "sector": "FINANCIALS",
@@ -7318,7 +7318,7 @@
     "HDFCLIFE": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "INSURANCE_LIFE"
+      "sub_sector": "INSURANCE"
     },
     "HDFCLIQUID": {
       "sector": "DEBT",
@@ -7493,12 +7493,12 @@
     "HEROHONDA": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "TWO_WHEELERS"
+      "sub_sector": "AUTO_OEM"
     },
     "HEROMOTOCO": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "TWO_WHEELERS"
+      "sub_sector": "AUTO_OEM"
     },
     "HESTERBIO": {
       "sector": "UNCLASSIFIED",
@@ -7543,7 +7543,7 @@
     "HGS": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "llm_map",
-      "sub_sector": "BPO"
+      "sub_sector": "IT_SERVICES"
     },
     "HGSL": {
       "sector": "UNCLASSIFIED",
@@ -7578,7 +7578,7 @@
     "HIMACHLFUT": {
       "sector": "TELECOM",
       "source": "llm_map",
-      "sub_sector": "TELECOM_EQUIPMENT"
+      "sub_sector": "TELECOM_INFRA"
     },
     "HIMATSEIDE": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -7588,12 +7588,12 @@
     "HINDALC0": {
       "sector": "METALS_MINING",
       "source": "llm_map",
-      "sub_sector": "ALUMINIUM"
+      "sub_sector": "NON_FERROUS"
     },
     "HINDALCO": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "ALUMINIUM"
+      "sub_sector": "NON_FERROUS"
     },
     "HINDCOMPOS": {
       "sector": "UNCLASSIFIED",
@@ -7613,7 +7613,7 @@
     "HINDCOPPER": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "HINDDORROL": {
       "sector": "UNCLASSIFIED",
@@ -7628,12 +7628,12 @@
     "HINDMOTOR": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "HINDMOTORS": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "HINDNATGLS": {
       "sector": "UNCLASSIFIED",
@@ -7648,7 +7648,7 @@
     "HINDPETRO": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "OIL_REFINING_MARKETING"
+      "sub_sector": "OIL_GAS"
     },
     "HINDSANIT": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -7683,7 +7683,7 @@
     "HINDUNILVR": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_PERSONAL_HOME"
+      "sub_sector": "FMCG"
     },
     "HINDWAREAP": {
       "sector": "UNCLASSIFIED",
@@ -7693,7 +7693,7 @@
     "HINDZINC": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "ZINC"
+      "sub_sector": "NON_FERROUS"
     },
     "HINVDIR": {
       "sector": "UNCLASSIFIED",
@@ -7868,7 +7868,7 @@
     "HTMT": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "llm_map",
-      "sub_sector": "BPO"
+      "sub_sector": "IT_SERVICES"
     },
     "HTMTGLOBAL": {
       "sector": "UNCLASSIFIED",
@@ -7883,7 +7883,7 @@
     "HUDCO": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_HOUSING"
+      "sub_sector": "HOUSING_FIN"
     },
     "HUGHESSOFT": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -7913,7 +7913,7 @@
     "HYUNDAI": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "PASSENGER_VEHICLES"
+      "sub_sector": "AUTO_OEM"
     },
     "I-FLEX": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -7978,7 +7978,7 @@
     "IBVENTURES": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "IBWSL": {
       "sector": "UNCLASSIFIED",
@@ -8033,7 +8033,7 @@
     "ICICIAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ICICIB22": {
       "sector": "UNCLASSIFIED",
@@ -8078,7 +8078,7 @@
     "ICICIGI": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "INSURANCE_GENERAL"
+      "sub_sector": "INSURANCE"
     },
     "ICICIGOLD": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -8203,7 +8203,7 @@
     "IDEA": {
       "sector": "TELECOM",
       "source": "universe_json",
-      "sub_sector": "TELECOM_SERVICES"
+      "sub_sector": "TELECOM_SVCS"
     },
     "IDEAFORGE": {
       "sector": "INDUSTRIALS",
@@ -8213,7 +8213,7 @@
     "IDFC": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "IDFCBANK": {
       "sector": "FINANCIALS",
@@ -8273,7 +8273,7 @@
     "IGARASHI": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "ELECTRICAL"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "IGCL": {
       "sector": "UNCLASSIFIED",
@@ -8283,7 +8283,7 @@
     "IGFLFERT": {
       "sector": "MATERIALS",
       "source": "heuristic",
-      "sub_sector": "FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "IGIL": {
       "sector": "INDUSTRIALS",
@@ -8293,7 +8293,7 @@
     "IGL": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "CITY_GAS_DISTRIBUTION"
+      "sub_sector": "CITY_GAS"
     },
     "IGOLD": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -8333,7 +8333,7 @@
     "IIFLWAM": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "WEALTH_MGMT"
+      "sub_sector": "FIN_SERVICES"
     },
     "IILTD": {
       "sector": "UNCLASSIFIED",
@@ -8378,7 +8378,7 @@
     "IMFA": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "IMIDCAP": {
       "sector": "UNCLASSIFIED",
@@ -8423,12 +8423,12 @@
     "INDHOTEL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "HOTELS_LUXURY"
+      "sub_sector": "HOTELS"
     },
     "INDIABULLS": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "INDIACEM": {
       "sector": "MATERIALS",
@@ -8448,12 +8448,12 @@
     "INDIAINFO": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "INDIAMART": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "INDIANB": {
       "sector": "FINANCIALS",
@@ -8478,7 +8478,7 @@
     "INDIGO": {
       "sector": "INFRASTRUCTURE",
       "source": "universe_json",
-      "sub_sector": "AIRLINES"
+      "sub_sector": "TRAVEL"
     },
     "INDIGOPNTS": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -8618,7 +8618,7 @@
     "INDUSTOWER": {
       "sector": "TELECOM",
       "source": "universe_json",
-      "sub_sector": "TELECOM_TOWERS"
+      "sub_sector": "TELECOM_INFRA"
     },
     "INEABS": {
       "sector": "UNCLASSIFIED",
@@ -8688,7 +8688,7 @@
     "INFY": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "IT_SERVICES_LARGE_CAP"
+      "sub_sector": "IT_SERVICES"
     },
     "INGERRAND": {
       "sector": "UNCLASSIFIED",
@@ -8818,7 +8818,7 @@
     "IOC": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "OIL_REFINING_MARKETING"
+      "sub_sector": "OIL_GAS"
     },
     "IOL": {
       "sector": "UNCLASSIFIED",
@@ -8843,7 +8843,7 @@
     "IONEXCHANG": {
       "sector": "UTILITIES",
       "source": "nse_authoritative",
-      "sub_sector": "UTILITIES"
+      "sub_sector": "POWER"
     },
     "IPAPPM": {
       "sector": "UNCLASSIFIED",
@@ -8883,7 +8883,7 @@
     "IRB": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "ROAD_INFRASTRUCTURE"
+      "sub_sector": "CONSTRUCTION"
     },
     "IRCON": {
       "sector": "INFRASTRUCTURE",
@@ -8893,17 +8893,17 @@
     "IRCTC": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "TRAVEL_SERVICES"
+      "sub_sector": "TRAVEL"
     },
     "IREDA": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_GREEN_ENERGY"
+      "sub_sector": "NBFC"
     },
     "IRFC": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_INFRASTRUCTURE"
+      "sub_sector": "NBFC"
     },
     "IRIS": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -8983,7 +8983,7 @@
     "ITC": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_TOBACCO_DIVERSIFIED"
+      "sub_sector": "FMCG"
     },
     "ITCHOTEL": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -8993,7 +8993,7 @@
     "ITCHOTELS": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "HOTELS_LUXURY"
+      "sub_sector": "HOTELS"
     },
     "ITDC": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -9078,7 +9078,7 @@
     "IXIGO": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "IZMO": {
       "sector": "UNCLASSIFIED",
@@ -9103,7 +9103,7 @@
     "JAIBALAJI": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "JAICORPLTD": {
       "sector": "MATERIALS",
@@ -9118,7 +9118,7 @@
     "JAINREC": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "JAINSTUDIO": {
       "sector": "UNCLASSIFIED",
@@ -9133,7 +9133,7 @@
     "JAMNAAUTO": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "JARO": {
       "sector": "UNCLASSIFIED",
@@ -9188,12 +9188,12 @@
     "JBMA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "JBMAUTOCOM": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "JCHAC": {
       "sector": "UNCLASSIFIED",
@@ -9228,7 +9228,7 @@
     "JETAIRWAYS": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "AIRLINES"
+      "sub_sector": "TRAVEL"
     },
     "JETFREIGHT": {
       "sector": "UNCLASSIFIED",
@@ -9293,12 +9293,12 @@
     "JINDALSTEL": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "STEEL"
+      "sub_sector": "STEEL_IRON"
     },
     "JINDALSWHL": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "JINDCOT": {
       "sector": "UNCLASSIFIED",
@@ -9323,7 +9323,7 @@
     "JIOFIN": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "FINANCIAL_HOLDING"
+      "sub_sector": "FIN_SERVICES"
     },
     "JISLDVREQS": {
       "sector": "UNCLASSIFIED",
@@ -9373,12 +9373,12 @@
     "JKPAPER": {
       "sector": "MATERIALS",
       "source": "nse_authoritative",
-      "sub_sector": "FOREST_MATERIALS"
+      "sub_sector": "PAPER"
     },
     "JKTYRE": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "JLHL": {
       "sector": "HEALTHCARE",
@@ -9403,7 +9403,7 @@
     "JMTAUTOLTD": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "JNKINDIA": {
       "sector": "UNCLASSIFIED",
@@ -9448,7 +9448,7 @@
     "JSL": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "JSLHISAR": {
       "sector": "UNCLASSIFIED",
@@ -9458,7 +9458,7 @@
     "JSLL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "JSTAINLESS": {
       "sector": "METALS_MINING",
@@ -9483,12 +9483,12 @@
     "JSWENERGY": {
       "sector": "UTILITIES",
       "source": "universe_json",
-      "sub_sector": "POWER_THERMAL_RENEWABLE"
+      "sub_sector": "POWER"
     },
     "JSWHL": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "JSWINFRA": {
       "sector": "INDUSTRIALS",
@@ -9508,7 +9508,7 @@
     "JSWSTEEL": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "STEEL"
+      "sub_sector": "STEEL_IRON"
     },
     "JSWSTL": {
       "sector": "UNCLASSIFIED",
@@ -9588,7 +9588,7 @@
     "JUSTDIAL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "JVLAGRO": {
       "sector": "CONSUMER_STAPLES",
@@ -9613,7 +9613,7 @@
     "JYOTISTRUC": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "KABRAEXTRU": {
       "sector": "UNCLASSIFIED",
@@ -9648,12 +9648,12 @@
     "KALPATARU": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "KALPATPOWR": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "KALSTEELS": {
       "sector": "METALS_MINING",
@@ -9673,7 +9673,7 @@
     "KALYANKJIL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "JEWELLERY"
+      "sub_sector": "GEMS_JEWELLERY"
     },
     "KAMAHOLD": {
       "sector": "UNCLASSIFIED",
@@ -9818,7 +9818,7 @@
     "KECINTL": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "KECL": {
       "sector": "INDUSTRIALS",
@@ -9838,7 +9838,7 @@
     "KEI": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "ELECTRICAL_CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "KELLTONTEC": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -9883,7 +9883,7 @@
     "KFA": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "AIRLINES"
+      "sub_sector": "TRAVEL"
     },
     "KFINTECH": {
       "sector": "FINANCIALS",
@@ -9953,7 +9953,7 @@
     "KIOCL": {
       "sector": "METALS_MINING",
       "source": "llm_map",
-      "sub_sector": "IRON_ORE"
+      "sub_sector": "STEEL_IRON"
     },
     "KIRANVYPAR": {
       "sector": "UNCLASSIFIED",
@@ -10223,7 +10223,7 @@
     "KPITTECH": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "AUTOMOTIVE_IT"
+      "sub_sector": "IT_SERVICES"
     },
     "KPL": {
       "sector": "UNCLASSIFIED",
@@ -10308,7 +10308,7 @@
     "KRSNAA": {
       "sector": "HEALTHCARE",
       "source": "llm_map",
-      "sub_sector": "DIAGNOSTICS"
+      "sub_sector": "HEALTHCARE_SVCS"
     },
     "KRYSTAL": {
       "sector": "UNCLASSIFIED",
@@ -10323,7 +10323,7 @@
     "KSBPUMPS": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "PUMPS"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "KSCL": {
       "sector": "CONSUMER_STAPLES",
@@ -10403,7 +10403,7 @@
     "KWALITY": {
       "sector": "CONSUMER_STAPLES",
       "source": "llm_map",
-      "sub_sector": "DAIRY"
+      "sub_sector": "FMCG"
     },
     "KWIL": {
       "sector": "UNCLASSIFIED",
@@ -10538,7 +10538,7 @@
     "LAXMIMACH": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "MACHINE_TOOLS"
+      "sub_sector": "INDUSTRIAL_AUTOMATION"
     },
     "LCCINFOTEC": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -10563,12 +10563,12 @@
     "LEMONTREE": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "LENSKART": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "LEXUS": {
       "sector": "UNCLASSIFIED",
@@ -10618,12 +10618,12 @@
     "LICHSGFIN": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "HOUSING_FINANCE"
+      "sub_sector": "HOUSING_FIN"
     },
     "LICI": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "INSURANCE_LIFE"
+      "sub_sector": "INSURANCE"
     },
     "LICMFGOLD": {
       "sector": "COMMODITIES",
@@ -10753,7 +10753,7 @@
     "LITL": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "LLOYDELENG": {
       "sector": "INDUSTRIALS",
@@ -10773,12 +10773,12 @@
     "LLOYDSENT": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "LLOYDSME": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "LLOYDSTEEL": {
       "sector": "METALS_MINING",
@@ -10798,7 +10798,7 @@
     "LODHA": {
       "sector": "REAL_ESTATE",
       "source": "universe_json",
-      "sub_sector": "RESIDENTIAL"
+      "sub_sector": "REAL_ESTATE"
     },
     "LOGIXMICRO": {
       "sector": "UNCLASSIFIED",
@@ -10833,7 +10833,7 @@
     "LOVABLE": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "LOWVOL": {
       "sector": "UNCLASSIFIED",
@@ -10873,12 +10873,12 @@
     "LT": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "EPC_CAPITAL_GOODS"
+      "sub_sector": "CONSTRUCTION"
     },
     "LTF": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_RETAIL"
+      "sub_sector": "NBFC"
     },
     "LTFOODS": {
       "sector": "CONSUMER_STAPLES",
@@ -10903,7 +10903,7 @@
     "LTIM": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "IT_SERVICES_LARGE_CAP"
+      "sub_sector": "IT_SERVICES"
     },
     "LTM": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -10918,7 +10918,7 @@
     "LUMAXAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "LUMAXIND": {
       "sector": "AUTOMOBILES",
@@ -10928,17 +10928,17 @@
     "LUMAXTECH": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "LUPIN": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_FORMULATIONS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "LUXIND": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "LXCHEM": {
       "sector": "MATERIALS",
@@ -10963,12 +10963,12 @@
     "M&M": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "UV_TRACTORS"
+      "sub_sector": "AUTO_OEM"
     },
     "M&MFIN": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_RETAIL"
+      "sub_sector": "NBFC"
     },
     "M100": {
       "sector": "UNCLASSIFIED",
@@ -11023,7 +11023,7 @@
     "MADRASFERT": {
       "sector": "MATERIALS",
       "source": "heuristic",
-      "sub_sector": "FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "MAESGETF": {
       "sector": "DEFENSIVE",
@@ -11263,7 +11263,7 @@
     "MANDHANA": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "MANGALAM": {
       "sector": "UNCLASSIFIED",
@@ -11273,7 +11273,7 @@
     "MANGCHEFER": {
       "sector": "MATERIALS",
       "source": "llm_map",
-      "sub_sector": "FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "MANGLMCEM": {
       "sector": "MATERIALS",
@@ -11308,7 +11308,7 @@
     "MANKIND": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_DOMESTIC"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "MANOMAY": {
       "sector": "UNCLASSIFIED",
@@ -11353,7 +11353,7 @@
     "MANYAVAR": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "MAPMYINDIA": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -11383,7 +11383,7 @@
     "MARICO": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_PERSONAL_CARE"
+      "sub_sector": "FMCG"
     },
     "MARICOIND": {
       "sector": "UNCLASSIFIED",
@@ -11418,7 +11418,7 @@
     "MARUTI": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "PASSENGER_VEHICLES"
+      "sub_sector": "AUTO_OEM"
     },
     "MASFIN": {
       "sector": "FINANCIALS",
@@ -11508,7 +11508,7 @@
     "MAYTASINFR": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "MAYURUNIQ": {
       "sector": "UNCLASSIFIED",
@@ -11523,7 +11523,7 @@
     "MAZDOCK": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "DEFENCE_SHIPBUILDING"
+      "sub_sector": "DEFENCE"
     },
     "MBAPL": {
       "sector": "UNCLASSIFIED",
@@ -11618,12 +11618,12 @@
     "MEDPLUS": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "MEESHO": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "MEGASOFT": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -11728,7 +11728,7 @@
     "MFSL": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "INSURANCE_LIFE"
+      "sub_sector": "INSURANCE"
     },
     "MGEL": {
       "sector": "UNCLASSIFIED",
@@ -11868,7 +11868,7 @@
     "MINDACORP": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "MINDAIND": {
       "sector": "AUTOMOBILES",
@@ -11963,7 +11963,7 @@
     "MOBIKWIK": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "FINTECH"
+      "sub_sector": "FIN_SERVICES"
     },
     "MOCAPITAL": {
       "sector": "FINANCIALS",
@@ -12043,7 +12043,7 @@
     "MOIL": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "MOINFRA": {
       "sector": "INFRASTRUCTURE",
@@ -12233,12 +12233,12 @@
     "MOSCHIP": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "llm_map",
-      "sub_sector": "SEMICONDUCTOR"
+      "sub_sector": "IT_PRODUCTS"
     },
     "MOSERBAER": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "ELECTRONICS"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "MOSERVICE": {
       "sector": "UNCLASSIFIED",
@@ -12258,7 +12258,7 @@
     "MOTHERSON": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "AUTO_COMPONENTS"
+      "sub_sector": "AUTO_ANCILLARY"
     },
     "MOTHERSUMI": {
       "sector": "AUTOMOBILES",
@@ -12283,7 +12283,7 @@
     "MOTOUR": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "MOVALUE": {
       "sector": "UNCLASSIFIED",
@@ -12293,7 +12293,7 @@
     "MPHASIS": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "MID_TIER_IT"
+      "sub_sector": "IT_SERVICES"
     },
     "MPHASISBFL": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -12303,7 +12303,7 @@
     "MPSLTD": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "llm_map",
-      "sub_sector": "PUBLISHING_TECH"
+      "sub_sector": "IT_PRODUCTS"
     },
     "MRF": {
       "sector": "AUTOMOBILES",
@@ -12348,7 +12348,7 @@
     "MSUMI": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "MTARTECH": {
       "sector": "INDUSTRIALS",
@@ -12418,7 +12418,7 @@
     "MUNJALAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "MUNJALSHOW": {
       "sector": "UNCLASSIFIED",
@@ -12443,7 +12443,7 @@
     "MUTHOOTFIN": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "GOLD_LOAN_NBFC"
+      "sub_sector": "NBFC"
     },
     "MUTHOOTMF": {
       "sector": "UNCLASSIFIED",
@@ -12498,7 +12498,7 @@
     "NAGAFERT": {
       "sector": "MATERIALS",
       "source": "heuristic",
-      "sub_sector": "FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "NAGARCONST": {
       "sector": "INFRASTRUCTURE",
@@ -12508,7 +12508,7 @@
     "NAGARFERT": {
       "sector": "MATERIALS",
       "source": "heuristic",
-      "sub_sector": "FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "NAGAROIL": {
       "sector": "ENERGY",
@@ -12633,7 +12633,7 @@
     "NATIONALUM": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "ALUMINIUM_PSU"
+      "sub_sector": "NON_FERROUS"
     },
     "NATIONSTD": {
       "sector": "UNCLASSIFIED",
@@ -12648,7 +12648,7 @@
     "NAUKRI": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "ONLINE_JOBS"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "NAVA": {
       "sector": "UTILITIES",
@@ -12748,7 +12748,7 @@
     "NDRAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "NDTV": {
       "sector": "MEDIA",
@@ -12773,7 +12773,7 @@
     "NELCAST": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "CASTINGS"
+      "sub_sector": "FORGING"
     },
     "NELCO": {
       "sector": "UNCLASSIFIED",
@@ -12818,7 +12818,7 @@
     "NESTLEIND": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_PACKAGED_FOOD"
+      "sub_sector": "FMCG"
     },
     "NET4": {
       "sector": "UNCLASSIFIED",
@@ -12838,7 +12838,7 @@
     "NETFAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "NETFCONSUM": {
       "sector": "UNCLASSIFIED",
@@ -12988,7 +12988,7 @@
     "NHPC": {
       "sector": "UTILITIES",
       "source": "universe_json",
-      "sub_sector": "POWER_HYDRO"
+      "sub_sector": "POWER"
     },
     "NIACL": {
       "sector": "FINANCIALS",
@@ -13008,7 +13008,7 @@
     "NICCO": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "NICCOCORP": {
       "sector": "UNCLASSIFIED",
@@ -13018,7 +13018,7 @@
     "NICOLASPIR": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "NIF100BEES": {
       "sector": "DEFENSIVE",
@@ -13128,7 +13128,7 @@
     "NIITLTD": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "llm_map",
-      "sub_sector": "EDUCATION_TECH"
+      "sub_sector": "INTERNET"
     },
     "NIITMTS": {
       "sector": "UNCLASSIFIED",
@@ -13268,7 +13268,7 @@
     "NMDC": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "IRON_ORE_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "NOCIL": {
       "sector": "MATERIALS",
@@ -13283,7 +13283,7 @@
     "NOIDATOLL": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "NOL": {
       "sector": "UNCLASSIFIED",
@@ -13348,7 +13348,7 @@
     "NRBBEARING": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "BEARINGS"
+      "sub_sector": "FORGING"
     },
     "NRC": {
       "sector": "MATERIALS",
@@ -13368,7 +13368,7 @@
     "NSLNISP": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "NTL": {
       "sector": "UNCLASSIFIED",
@@ -13378,12 +13378,12 @@
     "NTPC": {
       "sector": "UTILITIES",
       "source": "universe_json",
-      "sub_sector": "POWER_UTILITIES"
+      "sub_sector": "POWER"
     },
     "NTPCGREEN": {
       "sector": "UTILITIES",
       "source": "universe_json",
-      "sub_sector": "RENEWABLE_POWER"
+      "sub_sector": "POWER"
     },
     "NUCENT": {
       "sector": "UNCLASSIFIED",
@@ -13453,7 +13453,7 @@
     "NYKAA": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "ONLINE_BEAUTY"
+      "sub_sector": "PERSONAL_CARE"
     },
     "OAL": {
       "sector": "UNCLASSIFIED",
@@ -13473,7 +13473,7 @@
     "OBEROIRLTY": {
       "sector": "REAL_ESTATE",
       "source": "universe_json",
-      "sub_sector": "RESIDENTIAL_PREMIUM"
+      "sub_sector": "REAL_ESTATE"
     },
     "OCCL": {
       "sector": "UNCLASSIFIED",
@@ -13508,12 +13508,12 @@
     "OFSS": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "FINTECH_SOFTWARE"
+      "sub_sector": "IT_PRODUCTS"
     },
     "OIL": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "OIL_EXPLORATION_PRODUCTION"
+      "sub_sector": "OIL_GAS"
     },
     "OILCOUNTUB": {
       "sector": "ENERGY",
@@ -13533,17 +13533,17 @@
     "OLAELEC": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "OLECTRA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "OMAXAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "OMAXE": {
       "sector": "REAL_ESTATE",
@@ -13598,7 +13598,7 @@
     "ONGC": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "OIL_EXPLORATION_PRODUCTION"
+      "sub_sector": "OIL_GAS"
     },
     "ONMOBILE": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -13823,7 +13823,7 @@
     "PAGEIND": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "APPAREL_INNERWEAR"
+      "sub_sector": "TEXTILES"
     },
     "PAISALO": {
       "sector": "FINANCIALS",
@@ -13918,7 +13918,7 @@
     "PARACABLES": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "PARADEEP": {
       "sector": "MATERIALS",
@@ -13933,7 +13933,7 @@
     "PARAGMILK": {
       "sector": "CONSUMER_STAPLES",
       "source": "llm_map",
-      "sub_sector": "DAIRY"
+      "sub_sector": "FMCG"
     },
     "PARAL": {
       "sector": "UNCLASSIFIED",
@@ -14003,7 +14003,7 @@
     "PATANJALI": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_FOOD_AYURVEDA"
+      "sub_sector": "FMCG"
     },
     "PATELENG": {
       "sector": "INFRASTRUCTURE",
@@ -14048,7 +14048,7 @@
     "PAYTM": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "FINTECH_PAYMENTS"
+      "sub_sector": "FIN_SERVICES"
     },
     "PBAINFRA": {
       "sector": "INFRASTRUCTURE",
@@ -14118,7 +14118,7 @@
     "PEL": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "PENIND": {
       "sector": "INDUSTRIALS",
@@ -14163,7 +14163,7 @@
     "PERSISTENT": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "DIGITAL_CLOUD_IT"
+      "sub_sector": "IT_SERVICES"
     },
     "PETRONENGG": {
       "sector": "INDUSTRIALS",
@@ -14178,7 +14178,7 @@
     "PFC": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_INFRASTRUCTURE"
+      "sub_sector": "NBFC"
     },
     "PFIZER": {
       "sector": "HEALTHCARE",
@@ -14253,7 +14253,7 @@
     "PHOENIXLTD": {
       "sector": "REAL_ESTATE",
       "source": "universe_json",
-      "sub_sector": "RETAIL_MALLS"
+      "sub_sector": "REAL_ESTATE"
     },
     "PICCADIL": {
       "sector": "CONSUMER_STAPLES",
@@ -14263,7 +14263,7 @@
     "PIDILITIND": {
       "sector": "MATERIALS",
       "source": "universe_json",
-      "sub_sector": "SPECIALTY_CHEMICALS_ADHESIVES"
+      "sub_sector": "SPECIALTY_CHEMICALS"
     },
     "PIGL": {
       "sector": "UNCLASSIFIED",
@@ -14318,12 +14318,12 @@
     "PIPAVAVDOC": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "SHIPPING"
+      "sub_sector": "LOGISTICS"
     },
     "PIPAVAVYD": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "SHIPPING"
+      "sub_sector": "LOGISTICS"
     },
     "PIRAMALFIN": {
       "sector": "FINANCIALS",
@@ -14388,7 +14388,7 @@
     "PLAZACABLE": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "PLETHICO": {
       "sector": "UNCLASSIFIED",
@@ -14408,7 +14408,7 @@
     "PNBGILTS": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_FIN"
+      "sub_sector": "FIN_SERVICES"
     },
     "PNBHOUSING": {
       "sector": "FINANCIALS",
@@ -14478,12 +14478,12 @@
     "POLICYBZR": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "INSURTECH"
+      "sub_sector": "INSURANCE"
     },
     "POLYCAB": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "ELECTRICAL_CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "POLYMED": {
       "sector": "HEALTHCARE",
@@ -14628,12 +14628,12 @@
     "PREMAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "PREMAUTOEL": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "PREMCO": {
       "sector": "UNCLASSIFIED",
@@ -14653,7 +14653,7 @@
     "PREMIERENE": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "SOLAR_CELLS"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "PREMIERPOL": {
       "sector": "UNCLASSIFIED",
@@ -14673,7 +14673,7 @@
     "PRESTIGE": {
       "sector": "REAL_ESTATE",
       "source": "universe_json",
-      "sub_sector": "COMMERCIAL_RESIDENTIAL"
+      "sub_sector": "REAL_ESTATE"
     },
     "PRETAILDVR": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -14688,7 +14688,7 @@
     "PRICOLLTD": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "PRIMESEC": {
       "sector": "UNCLASSIFIED",
@@ -14733,7 +14733,7 @@
     "PRITIKAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "PRIVISCL": {
       "sector": "MATERIALS",
@@ -14768,7 +14768,7 @@
     "PROVOGUE": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "PROZONECSC": {
       "sector": "UNCLASSIFIED",
@@ -14868,12 +14868,12 @@
     "PUNJABTRAC": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "FARM_EQUIPMENT"
+      "sub_sector": "AUTO_OEM"
     },
     "PUNJLLOYD": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "PURVA": {
       "sector": "REAL_ESTATE",
@@ -14913,7 +14913,7 @@
     "PWL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "PYRAMID": {
       "sector": "UNCLASSIFIED",
@@ -15138,7 +15138,7 @@
     "RAMCOIND": {
       "sector": "MATERIALS",
       "source": "llm_map",
-      "sub_sector": "ROOFING"
+      "sub_sector": "BUILDING_MATERIALS"
     },
     "RAMCOSYS": {
       "sector": "UNCLASSIFIED",
@@ -15218,7 +15218,7 @@
     "RAYMOND": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "RAYMONDLSL": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -15233,7 +15233,7 @@
     "RBA": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "RBL": {
       "sector": "UNCLASSIFIED",
@@ -15278,12 +15278,12 @@
     "RDEL": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "RECLTD": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_INFRASTRUCTURE"
+      "sub_sector": "NBFC"
     },
     "REDINGTON": {
       "sector": "INDUSTRIALS",
@@ -15383,7 +15383,7 @@
     "RELIANCE": {
       "sector": "ENERGY",
       "source": "universe_json",
-      "sub_sector": "INTEGRATED_ENERGY"
+      "sub_sector": "OIL_GAS"
     },
     "RELIGARE": {
       "sector": "FINANCIALS",
@@ -15398,7 +15398,7 @@
     "RELINFRA": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "RELMEDIA": {
       "sector": "MEDIA",
@@ -15513,12 +15513,12 @@
     "RICOAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "RIIL": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "RISHABH": {
       "sector": "UNCLASSIFIED",
@@ -15553,7 +15553,7 @@
     "RKFORGE": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "RKSWAMY": {
       "sector": "UNCLASSIFIED",
@@ -15588,7 +15588,7 @@
     "RNAM": {
       "sector": "FINANCIALS",
       "source": "llm_map",
-      "sub_sector": "ASSET_MGMT"
+      "sub_sector": "FIN_SERVICES"
     },
     "RNAVAL": {
       "sector": "UNCLASSIFIED",
@@ -15673,7 +15673,7 @@
     "RPGCABLES": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "RPGLIFE": {
       "sector": "HEALTHCARE",
@@ -15698,7 +15698,7 @@
     "RPL": {
       "sector": "ENERGY",
       "source": "llm_map",
-      "sub_sector": "REFINING"
+      "sub_sector": "OIL_GAS"
     },
     "RPOWER": {
       "sector": "UTILITIES",
@@ -15768,7 +15768,7 @@
     "RTNINDIA": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "RTNINFRA": {
       "sector": "INFRASTRUCTURE",
@@ -15823,7 +15823,7 @@
     "RUPA": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "APPAREL"
+      "sub_sector": "TEXTILES"
     },
     "RUSHIL": {
       "sector": "MATERIALS",
@@ -15843,7 +15843,7 @@
     "RVNL": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "RAIL_INFRASTRUCTURE"
+      "sub_sector": "RAILWAYS"
     },
     "RVTH": {
       "sector": "UNCLASSIFIED",
@@ -15943,7 +15943,7 @@
     "SAIL": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "STEEL_PSU"
+      "sub_sector": "STEEL_IRON"
     },
     "SAILIFE": {
       "sector": "HEALTHCARE",
@@ -16028,7 +16028,7 @@
     "SAMHI": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "SAMINDUS": {
       "sector": "UNCLASSIFIED",
@@ -16123,7 +16123,7 @@
     "SANSERA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "SANSTAR": {
       "sector": "UNCLASSIFIED",
@@ -16143,12 +16143,12 @@
     "SAPPHIRE": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "SARDAEN": {
       "sector": "METALS_MINING",
       "source": "nse_authoritative",
-      "sub_sector": "METALS_MINING"
+      "sub_sector": "STEEL_IRON"
     },
     "SAREGAMA": {
       "sector": "MEDIA",
@@ -16273,7 +16273,7 @@
     "SBICARD": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "CARDS_PAYMENTS"
+      "sub_sector": "FIN_SERVICES"
     },
     "SBIETFCON": {
       "sector": "UNCLASSIFIED",
@@ -16308,7 +16308,7 @@
     "SBILIFE": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "INSURANCE_LIFE"
+      "sub_sector": "INSURANCE"
     },
     "SBILIQETF": {
       "sector": "FINANCIALS",
@@ -16363,7 +16363,7 @@
     "SCHAEFFLER": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "SCHAND": {
       "sector": "UNCLASSIFIED",
@@ -16853,7 +16853,7 @@
     "SHIVAMAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "SHIVAMILLS": {
       "sector": "UNCLASSIFIED",
@@ -16988,7 +16988,7 @@
     "SHRIPISTON": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "SHRIRAMCIT": {
       "sector": "FINANCIALS",
@@ -17003,7 +17003,7 @@
     "SHRIRAMFIN": {
       "sector": "FINANCIALS",
       "source": "universe_json",
-      "sub_sector": "NBFC_RETAIL"
+      "sub_sector": "NBFC"
     },
     "SHRIRAMINV": {
       "sector": "UNCLASSIFIED",
@@ -17283,7 +17283,7 @@
     "SITICABLE": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "SITINET": {
       "sector": "UNCLASSIFIED",
@@ -17308,7 +17308,7 @@
     "SKFINDIA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "SKFINDUS": {
       "sector": "INDUSTRIALS",
@@ -17483,7 +17483,7 @@
     "SOLARINDS": {
       "sector": "MATERIALS",
       "source": "universe_json",
-      "sub_sector": "SPECIALTY_CHEMICALS_EXPLOSIVES"
+      "sub_sector": "SPECIALTY_CHEMICALS"
     },
     "SOLARWORLD": {
       "sector": "UTILITIES",
@@ -17508,7 +17508,7 @@
     "SOMANYCERA": {
       "sector": "MATERIALS",
       "source": "llm_map",
-      "sub_sector": "CERAMICS"
+      "sub_sector": "BUILDING_MATERIALS"
     },
     "SOMATEX": {
       "sector": "UNCLASSIFIED",
@@ -17523,7 +17523,7 @@
     "SONACOMS": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "AUTO_COMPONENTS_EV"
+      "sub_sector": "AUTO_ANCILLARY"
     },
     "SONAMCLOCK": {
       "sector": "UNCLASSIFIED",
@@ -17643,7 +17643,7 @@
     "SPICEJET": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "AIRLINES"
+      "sub_sector": "TRAVEL"
     },
     "SPICEMOBI": {
       "sector": "UNCLASSIFIED",
@@ -17738,7 +17738,7 @@
     "SRF": {
       "sector": "MATERIALS",
       "source": "universe_json",
-      "sub_sector": "FLUORO_SPECIALTY_CHEMICALS"
+      "sub_sector": "SPECIALTY_CHEMICALS"
     },
     "SRGHFL": {
       "sector": "UNCLASSIFIED",
@@ -17808,7 +17808,7 @@
     "SSLT": {
       "sector": "METALS_MINING",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_METALS"
+      "sub_sector": "STEEL_IRON"
     },
     "SSWL": {
       "sector": "UNCLASSIFIED",
@@ -17888,7 +17888,7 @@
     "STER": {
       "sector": "METALS_MINING",
       "source": "llm_map",
-      "sub_sector": "DIVERSIFIED_METALS"
+      "sub_sector": "STEEL_IRON"
     },
     "STERLINBIO": {
       "sector": "HEALTHCARE",
@@ -18123,7 +18123,7 @@
     "SUNPHARMA": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_FORMULATIONS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "SUNTECK": {
       "sector": "REAL_ESTATE",
@@ -18173,7 +18173,7 @@
     "SUPREMEIND": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "PLASTIC_PIPES"
+      "sub_sector": "PIPES"
     },
     "SUPREMEINF": {
       "sector": "UNCLASSIFIED",
@@ -18323,7 +18323,7 @@
     "SUZLON": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "WIND_TURBINES"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "SVLL": {
       "sector": "UNCLASSIFIED",
@@ -18353,7 +18353,7 @@
     "SWARAJENG": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "FARM_EQUIPMENT"
+      "sub_sector": "AUTO_OEM"
     },
     "SWARAJMAZD": {
       "sector": "UNCLASSIFIED",
@@ -18368,7 +18368,7 @@
     "SWIGGY": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "FOOD_DELIVERY"
+      "sub_sector": "QSR"
     },
     "SWSOLAR": {
       "sector": "INFRASTRUCTURE",
@@ -18438,7 +18438,7 @@
     "TALBROAUTO": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "TALWALKARS": {
       "sector": "UNCLASSIFIED",
@@ -18533,17 +18533,17 @@
     "TATACOMM": {
       "sector": "TELECOM",
       "source": "universe_json",
-      "sub_sector": "TELECOM_ENTERPRISE"
+      "sub_sector": "TELECOM_SVCS"
     },
     "TATACONSUM": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "FMCG_FOOD_BEVERAGES"
+      "sub_sector": "FMCG"
     },
     "TATAELXSI": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "EMBEDDED_DESIGN"
+      "sub_sector": "IT_PRODUCTS"
     },
     "TATAFIN": {
       "sector": "FINANCIALS",
@@ -18588,17 +18588,17 @@
     "TATAMOTORS": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "TATAMTRDVR": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "TATAPOWER": {
       "sector": "UTILITIES",
       "source": "universe_json",
-      "sub_sector": "POWER_UTILITIES_INTEGRATED"
+      "sub_sector": "POWER"
     },
     "TATASPONGE": {
       "sector": "METALS_MINING",
@@ -18608,7 +18608,7 @@
     "TATASTEEL": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "STEEL"
+      "sub_sector": "STEEL_IRON"
     },
     "TATASTLBSL": {
       "sector": "METALS_MINING",
@@ -18628,7 +18628,7 @@
     "TATATECH": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "ERD_SERVICES"
+      "sub_sector": "IT_SERVICES"
     },
     "TATATELSER": {
       "sector": "UNCLASSIFIED",
@@ -18653,7 +18653,7 @@
     "TBOTEK": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "TBZ": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -18708,7 +18708,7 @@
     "TCS": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "IT_SERVICES_LARGE_CAP"
+      "sub_sector": "IT_SERVICES"
     },
     "TDPOWERSYS": {
       "sector": "INDUSTRIALS",
@@ -18738,7 +18738,7 @@
     "TECHM": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "IT_SERVICES_TELECOM"
+      "sub_sector": "IT_SERVICES"
     },
     "TECHNO": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -18808,7 +18808,7 @@
     "TENNIND": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "TERASOFT": {
       "sector": "INFORMATION_TECHNOLOGY",
@@ -18878,7 +18878,7 @@
     "THELEELA": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "THEMISMED": {
       "sector": "UNCLASSIFIED",
@@ -18903,7 +18903,7 @@
     "THOMASCOOK": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "THOMASCOTT": {
       "sector": "UNCLASSIFIED",
@@ -18948,7 +18948,7 @@
     "TIINDIA": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "AUTO_COMPONENTS"
+      "sub_sector": "AUTO_ANCILLARY"
     },
     "TIJARIA": {
       "sector": "UNCLASSIFIED",
@@ -19033,7 +19033,7 @@
     "TITAN": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "JEWELLERY_WATCHES"
+      "sub_sector": "GEMS_JEWELLERY"
     },
     "TITANOCOMP": {
       "sector": "UNCLASSIFIED",
@@ -19053,7 +19053,7 @@
     "TMPV": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "PASSENGER_VEHICLES"
+      "sub_sector": "AUTO_OEM"
     },
     "TMRVL": {
       "sector": "UNCLASSIFIED",
@@ -19118,12 +19118,12 @@
     "TORNTPHARM": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_FORMULATIONS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "TORNTPOWER": {
       "sector": "UTILITIES",
       "source": "universe_json",
-      "sub_sector": "POWER_UTILITIES"
+      "sub_sector": "POWER"
     },
     "TORRENTAEC": {
       "sector": "UNCLASSIFIED",
@@ -19183,7 +19183,7 @@
     "TRAVELFOOD": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "TREADS": {
       "sector": "UNCLASSIFIED",
@@ -19208,7 +19208,7 @@
     "TRENT": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "RETAIL_APPAREL"
+      "sub_sector": "RETAIL"
     },
     "TRF": {
       "sector": "UNCLASSIFIED",
@@ -19333,7 +19333,7 @@
     "TVSMOTOR": {
       "sector": "AUTOMOBILES",
       "source": "universe_json",
-      "sub_sector": "TWO_WHEELERS"
+      "sub_sector": "AUTO_OEM"
     },
     "TVSSCS": {
       "sector": "INDUSTRIALS",
@@ -19558,7 +19558,7 @@
     "UNITDSPR": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "BEVERAGES_ALCOHOLIC"
+      "sub_sector": "ALCOHOL"
     },
     "UNITECH": {
       "sector": "REAL_ESTATE",
@@ -19583,7 +19583,7 @@
     "UNITY": {
       "sector": "INFRASTRUCTURE",
       "source": "llm_map",
-      "sub_sector": "INFRA"
+      "sub_sector": "CONSTRUCTION"
     },
     "UNIVAFOODS": {
       "sector": "CONSUMER_STAPLES",
@@ -19598,7 +19598,7 @@
     "UNIVCABLES": {
       "sector": "INDUSTRIALS",
       "source": "heuristic",
-      "sub_sector": "CABLES"
+      "sub_sector": "ELECTRICAL_EQUIPMENT"
     },
     "UNIVPHOTO": {
       "sector": "UNCLASSIFIED",
@@ -19613,7 +19613,7 @@
     "UNOMINDA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "UPERGANGES": {
       "sector": "CONSUMER_STAPLES",
@@ -19623,7 +19623,7 @@
     "UPL": {
       "sector": "MATERIALS",
       "source": "universe_json",
-      "sub_sector": "AGROCHEMICALS_CROP_PROTECTION"
+      "sub_sector": "AGROCHEMICALS"
     },
     "URAVI": {
       "sector": "UNCLASSIFIED",
@@ -19638,7 +19638,7 @@
     "URBANCO": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "URJA": {
       "sector": "UNCLASSIFIED",
@@ -19743,7 +19743,7 @@
     "V2RETAIL": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "VADILALIND": {
       "sector": "UNCLASSIFIED",
@@ -19823,12 +19823,12 @@
     "VARROC": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "VARUN": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "SHIPPING"
+      "sub_sector": "LOGISTICS"
     },
     "VARUNSHIP": {
       "sector": "INDUSTRIALS",
@@ -19858,7 +19858,7 @@
     "VBL": {
       "sector": "CONSUMER_STAPLES",
       "source": "universe_json",
-      "sub_sector": "BEVERAGES_SOFT_DRINKS"
+      "sub_sector": "FMCG"
     },
     "VCL": {
       "sector": "UNCLASSIFIED",
@@ -19878,7 +19878,7 @@
     "VEDL": {
       "sector": "METALS_MINING",
       "source": "universe_json",
-      "sub_sector": "DIVERSIFIED_MINING"
+      "sub_sector": "MINING"
     },
     "VEEDOL": {
       "sector": "UNCLASSIFIED",
@@ -20038,7 +20038,7 @@
     "VIKRAN": {
       "sector": "INDUSTRIALS",
       "source": "llm_map",
-      "sub_sector": "EPC"
+      "sub_sector": "CONSTRUCTION"
     },
     "VIMALOIL": {
       "sector": "ENERGY",
@@ -20213,12 +20213,12 @@
     "VMART": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "VMM": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "RETAIL_VALUE"
+      "sub_sector": "RETAIL"
     },
     "VMSTMT": {
       "sector": "UNCLASSIFIED",
@@ -20233,7 +20233,7 @@
     "VOLTAS": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "universe_json",
-      "sub_sector": "CONSUMER_DURABLES_AC"
+      "sub_sector": "CONSUMER_DURABLES"
     },
     "VPRPL": {
       "sector": "UNCLASSIFIED",
@@ -20278,7 +20278,7 @@
     "VSTTILLERS": {
       "sector": "AUTOMOBILES",
       "source": "llm_map",
-      "sub_sector": "FARM_EQUIPMENT"
+      "sub_sector": "AUTO_OEM"
     },
     "VTL": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -20308,7 +20308,7 @@
     "WAAREEENER": {
       "sector": "INDUSTRIALS",
       "source": "universe_json",
-      "sub_sector": "SOLAR_MODULES"
+      "sub_sector": "CAPITAL_GOODS"
     },
     "WAAREEINDO": {
       "sector": "UNCLASSIFIED",
@@ -20323,7 +20323,7 @@
     "WABAG": {
       "sector": "UTILITIES",
       "source": "nse_authoritative",
-      "sub_sector": "UTILITIES"
+      "sub_sector": "POWER"
     },
     "WABCO-TVS": {
       "sector": "MEDIA",
@@ -20463,7 +20463,7 @@
     "WESTLIFE": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "nse_authoritative",
-      "sub_sector": "SERVICES"
+      "sub_sector": "CONSUMER_SERVICES"
     },
     "WEWIN": {
       "sector": "UNCLASSIFIED",
@@ -20483,7 +20483,7 @@
     "WHEELS": {
       "sector": "AUTOMOBILES",
       "source": "heuristic",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "WHIRLPOOL": {
       "sector": "CONSUMER_DISCRETIONARY",
@@ -20553,7 +20553,7 @@
     "WIPRO": {
       "sector": "INFORMATION_TECHNOLOGY",
       "source": "universe_json",
-      "sub_sector": "IT_SERVICES_LARGE_CAP"
+      "sub_sector": "IT_SERVICES"
     },
     "WOCKPHARMA": {
       "sector": "HEALTHCARE",
@@ -20563,7 +20563,7 @@
     "WONDERLA": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "ENTERTAINMENT"
+      "sub_sector": "MEDIA"
     },
     "WOPOLIN": {
       "sector": "UNCLASSIFIED",
@@ -20698,7 +20698,7 @@
     "ZANDUREALT": {
       "sector": "MATERIALS",
       "source": "heuristic",
-      "sub_sector": "FERTILIZERS"
+      "sub_sector": "AGROCHEMICALS"
     },
     "ZEEL": {
       "sector": "MEDIA",
@@ -20763,7 +20763,7 @@
     "ZFCVINDIA": {
       "sector": "AUTOMOBILES",
       "source": "nse_authoritative",
-      "sub_sector": "AUTO"
+      "sub_sector": "AUTO_OEM"
     },
     "ZICOM": {
       "sector": "UNCLASSIFIED",
@@ -20793,7 +20793,7 @@
     "ZOMATO": {
       "sector": "CONSUMER_DISCRETIONARY",
       "source": "llm_map",
-      "sub_sector": "FOOD_DELIVERY"
+      "sub_sector": "QSR"
     },
     "ZOTA": {
       "sector": "UNCLASSIFIED",
@@ -20828,7 +20828,7 @@
     "ZYDUSLIFE": {
       "sector": "HEALTHCARE",
       "source": "universe_json",
-      "sub_sector": "PHARMA_FORMULATIONS"
+      "sub_sector": "PHARMACEUTICALS"
     },
     "ZYDUSWELL": {
       "sector": "CONSUMER_STAPLES",

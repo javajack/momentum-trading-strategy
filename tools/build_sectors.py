@@ -60,6 +60,216 @@ SECTORS = {
 }
 
 
+# Canonical sub-sector mapping — consolidate fragmented labels from LLM/NSE
+# sources to a tight vocabulary of ~50 sub-sectors. Empty sub_sectors and
+# legitimately unique ones fall through unchanged. Applied at build() output
+# time so any classification source (universe_json, NSE, LLM, heuristic) gets
+# normalized before writing stock-sectors.json. Strategy consumes this
+# normalized view, enabling meaningful sub-sector concentration caps.
+_SUB_SECTOR_CANONICAL: Dict[str, str] = {
+    # ---- FINANCIALS ---------------------------------------------------------
+    "NBFC_RETAIL": "NBFC",
+    "NBFC_INFRASTRUCTURE": "NBFC",
+    "NBFC_GREEN_ENERGY": "NBFC",
+    "NBFC_HOUSING": "HOUSING_FIN",
+    "GOLD_LOAN_NBFC": "NBFC",
+    "HOUSING_FINANCE": "HOUSING_FIN",
+    "INSURANCE_LIFE": "INSURANCE",
+    "INSURANCE_GENERAL": "INSURANCE",
+    "INSURTECH": "INSURANCE",
+    "ASSET_MANAGEMENT": "FIN_SERVICES",
+    "ASSET_MGMT": "FIN_SERVICES",
+    "WEALTH_MGMT": "FIN_SERVICES",
+    "FINTECH": "FIN_SERVICES",
+    "FINTECH_PAYMENTS": "FIN_SERVICES",
+    "CARDS_PAYMENTS": "FIN_SERVICES",
+    "STOCK_EXCHANGE": "FIN_SERVICES",
+    "EXCHANGE": "FIN_SERVICES",
+    "FINANCIAL_HOLDING": "FIN_SERVICES",
+    "DIVERSIFIED_FIN": "FIN_SERVICES",
+    "SMALL_FINANCE_BANK": "BANKING",
+
+    # ---- HEALTHCARE ---------------------------------------------------------
+    "PHARMA_FORMULATIONS": "PHARMACEUTICALS",
+    "PHARMA_GENERIC": "PHARMACEUTICALS",
+    "PHARMA_APIS": "PHARMACEUTICALS",
+    "PHARMA_RESEARCH": "PHARMACEUTICALS",
+    "PHARMA_DOMESTIC": "PHARMACEUTICALS",
+    "BIOTECHNOLOGY_BIOSIMILARS": "PHARMACEUTICALS",
+    "DIAGNOSTICS": "HEALTHCARE_SVCS",
+
+    # ---- INFORMATION_TECHNOLOGY --------------------------------------------
+    "IT_SERVICES_LARGE_CAP": "IT_SERVICES",
+    "IT_SERVICES_TELECOM": "IT_SERVICES",
+    "BPO": "IT_SERVICES",
+    "MID_TIER_IT": "IT_SERVICES",
+    "AUTOMOTIVE_IT": "IT_SERVICES",
+    "DIGITAL_CLOUD_IT": "IT_SERVICES",
+    "ERD_SERVICES": "IT_SERVICES",
+    "PUBLISHING_TECH": "IT_PRODUCTS",
+    "FINTECH_SOFTWARE": "IT_PRODUCTS",
+    "EMBEDDED_DESIGN": "IT_PRODUCTS",
+    "SEMICONDUCTOR": "IT_PRODUCTS",
+    "EDUCATION_TECH": "INTERNET",
+
+    # ---- AUTOMOBILES --------------------------------------------------------
+    "AUTO": "AUTO_OEM",
+    "TWO_WHEELERS": "AUTO_OEM",
+    "TWO_WHEELERS_PREMIUM": "AUTO_OEM",
+    "PASSENGER_VEHICLES": "AUTO_OEM",
+    "COMMERCIAL_VEHICLES": "AUTO_OEM",
+    "FARM_EQUIPMENT": "AUTO_OEM",
+    "UV_TRACTORS": "AUTO_OEM",
+    "AUTO_COMPONENTS": "AUTO_ANCILLARY",
+    "AUTO_COMPONENTS_FORGING": "AUTO_ANCILLARY",
+    "AUTO_COMPONENTS_BATTERIES": "AUTO_ANCILLARY",
+    "AUTO_COMPONENTS_EV": "AUTO_ANCILLARY",
+
+    # ---- INDUSTRIALS --------------------------------------------------------
+    "DEFENCE_SHIPBUILDING": "DEFENCE",
+    "DEFENCE_MISSILES": "DEFENCE",
+    "DEFENCE_ELECTRONICS": "DEFENCE",
+    "DEFENCE_AEROSPACE": "DEFENCE",
+    "AEROSPACE": "DEFENCE",
+    "SHIPPING": "LOGISTICS",
+    "RAIL_LOGISTICS": "LOGISTICS",
+    "RAIL_INFRASTRUCTURE": "RAILWAYS",
+    "PLASTIC_PIPES": "PIPES",
+    "STEEL_PIPES": "PIPES",
+    "ELECTRICAL": "ELECTRICAL_EQUIPMENT",
+    "ELECTRICAL_CABLES": "ELECTRICAL_EQUIPMENT",
+    "ELECTRONICS": "ELECTRICAL_EQUIPMENT",
+    "ELECTRONICS_MANUFACTURING": "ELECTRICAL_EQUIPMENT",
+    "EMS": "ELECTRICAL_EQUIPMENT",
+    "TRANSFORMERS": "ELECTRICAL_EQUIPMENT",
+    "TRANSMISSION_TOWERS": "ELECTRICAL_EQUIPMENT",
+    "CABLES": "ELECTRICAL_EQUIPMENT",
+    "MACHINE_TOOLS": "INDUSTRIAL_AUTOMATION",
+    "INDUSTRIAL_AUTOMATION": "INDUSTRIAL_AUTOMATION",
+    "ABRASIVES": "INDUSTRIAL_AUTOMATION",
+    "MINING_EQUIPMENT": "CAPITAL_GOODS",
+    "WATER_TREATMENT": "CAPITAL_GOODS",
+    "PUMPS": "CAPITAL_GOODS",
+    "BEARINGS": "FORGING",
+    "CASTINGS": "FORGING",
+    "HEAVY_ENGINEERING": "ENGINEERING",
+    "INDUSTRIAL_ENGINES": "CAPITAL_GOODS",
+    "ENERGY_EQUIPMENT": "CAPITAL_GOODS",
+    "SOLAR_CELLS": "CAPITAL_GOODS",
+    "SOLAR_MODULES": "CAPITAL_GOODS",
+    "WIND_TURBINES": "CAPITAL_GOODS",
+    "DIVERSIFIED": "CAPITAL_GOODS",
+    "EPC_CAPITAL_GOODS": "CONSTRUCTION",
+    "EPC": "CONSTRUCTION",
+    "ROAD_INFRASTRUCTURE": "CONSTRUCTION",
+    "INFRA": "CONSTRUCTION",
+
+    # ---- MATERIALS ----------------------------------------------------------
+    "SPECIALTY_CHEMICALS_ADHESIVES": "SPECIALTY_CHEMICALS",
+    "SPECIALTY_CHEMICALS_EXPLOSIVES": "SPECIALTY_CHEMICALS",
+    "FLUORO_SPECIALTY_CHEMICALS": "SPECIALTY_CHEMICALS",
+    "AGROCHEMICALS_FERTILIZERS": "AGROCHEMICALS",
+    "AGROCHEMICALS_CROP_PROTECTION": "AGROCHEMICALS",
+    "FERTILIZERS": "AGROCHEMICALS",
+    "DIVERSIFIED_MATERIALS": "CHEMICALS",
+    "CERAMICS": "BUILDING_MATERIALS",
+    "ROOFING": "BUILDING_MATERIALS",
+    "FOREST_MATERIALS": "PAPER",
+    "REFRACTORIES": "CHEMICALS",
+
+    # ---- METALS_MINING ------------------------------------------------------
+    "STEEL": "STEEL_IRON",
+    "STEEL_PSU": "STEEL_IRON",
+    "IRON_ORE": "STEEL_IRON",
+    "IRON_ORE_MINING": "STEEL_IRON",
+    "METALS_MINING": "STEEL_IRON",
+    "DIVERSIFIED_METALS": "STEEL_IRON",
+    "ALUMINIUM": "NON_FERROUS",
+    "ALUMINIUM_PSU": "NON_FERROUS",
+    "ZINC": "NON_FERROUS",
+    "COAL_MINING": "COAL",
+    "DIVERSIFIED_RESOURCES": "MINING",
+    "DIVERSIFIED_MINING": "MINING",
+
+    # ---- CONSUMER_DISCRETIONARY --------------------------------------------
+    "SERVICES": "CONSUMER_SERVICES",
+    "EDUCATION": "CONSUMER_SERVICES",
+    "ONLINE_JOBS": "CONSUMER_SERVICES",
+    "ENTERTAINMENT": "MEDIA",
+    "APPAREL": "TEXTILES",
+    "APPAREL_INNERWEAR": "TEXTILES",
+    "AIRLINES": "TRAVEL",
+    "TRAVEL_SERVICES": "TRAVEL",
+    "FOOD_DELIVERY": "QSR",
+    "CONSUMER_DURABLES_AC": "CONSUMER_DURABLES",
+    "CONSUMER_DURABLES_ELECTRICAL": "CONSUMER_DURABLES",
+    "RETAIL_HYPERMARKET": "RETAIL",
+    "RETAIL_APPAREL": "RETAIL",
+    "RETAIL_VALUE": "RETAIL",
+    "HOTELS_LUXURY": "HOTELS",
+    "JEWELLERY": "GEMS_JEWELLERY",
+    "JEWELLERY_WATCHES": "GEMS_JEWELLERY",
+    "ONLINE_BEAUTY": "PERSONAL_CARE",
+    "PAINTS_COATINGS": "PAINTS",
+
+    # ---- CONSUMER_STAPLES ---------------------------------------------------
+    "FMCG_PERSONAL_HOME": "FMCG",
+    "FMCG_PACKAGED_FOOD": "FMCG",
+    "FMCG_AYURVEDA": "FMCG",
+    "FMCG_PERSONAL_CARE": "FMCG",
+    "FMCG_FOOD_AYURVEDA": "FMCG",
+    "FMCG_FOOD_BEVERAGES": "FMCG",
+    "FMCG_TOBACCO": "TOBACCO",
+    "FMCG_TOBACCO_DIVERSIFIED": "FMCG",
+    "BEVERAGES_ALCOHOLIC": "ALCOHOL",
+    "BEVERAGES_SOFT_DRINKS": "FMCG",
+    "BREWERIES": "ALCOHOL",
+    "DAIRY": "FMCG",
+
+    # ---- ENERGY -------------------------------------------------------------
+    "REFINING": "OIL_GAS",
+    "OIL_REFINING_MARKETING": "OIL_GAS",
+    "GAS": "OIL_GAS",
+    "CITY_GAS_DISTRIBUTION": "CITY_GAS",
+    "OIL_EXPLORATION_PRODUCTION": "OIL_GAS",
+    "GAS_TRANSMISSION": "OIL_GAS",
+    "INTEGRATED_ENERGY": "OIL_GAS",
+    "OIL_GAS_STORAGE": "OIL_GAS",
+    "LNG": "OIL_GAS",
+
+    # ---- UTILITIES ----------------------------------------------------------
+    "UTILITIES": "POWER",
+    "POWER_UTILITIES": "POWER",
+    "RENEWABLE_POWER": "POWER",
+    "POWER_THERMAL": "POWER",
+    "POWER_THERMAL_RENEWABLE": "POWER",
+    "POWER_HYDRO": "POWER",
+    "POWER_UTILITIES_INTEGRATED": "POWER",
+
+    # ---- TELECOM ------------------------------------------------------------
+    "TELECOM_SERVICES": "TELECOM_SVCS",
+    "TELECOM_EQUIPMENT": "TELECOM_INFRA",
+    "TELECOM_TOWERS": "TELECOM_INFRA",
+    "TELECOM_ENTERPRISE": "TELECOM_SVCS",
+
+    # ---- INFRASTRUCTURE -----------------------------------------------------
+    "AIRPORTS": "AIRPORTS_PORTS",
+    "PORTS": "AIRPORTS_PORTS",
+
+    # ---- REAL_ESTATE --------------------------------------------------------
+    "RESIDENTIAL": "REAL_ESTATE",
+    "RESIDENTIAL_COMMERCIAL": "REAL_ESTATE",
+    "RESIDENTIAL_PREMIUM": "REAL_ESTATE",
+    "RETAIL_MALLS": "REAL_ESTATE",
+    "COMMERCIAL_RESIDENTIAL": "REAL_ESTATE",
+}
+
+
+def _normalize_sub_sector(sub_sector: str) -> str:
+    """Apply canonical mapping; return input unchanged if already canonical."""
+    return _SUB_SECTOR_CANONICAL.get(sub_sector, sub_sector)
+
+
 # Known ETFs / fund units / non-equity instruments. Highest-priority
 # classification — checked BEFORE universe_json / NSE / LLM / heuristic.
 # This guarantees no ETF ever slips into the eligible-stocks filter via a
@@ -1613,6 +1823,9 @@ def build(output: Path = OUTPUT_PATH) -> None:
             print(f"[warn] unknown sector {sec!r} for {sym}, forcing UNCLASSIFIED", file=sys.stderr)
             sec, sub = ("UNCLASSIFIED", "UNCLASSIFIED")
             src = "unclassified"
+
+        # Consolidate fragmented sub_sector labels to tight canonical vocabulary
+        sub = _normalize_sub_sector(sub)
 
         out[sym] = {"sector": sec, "sub_sector": sub, "source": src}
         source_counts[src] += 1
