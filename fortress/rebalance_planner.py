@@ -79,7 +79,6 @@ class RebalancePlan:
     trades: List[PlannedTrade] = field(default_factory=list)
     total_sell_value: float = 0.0
     total_buy_value: float = 0.0
-    demat_cash_deployed: float = 0.0  # External capital injection (demat cash → LIQUIDBEES)
     net_cash_needed: float = 0.0
     available_cash: float = 0.0
     margin_sufficient: bool = True
@@ -484,42 +483,10 @@ class RebalancePlanner:
                         plan.total_buy_value += cost
                         surplus -= cost
 
-        # Phase 4: Sweep idle demat cash into cash_symbol (LIQUIDBEES)
-        # This is a capital injection (external cash → strategy), tracked separately
-        # from the self-funded rebalance cycle (sells → buys).
-        if cash_symbol and plan.available_cash > 0:
-            cash_price = current_prices.get(cash_symbol)
-            if cash_price and cash_price > 0:
-                lot_size = self.mapper.get_lot_size(cash_symbol)
-                qty, _ = calculate_order_quantity(plan.available_cash, cash_price, lot_size)
-                if qty > 0:
-                    cost = qty * cash_price
-                    rounded_price = self.mapper.round_to_tick(cash_price, cash_symbol)
-                    if cash_symbol in current_holdings:
-                        pos = current_holdings[cash_symbol]
-                        sector, cq, cw = pos.sector, pos.quantity, pos.value / managed_capital
-                    else:
-                        sector, cq, cw = "Cash", 0, 0.0
-                    action = (
-                        TradeAction.BUY_INCREASE
-                        if cash_symbol in current_holdings
-                        else TradeAction.BUY_NEW
-                    )
-                    plan.trades.append(
-                        PlannedTrade(
-                            symbol=cash_symbol,
-                            action=action,
-                            quantity=qty,
-                            price=rounded_price,
-                            value=cost,
-                            sector=sector,
-                            current_qty=cq,
-                            current_weight=cw,
-                            target_weight=0.0,
-                            reason="Capital injection (demat cash)",
-                        )
-                    )
-                    plan.demat_cash_deployed += cost
+        # Policy: demat cash is OFF-LIMITS to the strategy. To increase
+        # exposure, user manually buys LIQUIDBEES — next rebalance then
+        # SELL_EXITs LIQUIDBEES and deploys proceeds into stocks. Strategy
+        # never touches idle demat cash. See CLAUDE.md Capital Model.
 
         # Calculate net cash impact
         plan.net_cash_needed = plan.total_buy_value - plan.total_sell_value

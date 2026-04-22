@@ -276,8 +276,10 @@ def _normalize_sub_sector(sub_sector: str) -> str:
 # misclassification by downstream sources. The strategy's
 # _NON_EQUITY_SECTORS = {DEFENSIVE, COMMODITIES, DEBT, INTERNATIONAL} filter
 # in fortress/universe.py rejects anything tagged below. Registered hedges
-# (GOLDBEES, LIQUIDBEES, LIQUIDCASE) are separately re-added via
-# market-metadata.json → safe to tag aggressively here.
+# (GOLDBEES, LIQUIDBEES) are separately re-added via market-metadata.json →
+# safe to tag aggressively here. LIQUIDCASE stays in the allowlist as a
+# safety net (correctly tagged as DEBT) in case it ever re-enters the
+# universe, but is no longer a registered strategy hedge.
 _KNOWN_ETFS: Dict[str, Tuple[str, str]] = {
     # Gold ETFs
     "GOLDBEES":    ("COMMODITIES", "GOLD_ETF"),
@@ -1727,10 +1729,7 @@ def _load_universe_json_sectors() -> Dict[str, Tuple[str, str]]:
             continue
         mapping = {
             "gold": ("COMMODITIES", "GOLD_ETF"),
-            "silver": ("COMMODITIES", "SILVER_ETF"),
-            "international": ("INTERNATIONAL", "INTERNATIONAL_ETF"),
             "cash": ("DEBT", "LIQUID_ETF"),
-            "cash_liquid": ("DEBT", "LIQUID_ETF"),
         }
         out[sym] = mapping.get(key, ("DEFENSIVE", "DEFENSIVE"))
     return out

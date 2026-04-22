@@ -273,16 +273,6 @@
       "fund_house": "Nippon India",
       "description": "Liquid ETF - overnight rate returns, cash equivalent for margin"
     },
-    "cash_liquid": {
-      "symbol": "LIQUIDCASE",
-      "zerodha_symbol": "LIQUIDCASE",
-      "exchange": "NSE",
-      "instrument_type": "EQ",
-      "segment": "EQ",
-      "api_format": "NSE:LIQUIDCASE",
-      "fund_house": "ICICI Prudential",
-      "description": "Liquid fund ETF - cash equivalent for defensive allocation"
-    },
     "silver": {
       "symbol": "SILVERBEES",
       "zerodha_symbol": "SILVERBEES",

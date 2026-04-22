@@ -180,7 +180,6 @@ class AdaptiveDualMomentumStrategy(BaseStrategy):
     def __init__(self, config: Optional["Config"] = None):
         super().__init__(config)
         self._excluded_symbols: Set[str] = {
-            "LIQUIDCASE",
             "LIQUIDBEES",
             "NIFTYBEES",
             "JUNIORBEES",

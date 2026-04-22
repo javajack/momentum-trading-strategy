@@ -251,7 +251,6 @@ class MomentumEngine:
 
         # Excluded symbols (ETFs, hedges) — config-based + hardcoded external ETFs
         self._excluded_symbols: Set[str] = {
-            "LIQUIDCASE",
             "LIQUIDBEES",
             "NIFTYBEES",
             "JUNIORBEES",

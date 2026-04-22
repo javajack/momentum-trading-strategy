@@ -44,10 +44,15 @@
   `[201, 600]` window). Fallback: hand-curated LLM map + heuristic rules for
   deep-tail / delisted names NSE's sectoral CSVs don't cover.
 - **Market metadata**: `market-metadata.json` carries benchmark / sectoral
-  indices / VIX / hedges (GOLDBEES/LIQUIDBEES/LIQUIDCASE).
-- **Capital model**: LIQUIDBEES is the single source/sink of strategy capital.
-  No demat cash dependency (Kite RMS/margins endpoint is blocked for
-  non-whitelisted IPs post-April 2026; we handle this with a graceful degrade).
+  indices / VIX / hedges (GOLDBEES, LIQUIDBEES).
+- **Capital model**: LIQUIDBEES is the ONLY gateway for capital in/out of
+  the strategy. User deposits → manually buys LIQUIDBEES on Kite → strategy
+  SELL_EXITs LIQUIDBEES on next rebalance → deploys into stocks. Demat cash
+  sitting outside LIQUIDBEES is invisible — strategy never auto-sweeps it.
+  Stock-to-stock rotation is funded by sell proceeds (stocks + LIQUIDBEES
+  exits); if buys exceed that budget, planner scales buys proportionally
+  and warns. To reduce exposure, user manually sells LIQUIDBEES after a
+  rebalance surplus-sweep.
 - **Data sources**: Kite historical for live signals (adjusted, 12-month cap),
   nse-universe parquet for backtest (20-year coverage, split-adjusted via
   `compute_adj_factor`). Set in `fortress/nse_data_loader.py` and `fortress/cache.py`.

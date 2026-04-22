@@ -1317,9 +1317,12 @@ class FortressApp:
             )
         else:
             console.print(f"  [bold bright_green]► Fully self-funded[/bold bright_green]")
-        if plan.demat_cash_deployed > 0:
+        # Note: demat cash is intentionally left untouched. To increase
+        # exposure, manually buy LIQUIDBEES outside this tool; the next
+        # rebalance will convert it into stock positions.
+        if plan.available_cash > 0:
             console.print(
-                f"  [dim]Capital injection:[/dim] [bright_cyan]{format_currency(plan.demat_cash_deployed)}[/bright_cyan] [dim](demat cash → LIQUIDBEES)[/dim]"
+                f"  [dim]Idle demat cash:[/dim] [bright_cyan]{format_currency(plan.available_cash)}[/bright_cyan] [dim](not deployed — buy LIQUIDBEES manually to add exposure)[/dim]"
             )
 
     def _do_exit_all(self):

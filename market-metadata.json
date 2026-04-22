@@ -76,16 +76,6 @@
       "symbol": "LIQUIDBEES",
       "zerodha_symbol": "LIQUIDBEES"
     },
-    "cash_liquid": {
-      "api_format": "NSE:LIQUIDCASE",
-      "description": "Liquid fund ETF - cash equivalent for defensive allocation",
-      "exchange": "NSE",
-      "fund_house": "ICICI Prudential",
-      "instrument_type": "EQ",
-      "segment": "EQ",
-      "symbol": "LIQUIDCASE",
-      "zerodha_symbol": "LIQUIDCASE"
-    },
     "gold": {
       "api_format": "NSE:GOLDBEES",
       "description": "Gold ETF - tracks domestic gold prices",

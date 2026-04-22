@@ -67,10 +67,7 @@ class UniverseValidationError(Exception):
 # ranked universe (they're not equity).
 _HEDGE_SECTORS = {
     "gold": ("COMMODITIES", "GOLD_ETF"),
-    "silver": ("COMMODITIES", "SILVER_ETF"),
-    "international": ("INTERNATIONAL", "INTERNATIONAL_ETF"),
     "cash": ("DEBT", "LIQUID_ETF"),
-    "cash_liquid": ("DEBT", "LIQUID_ETF"),
 }
 
 
